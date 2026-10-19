@@ -33,9 +33,7 @@ Values for `.env.local` come from the Supabase dashboard → **Project Settings 
    npx supabase db push
    ```
 2. **Auth → URL Configuration:** set the Site URL to your site, and add `http://localhost:3000/**` (plus your Vercel URLs) to Redirect URLs.
-3. **Auth → Email Templates:** point the links at `/auth/confirm`:
-   - Confirm signup: `{{ .RedirectTo }}&token_hash={{ .TokenHash }}&type=email`
-   - Reset password: `{{ .RedirectTo }}&token_hash={{ .TokenHash }}&type=recovery`
+3. **Email templates:** nothing to change. `/auth/confirm` accepts Supabase's default links (open them in the same browser you signed up in). Custom templates with `token_hash` also work once custom SMTP (Resend) is set up.
 4. **Make yourself admin.** Sign up through the site, then run this in the SQL editor:
    ```sql
    insert into public.user_roles (user_id, role)
