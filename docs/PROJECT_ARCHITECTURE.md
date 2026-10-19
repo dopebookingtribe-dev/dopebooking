@@ -482,3 +482,41 @@ Verified locally: lint, typecheck, format check, 20 unit tests, production build
 - `npm audit` reports a high-severity `braces` advisory, reached only through the dev-only ESLint config. The suggested fix downgrades `eslint-config-next` to v14, so it is deferred until an upstream fix.
 - `napi-postinstall` is pinned to 0.3.4 (`overrides`). 0.3.5 was published minutes before install and was not downloadable. Review before unpinning.
 - A nonce-based Content-Security-Policy is deferred to the hardening phase.
+
+---
+
+## Phase 03 status (2026-10-20)
+
+Branch `phase-03-artists`. Built:
+
+- **Database** (`supabase/migrations/20261021000000_artists.sql`, applied to the Supabase project):
+  - `artists`, `artist_members`, `artist_private`, `artist_links`, `media_assets`
+  - Genre list enforced in the database
+  - Auto `published_at`
+  - RLS: the public sees published only; private info is visible to staff and the artist's own team only; staff write
+  - Storage buckets `public-media` (images, 8 MB, no SVG) and `private-docs` (PDF)
+- **Admin** (`/admin/artists`): list, create draft, edit details, status and featured, photo upload with alt text and credit, choose portrait, delete photo, links editor, private booking info.
+  - Photos upload straight from the browser to Storage, then the server checks the file and records it.
+- **Public:**
+  - `/artists` directory with genre filter
+  - `/artists/[slug]` profile: portrait, bio, links, gallery
+  - SEO: metadata, Open Graph and MusicGroup JSON-LD
+  - `sitemap.xml` and `robots.txt`
+  - Public reads are cached with `use cache` and refreshed instantly after admin edits (`updateTag("artists")`).
+- **CI** now builds against the real Supabase project with its public URL and publishable key, because public pages are prerendered from the database.
+
+Verified on a clean copy:
+
+- Passing: lint, typecheck, format check, 34 unit tests, production build, 15 Playwright tests.
+- Database checks over the API: tables exist; the public sees published content only; private tables are blocked.
+
+**Not verified yet:**
+
+- The admin flows (create, upload, publish) need a staff login. They are on the review checklist.
+- pgTAP tests have not been run (needs Docker).
+
+**Deferred:**
+
+- Artist self-service dashboard (`/dashboard/artist/*`)
+- Rider PDF uploads
+- Adding members from the admin UI

@@ -63,3 +63,17 @@ test("mobile menu covers the screen and closes with Escape", async ({
   await page.keyboard.press("Escape");
   await expect(panel).toBeHidden();
 });
+
+test("artist directory renders", async ({ page }) => {
+  await page.goto("/artists");
+  await expect(
+    page.getByRole("heading", { level: 1, name: "Artists" }),
+  ).toBeVisible();
+});
+
+test("unknown artist shows the not-found page", async ({ page }) => {
+  await page.goto("/artists/this-artist-does-not-exist");
+  await expect(
+    page.getByText("This page took a different stage."),
+  ).toBeVisible();
+});

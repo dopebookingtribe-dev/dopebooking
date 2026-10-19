@@ -4,13 +4,12 @@ import { redirect } from "next/navigation";
 import { safeNextPath } from "@/lib/auth/redirect";
 import { getPublicEnv } from "@/lib/env";
 import { createClient } from "@/lib/supabase/server";
+import { fieldErrorsOf, type FormState } from "@/lib/forms";
 import {
-  fieldErrorsOf,
   forgotPasswordSchema,
   loginSchema,
   resetPasswordSchema,
   signupSchema,
-  type FormState,
 } from "./schemas";
 
 function confirmUrl(next: string) {

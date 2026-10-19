@@ -1,13 +1,8 @@
-import type { Metadata } from "next";
+import Link from "next/link";
 import { Suspense } from "react";
 import { Container } from "@/components/ui/container";
 import { Meta } from "@/components/ui/meta";
 import { requireRole, STAFF_ROLES } from "@/lib/auth/dal";
-
-export const metadata: Metadata = {
-  title: "Admin",
-  robots: { index: false, follow: false },
-};
 
 export default function AdminPage() {
   return (
@@ -28,9 +23,21 @@ async function AdminHome() {
       <Meta>Admin</Meta>
       <h1 className="mt-3 font-display text-headline">Control room</h1>
       <p className="mt-4 text-muted">
-        Signed in as {user.email} ({user.roles.join(", ")}). Artist, event and
-        booking management arrives in Phase 03.
+        Signed in as {user.email} ({user.roles.join(", ")}).
       </p>
+      <ul className="mt-10 grid gap-px overflow-hidden rounded-(--radius) border border-line bg-line sm:grid-cols-2">
+        <li className="bg-bg">
+          <Link
+            href="/admin/artists"
+            className="block p-6 transition-colors hover:bg-surface-1"
+          >
+            <span className="font-display text-3xl">Artists</span>
+            <span className="mt-2 block text-sm text-muted">
+              Roster, profiles, photos and links.
+            </span>
+          </Link>
+        </li>
+      </ul>
     </>
   );
 }

@@ -12,11 +12,13 @@ concurrency:
   group: ci-${{ github.ref }}
   cancel-in-progress: true
 
-# Placeholder values so the app builds without real secrets.
+# Public pages are prerendered from the database at build time, so CI uses
+# the real project. Both values are public by design (they ship to every
+# browser) and RLS limits them to published content. No secrets here.
 env:
   NEXT_PUBLIC_SITE_URL: http://localhost:3000
-  NEXT_PUBLIC_SUPABASE_URL: https://placeholder.supabase.co
-  NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: sb_publishable_placeholder
+  NEXT_PUBLIC_SUPABASE_URL: https://mweuecypikrdcxppvawx.supabase.co
+  NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: sb_publishable_VwW4gVE9OqGr9fC08n4VUA_QAcdPS8b
   NEXT_TELEMETRY_DISABLED: 1
 
 jobs:

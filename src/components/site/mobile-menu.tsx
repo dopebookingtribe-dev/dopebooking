@@ -1,21 +1,15 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
 import { useEffect, useId, useState } from "react";
 import { buttonClasses } from "@/components/ui/button";
 import { BOOK_CTA, NAV_ITEMS } from "./nav-items";
 
 export function MobileMenu({ accountSlot }: { accountSlot: React.ReactNode }) {
+  // No usePathname(): reading the URL here would make every dynamic route
+  // block on it. The menu closes when any link inside it is followed.
   const [open, setOpen] = useState(false);
-  const [openedAt, setOpenedAt] = useState<string | null>(null);
-  const pathname = usePathname();
   const panelId = useId();
-
-  // Close when the route changes.
-  if (open && openedAt !== pathname) {
-    setOpen(false);
-  }
 
   useEffect(() => {
     if (!open) return;
@@ -36,10 +30,7 @@ export function MobileMenu({ accountSlot }: { accountSlot: React.ReactNode }) {
         type="button"
         aria-expanded={open}
         aria-controls={panelId}
-        onClick={() => {
-          setOpenedAt(pathname);
-          setOpen((value) => !value);
-        }}
+        onClick={() => setOpen((value) => !value)}
         className="inline-flex min-h-11 min-w-11 items-center justify-center font-mono text-xs tracking-[0.18em] uppercase"
       >
         {open ? "Close" : "Menu"}
@@ -48,6 +39,9 @@ export function MobileMenu({ accountSlot }: { accountSlot: React.ReactNode }) {
       <div
         id={panelId}
         hidden={!open}
+        onClick={(event) => {
+          if ((event.target as HTMLElement).closest("a")) setOpen(false);
+        }}
         className="fixed inset-x-0 top-16 bottom-0 z-40 flex flex-col bg-bg px-(--gutter) pt-8 pb-[max(1.5rem,env(safe-area-inset-bottom))]"
       >
         <nav aria-label="Main">
@@ -56,10 +50,7 @@ export function MobileMenu({ accountSlot }: { accountSlot: React.ReactNode }) {
               <li key={item.href}>
                 <Link
                   href={item.href}
-                  aria-current={
-                    pathname.startsWith(item.href) ? "page" : undefined
-                  }
-                  className="block py-3 font-display text-4xl aria-[current=page]:text-accent"
+                  className="block py-3 font-display text-4xl hover:text-accent"
                 >
                   {item.label}
                 </Link>

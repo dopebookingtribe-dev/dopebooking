@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { fieldErrorsOf, resetPasswordSchema, signupSchema } from "./schemas";
+import { fieldErrorsOf } from "@/lib/forms";
+import { resetPasswordSchema, signupSchema } from "./schemas";
 
 describe("signupSchema", () => {
   it("normalises email and accepts a valid signup", () => {

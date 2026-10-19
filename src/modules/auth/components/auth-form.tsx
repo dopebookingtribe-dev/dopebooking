@@ -3,7 +3,7 @@
 import { useActionState } from "react";
 import { Button } from "@/components/ui/button";
 import { Field } from "@/components/ui/field";
-import { initialFormState, type FormState } from "../schemas";
+import { initialFormState, type FormState } from "@/lib/forms";
 
 type FieldConfig = {
   name: string;
