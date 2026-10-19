@@ -6,17 +6,20 @@ import type { z } from "zod";
 import { requireRole, STAFF_ROLES } from "@/lib/auth/dal";
 import { fieldErrorsOf, formValues, type FormState } from "@/lib/forms";
 import { createClient } from "@/lib/supabase/server";
+import {
+  deleteOwnedImage,
+  makeLeadImage,
+  registerOwnedImage,
+  type ImageResult,
+  type RegisterImageInput,
+} from "@/modules/media/server";
 import { ARTISTS_TAG } from "./queries";
 import {
   artistDetailsSchema,
   artistLinksSchema,
   artistPrivateSchema,
   createArtistSchema,
-  IMAGE_TYPES,
-  registerImageSchema,
 } from "./schemas";
-
-const BUCKET = "public-media";
 
 async function staffClient(artistId?: string) {
   const path = artistId ? `/admin/artists/${artistId}` : "/admin/artists";
@@ -163,106 +166,32 @@ export async function saveArtistLinks(
   return { status: "success", message: "Links saved." };
 }
 
-export type ImageResult = { ok: true } | { ok: false; message: string };
-
-/**
- * Records an image the browser has already uploaded to Storage.
- * Verifies the object exists under this artist's folder and is an image.
- */
 export async function registerArtistImage(
   artistId: string,
-  input: z.input<typeof registerImageSchema>,
+  input: RegisterImageInput,
 ): Promise<ImageResult> {
   const { user, supabase } = await staffClient(artistId);
-  const parsed = registerImageSchema.safeParse(input);
-  if (!parsed.success) {
-    return {
-      ok: false,
-      message: parsed.error.issues[0]?.message ?? "Invalid image.",
-    };
-  }
-  const { path, ...image } = parsed.data;
-
-  if (!path.startsWith(`artists/${artistId}/`) || path.includes("..")) {
-    return { ok: false, message: "Invalid upload path." };
-  }
-  const { data: info, error: infoError } = await supabase.storage
-    .from(BUCKET)
-    .info(path);
-  const contentType = info?.contentType ?? info?.metadata?.mimetype;
-  if (
-    infoError ||
-    !(IMAGE_TYPES as readonly string[]).includes(String(contentType))
-  ) {
-    return { ok: false, message: "Upload not found or not an image." };
-  }
-
-  const { count } = await supabase
-    .from("media_assets")
-    .select("id", { count: "exact", head: true })
-    .eq("artist_id", artistId);
-
-  const { data: asset, error } = await supabase
-    .from("media_assets")
-    .insert({
-      artist_id: artistId,
-      storage_bucket: BUCKET,
-      storage_path: path,
-      sort_order: count ?? 0,
-      created_by: user.id,
-      ...image,
-    })
-    .select("id")
-    .single();
-  if (error) return { ok: false, message: "Could not save the photo." };
-
-  // First photo becomes the portrait automatically.
-  await supabase
-    .from("artists")
-    .update({ portrait_asset_id: asset.id })
-    .eq("id", artistId)
-    .is("portrait_asset_id", null);
-
-  updateTag(ARTISTS_TAG);
-  return { ok: true };
+  const result = await registerOwnedImage(
+    supabase,
+    user.id,
+    "artist",
+    artistId,
+    input,
+  );
+  if (result.ok) updateTag(ARTISTS_TAG);
+  return result;
 }
 
 export async function setArtistPortrait(artistId: string, assetId: string) {
   const { supabase } = await staffClient(artistId);
-  const { data: asset } = await supabase
-    .from("media_assets")
-    .select("id")
-    .eq("id", assetId)
-    .eq("artist_id", artistId)
-    .maybeSingle();
-  if (!asset) return;
-
-  await supabase
-    .from("artists")
-    .update({ portrait_asset_id: asset.id })
-    .eq("id", artistId);
-  updateTag(ARTISTS_TAG);
+  if (await makeLeadImage(supabase, "artist", artistId, assetId)) {
+    updateTag(ARTISTS_TAG);
+  }
 }
 
 export async function deleteArtistImage(artistId: string, assetId: string) {
   const { supabase } = await staffClient(artistId);
-  const { data: asset } = await supabase
-    .from("media_assets")
-    .select("id, storage_bucket, storage_path")
-    .eq("id", assetId)
-    .eq("artist_id", artistId)
-    .maybeSingle();
-  if (!asset) return;
-
-  // Row first (portrait FK clears itself), then the file.
-  const { error } = await supabase
-    .from("media_assets")
-    .delete()
-    .eq("id", asset.id);
-  if (error) return;
-  await supabase.storage
-    .from(asset.storage_bucket)
-    .remove([asset.storage_path]);
-
-  updateTag(ARTISTS_TAG);
+  if (await deleteOwnedImage(supabase, "artist", artistId, assetId)) {
+    updateTag(ARTISTS_TAG);
+  }
 }

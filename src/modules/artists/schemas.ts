@@ -1,5 +1,16 @@
 import { z } from "zod";
 import type { LinkPlatform } from "@/lib/supabase/database.types";
+import {
+  checkboxSchema,
+  countrySchema,
+  optionalText,
+  slugify,
+  slugSchema,
+  statusSchema,
+} from "@/lib/validation";
+
+// Re-exported for existing imports.
+export { slugify, STATUSES } from "@/lib/validation";
 
 // Keep in sync with public.valid_genres() in the artists migration.
 export const GENRES = {
@@ -37,49 +48,6 @@ export const LINK_PLATFORMS: Record<LinkPlatform, string> = {
   other: "Other",
 };
 
-export const STATUSES = {
-  draft: "Draft",
-  published: "Published",
-  archived: "Archived",
-} as const;
-
-export const IMAGE_TYPES = [
-  "image/jpeg",
-  "image/png",
-  "image/webp",
-  "image/avif",
-] as const;
-export const MAX_IMAGE_BYTES = 8 * 1024 * 1024;
-
-/** "Astral Projection Ø" -> "astral-projection-o" */
-export function slugify(input: string): string {
-  return input
-    .normalize("NFKD")
-    .replace(/ø/gi, "o")
-    .replace(/[̀-ͯ]/g, "")
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "")
-    .slice(0, 80)
-    .replace(/-+$/g, "");
-}
-
-const optionalText = (max: number) =>
-  z
-    .string()
-    .trim()
-    .max(max, `Use at most ${max} characters.`)
-    .transform((value) => (value === "" ? null : value));
-
-const slug = z
-  .string()
-  .trim()
-  .max(80, "Use at most 80 characters.")
-  .regex(
-    /^[a-z0-9]+(-[a-z0-9]+)*$/,
-    "Use lowercase letters, numbers and single dashes.",
-  );
-
 const stageName = z
   .string()
   .trim()
@@ -92,32 +60,20 @@ export const createArtistSchema = z
     stage_name: data.stage_name,
     slug: data.slug ? data.slug : slugify(data.stage_name),
   }))
-  .pipe(z.object({ stage_name: stageName, slug }));
-
-const country = z
-  .string()
-  .trim()
-  .toUpperCase()
-  .refine((value) => value === "" || /^[A-Z]{2}$/.test(value), {
-    message: "Choose a country.",
-  })
-  .transform((value) => (value === "" ? null : value));
+  .pipe(z.object({ stage_name: stageName, slug: slugSchema }));
 
 export const artistDetailsSchema = z.object({
   stage_name: stageName,
-  slug,
+  slug: slugSchema,
   tagline: optionalText(160),
   bio: optionalText(6000),
-  country,
+  country: countrySchema,
   based_in: optionalText(80),
   genres: z
     .array(z.enum(GENRE_KEYS as [Genre, ...Genre[]]))
     .max(6, "Choose up to 6 genres."),
-  status: z.enum(["draft", "published", "archived"]),
-  featured: z
-    .union([z.literal("on"), z.literal("")])
-    .optional()
-    .transform((value) => value === "on"),
+  status: statusSchema,
+  featured: checkboxSchema,
   sort_order: z.coerce.number().int("Use a whole number.").min(-1000).max(1000),
 });
 
@@ -167,15 +123,3 @@ export const artistLinkSchema = z.object({
 export const artistLinksSchema = z
   .array(artistLinkSchema)
   .max(20, "Add at most 20 links.");
-
-export const registerImageSchema = z.object({
-  path: z.string().min(1).max(300),
-  alt_text: z
-    .string()
-    .trim()
-    .min(1, "Describe the photo for screen readers.")
-    .max(300),
-  credit: optionalText(120),
-  width: z.number().int().positive().max(20000),
-  height: z.number().int().positive().max(20000),
-});

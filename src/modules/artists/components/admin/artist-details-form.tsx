@@ -4,7 +4,6 @@ import { useActionState } from "react";
 import { Button } from "@/components/ui/button";
 import { Field, SelectField, TextareaField } from "@/components/ui/field";
 import { FormStatus } from "@/components/ui/form-status";
-import { COUNTRIES } from "@/lib/countries";
 import { initialFormState, type FormState } from "@/lib/forms";
 import type { ArtistRow } from "@/lib/supabase/database.types";
 import { GENRES, GENRE_KEYS, STATUSES } from "../../schemas";
@@ -12,8 +11,11 @@ import { GENRES, GENRE_KEYS, STATUSES } from "../../schemas";
 export function ArtistDetailsForm({
   artist,
   action,
+  countries,
 }: {
   artist: ArtistRow;
+  // Built on the server so names match between server and browser.
+  countries: { code: string; name: string }[];
   action: (prev: FormState, formData: FormData) => Promise<FormState>;
 }) {
   const [state, formAction, pending] = useActionState(action, initialFormState);
@@ -75,7 +77,7 @@ export function ArtistDetailsForm({
           error={error("country")}
         >
           <option value="">Not set</option>
-          {COUNTRIES.map((country) => (
+          {countries.map((country) => (
             <option key={country.code} value={country.code}>
               {country.name}
             </option>

@@ -13,6 +13,7 @@ export type AppRole =
 export type ContentStatus = "draft" | "published" | "archived";
 export type ArtistMemberRole = "owner" | "manager";
 export type MediaType = "image";
+export type VideoProvider = "cloudflare_stream" | "mux" | "youtube" | "vimeo";
 export type LinkPlatform =
   | "website"
   | "instagram"
@@ -74,6 +75,9 @@ export type ArtistLinkRow = {
 export type MediaAssetRow = {
   id: string;
   artist_id: string | null;
+  event_id: string | null;
+  gallery_id: string | null;
+  video_id: string | null;
   type: MediaType;
   storage_bucket: string;
   storage_path: string;
@@ -85,6 +89,72 @@ export type MediaAssetRow = {
   created_by: string | null;
   created_at: string;
 };
+
+export type EventRow = {
+  id: string;
+  slug: string;
+  title: string;
+  summary: string | null;
+  description: string | null;
+  starts_at: string;
+  ends_at: string | null;
+  timezone: string;
+  venue_name: string | null;
+  city: string | null;
+  country: string | null;
+  ticket_url: string | null;
+  status: ContentStatus;
+  featured: boolean;
+  cover_asset_id: string | null;
+  published_at: string | null;
+  created_by: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type EventArtistRow = {
+  event_id: string;
+  artist_id: string;
+  stage: string | null;
+  set_starts_at: string | null;
+  sort_order: number;
+};
+
+export type GalleryRow = {
+  id: string;
+  slug: string;
+  title: string;
+  description: string | null;
+  event_id: string | null;
+  photographer: string | null;
+  status: ContentStatus;
+  cover_asset_id: string | null;
+  published_at: string | null;
+  created_by: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type VideoRow = {
+  id: string;
+  slug: string;
+  title: string;
+  description: string | null;
+  provider: VideoProvider;
+  provider_ref: string;
+  event_id: string | null;
+  artist_id: string | null;
+  status: ContentStatus;
+  featured: boolean;
+  poster_asset_id: string | null;
+  published_at: string | null;
+  created_by: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+type ContentInsert<Row, Required extends keyof Row> = Pick<Row, Required> &
+  Partial<Omit<Row, "id" | "created_at" | "updated_at">>;
 
 export type Database = {
   public: {
@@ -147,6 +217,19 @@ export type Database = {
         Pick<MediaAssetRow, "storage_path" | "alt_text"> &
           Partial<Omit<MediaAssetRow, "id" | "created_at">>
       >;
+      events: Table<
+        EventRow,
+        ContentInsert<EventRow, "slug" | "title" | "starts_at">
+      >;
+      event_artists: Table<
+        EventArtistRow,
+        Pick<EventArtistRow, "event_id" | "artist_id"> & Partial<EventArtistRow>
+      >;
+      galleries: Table<GalleryRow, ContentInsert<GalleryRow, "slug" | "title">>;
+      videos: Table<
+        VideoRow,
+        ContentInsert<VideoRow, "slug" | "title" | "provider" | "provider_ref">
+      >;
     };
     Views: Record<string, never>;
     Functions: {
@@ -154,6 +237,9 @@ export type Database = {
       is_staff: { Args: Record<string, never>; Returns: boolean };
       is_artist_member: { Args: { target: string }; Returns: boolean };
       is_published_artist: { Args: { target: string }; Returns: boolean };
+      is_published_event: { Args: { target: string }; Returns: boolean };
+      is_published_gallery: { Args: { target: string }; Returns: boolean };
+      is_published_video: { Args: { target: string }; Returns: boolean };
     };
     Enums: {
       app_role: AppRole;
@@ -161,6 +247,7 @@ export type Database = {
       artist_member_role: ArtistMemberRole;
       media_type: MediaType;
       link_platform: LinkPlatform;
+      video_provider: VideoProvider;
     };
     CompositeTypes: Record<string, never>;
   };

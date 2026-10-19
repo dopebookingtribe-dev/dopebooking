@@ -5,7 +5,7 @@ import { ButtonLink } from "@/components/ui/button";
 import { Container } from "@/components/ui/container";
 import { Meta } from "@/components/ui/meta";
 import { listArtistsForAdmin } from "@/modules/artists/admin-queries";
-import { StatusBadge } from "@/modules/artists/components/admin/status-badge";
+import { StatusBadge } from "@/components/admin/admin-ui";
 import { GENRES, isGenre } from "@/modules/artists/schemas";
 
 export const metadata: Metadata = { title: "Artists" };

@@ -520,3 +520,39 @@ Verified on a clean copy:
 - Artist self-service dashboard (`/dashboard/artist/*`)
 - Rider PDF uploads
 - Adding members from the admin UI
+
+---
+
+## Phase 04 status (2026-10-20)
+
+Branch `phase-04-events-media` (stacked on `phase-03-artists`). Built:
+
+- **Database** (`supabase/migrations/20261022000000_events_galleries_videos.sql`, applied):
+  - `events`, `event_artists` (lineup), `galleries`, `videos`
+  - `media_assets` can now belong to an artist, event, gallery or video (exactly one)
+  - RLS: the public sees published items only; lineup rows need both the event and the artist published; staff write
+- **Video (provider-agnostic):** admins paste a Mux, Cloudflare Stream, YouTube or Vimeo link. `src/lib/video.ts` accepts only known hosts and safe ids.
+  - Players use privacy modes (youtube-nocookie, Vimeo `dnt`) behind a click-to-play poster, so nothing third-party loads until play.
+  - **Decision still open:** Mux vs Cloudflare Stream for self-hosted streaming. Either works with no code change; direct uploads to the chosen provider come later.
+- **Time zones:** events are entered and shown in their own IANA zone and stored in UTC (`src/lib/datetime.ts`, DST-tested).
+- **Admin:**
+  - `/admin/events`: details, lineup editor with running order and set times, cover image
+  - `/admin/galleries`: bulk photo upload with a shared description, choose cover
+  - `/admin/videos`: link, event/artist, poster, live preview
+- **Public:**
+  - `/events` (upcoming and past), `/events/[slug]` with lineup, tickets, related photos and videos, MusicEvent JSON-LD
+  - `/gallery`, `/gallery/[slug]` with a full-screen keyboard photo viewer
+  - `/videos`, `/videos/[slug]`
+  - Artist profiles now list upcoming shows and videos
+  - Sitemap covers all content
+- **Shared building blocks:** `modules/media` (uploader, grid, server checks), `lib/validation`, `components/admin/admin-ui`.
+
+Verified on a clean copy against the real database:
+
+- Passing: lint, typecheck, format check, 78 unit tests, production build, 23 Playwright tests.
+- Database checks over the API: the new tables exist and the public can read only published rows.
+
+**Not verified yet:**
+
+- Admin create/upload flows (need a staff login; on the review checklist)
+- pgTAP tests (need Docker)

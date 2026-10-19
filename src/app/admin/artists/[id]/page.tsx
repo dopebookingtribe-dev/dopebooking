@@ -4,9 +4,12 @@ import { notFound } from "next/navigation";
 import { Suspense, type ReactNode } from "react";
 import { Container } from "@/components/ui/container";
 import { Meta } from "@/components/ui/meta";
+import { COUNTRIES } from "@/lib/countries";
 import {
+  deleteArtistImage,
   registerArtistImage,
   saveArtistLinks,
+  setArtistPortrait,
   updateArtistDetails,
   updateArtistPrivate,
 } from "@/modules/artists/actions";
@@ -14,9 +17,10 @@ import { getArtistForAdmin } from "@/modules/artists/admin-queries";
 import { ArtistDetailsForm } from "@/modules/artists/components/admin/artist-details-form";
 import { ArtistLinksForm } from "@/modules/artists/components/admin/artist-links-form";
 import { ArtistPrivateForm } from "@/modules/artists/components/admin/artist-private-form";
-import { ImageGrid } from "@/modules/artists/components/admin/image-grid";
-import { ImageUploader } from "@/modules/artists/components/admin/image-uploader";
-import { StatusBadge } from "@/modules/artists/components/admin/status-badge";
+import { StatusBadge } from "@/components/admin/admin-ui";
+import { ImageGrid } from "@/modules/media/components/image-grid";
+import { ImageUploader } from "@/modules/media/components/image-uploader";
+import { mediaFolder } from "@/modules/media/server";
 
 export const metadata: Metadata = { title: "Edit artist" };
 
@@ -78,6 +82,7 @@ async function Editor({
           <ArtistDetailsForm
             artist={artist}
             action={updateArtistDetails.bind(null, artist.id)}
+            countries={COUNTRIES}
           />
         </Section>
 
@@ -87,12 +92,14 @@ async function Editor({
         >
           <div className="flex flex-col gap-8">
             <ImageGrid
-              artistId={artist.id}
               images={images}
-              portraitId={artist.portrait_asset_id}
+              leadId={artist.portrait_asset_id}
+              leadLabel="Portrait"
+              makeLead={setArtistPortrait.bind(null, artist.id)}
+              remove={deleteArtistImage.bind(null, artist.id)}
             />
             <ImageUploader
-              artistId={artist.id}
+              folder={mediaFolder("artist", artist.id)}
               register={registerArtistImage.bind(null, artist.id)}
             />
           </div>

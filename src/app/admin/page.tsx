@@ -4,6 +4,29 @@ import { Container } from "@/components/ui/container";
 import { Meta } from "@/components/ui/meta";
 import { requireRole, STAFF_ROLES } from "@/lib/auth/dal";
 
+const SECTIONS = [
+  {
+    href: "/admin/artists",
+    title: "Artists",
+    body: "Roster, profiles, photos and links.",
+  },
+  {
+    href: "/admin/events",
+    title: "Events",
+    body: "Dates, venues, lineups and covers.",
+  },
+  {
+    href: "/admin/galleries",
+    title: "Galleries",
+    body: "Festival photo sets, bulk upload.",
+  },
+  {
+    href: "/admin/videos",
+    title: "Videos",
+    body: "Aftermovies and sets from any video link.",
+  },
+] as const;
+
 export default function AdminPage() {
   return (
     <Container className="py-16">
@@ -26,17 +49,19 @@ async function AdminHome() {
         Signed in as {user.email} ({user.roles.join(", ")}).
       </p>
       <ul className="mt-10 grid gap-px overflow-hidden rounded-(--radius) border border-line bg-line sm:grid-cols-2">
-        <li className="bg-bg">
-          <Link
-            href="/admin/artists"
-            className="block p-6 transition-colors hover:bg-surface-1"
-          >
-            <span className="font-display text-3xl">Artists</span>
-            <span className="mt-2 block text-sm text-muted">
-              Roster, profiles, photos and links.
-            </span>
-          </Link>
-        </li>
+        {SECTIONS.map((section) => (
+          <li key={section.href} className="bg-bg">
+            <Link
+              href={section.href}
+              className="block p-6 transition-colors hover:bg-surface-1"
+            >
+              <span className="font-display text-3xl">{section.title}</span>
+              <span className="mt-2 block text-sm text-muted">
+                {section.body}
+              </span>
+            </Link>
+          </li>
+        ))}
       </ul>
     </>
   );

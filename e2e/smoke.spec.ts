@@ -77,3 +77,23 @@ test("unknown artist shows the not-found page", async ({ page }) => {
     page.getByText("This page took a different stage."),
   ).toBeVisible();
 });
+
+for (const [path, heading] of [
+  ["/events", "Events"],
+  ["/gallery", "Photos"],
+  ["/videos", "Videos"],
+] as const) {
+  test(`${path} renders`, async ({ page }) => {
+    await page.goto(path);
+    await expect(
+      page.getByRole("heading", { level: 1, name: heading }),
+    ).toBeVisible();
+  });
+}
+
+test("admin sections are guarded", async ({ page }) => {
+  for (const path of ["/admin/events", "/admin/galleries", "/admin/videos"]) {
+    await page.goto(path);
+    await expect(page).toHaveURL(/\/login\?next=/);
+  }
+});

@@ -20,12 +20,19 @@ const nextConfig: NextConfig = {
   partialPrefetching: true,
   poweredByHeader: false,
   images: {
-    // Public Supabase Storage objects only.
+    // Public Supabase Storage objects and video provider thumbnails only.
     remotePatterns: [
       {
         protocol: "https",
         hostname: "*.supabase.co",
         pathname: "/storage/v1/object/public/**",
+      },
+      { protocol: "https", hostname: "i.ytimg.com", pathname: "/vi/**" },
+      { protocol: "https", hostname: "image.mux.com" },
+      {
+        protocol: "https",
+        hostname: "*.cloudflarestream.com",
+        pathname: "/*/thumbnails/**",
       },
     ],
   },

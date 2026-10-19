@@ -27,3 +27,39 @@ export function formValues(formData: FormData, multi: string[] = []) {
   }
   return values;
 }
+
+export function invalidForm(
+  error: z.ZodError,
+  formData: FormData,
+  multi?: string[],
+): FormState {
+  return {
+    status: "error",
+    fieldErrors: fieldErrorsOf(error),
+    values: formValues(formData, multi),
+  };
+}
+
+export function failedForm(formData: FormData, multi?: string[]): FormState {
+  return {
+    status: "error",
+    message: "Saving failed. Please try again.",
+    values: formValues(formData, multi),
+  };
+}
+
+export function slugTakenForm(formData: FormData, multi?: string[]): FormState {
+  return {
+    status: "error",
+    fieldErrors: { slug: ["Another entry already uses this URL."] },
+    values: formValues(formData, multi),
+  };
+}
+
+export function savedForm(formData: FormData, multi?: string[]): FormState {
+  return {
+    status: "success",
+    message: "Saved.",
+    values: formValues(formData, multi),
+  };
+}

@@ -7,7 +7,12 @@ import { ButtonLink } from "@/components/ui/button";
 import { Container } from "@/components/ui/container";
 import { Meta } from "@/components/ui/meta";
 import { countryName } from "@/lib/countries";
+import { formatEventRange } from "@/lib/datetime";
 import { genreLabels } from "@/modules/artists/components/artist-card";
+import { eventPlace } from "@/modules/events/components/event-row";
+import { getUpcomingEventsForArtist } from "@/modules/events/queries";
+import { VideoCard } from "@/modules/videos/components/video-card";
+import { getPublishedVideos } from "@/modules/videos/queries";
 import { getPublishedArtist } from "@/modules/artists/queries";
 import { LINK_PLATFORMS } from "@/modules/artists/schemas";
 
@@ -61,6 +66,10 @@ async function Profile({ params }: { params: Props["params"] }) {
     [artist.basedIn, countryName(artist.country)].filter(Boolean).join(", "),
     ...genreLabels(artist.genres),
   ].filter(Boolean);
+  const [shows, videos] = await Promise.all([
+    getUpcomingEventsForArtist(artist.id),
+    getPublishedVideos({ artistId: artist.id }),
+  ]);
   const gallery = artist.images.filter(
     (image) => image.id !== artist.portrait?.id,
   );
@@ -149,6 +158,36 @@ async function Profile({ params }: { params: Props["params"] }) {
             </div>
           ) : null}
 
+          {shows.length ? (
+            <section aria-labelledby="shows-heading" className="mt-14">
+              <h2 id="shows-heading">
+                <Meta>Upcoming shows</Meta>
+              </h2>
+              <ul className="mt-4 divide-y divide-line border-y border-line">
+                {shows.map((show) => (
+                  <li key={show.id}>
+                    <Link
+                      href={`/events/${show.slug}`}
+                      className="group flex min-h-14 flex-col justify-center gap-1 py-3 sm:flex-row sm:items-center sm:justify-between"
+                    >
+                      <span className="font-display text-2xl transition-colors group-hover:text-accent">
+                        {show.title}
+                      </span>
+                      <span className="text-sm text-muted">
+                        {formatEventRange(
+                          show.startsAt,
+                          show.endsAt,
+                          show.timezone,
+                        )}
+                        {eventPlace(show) ? ` · ${eventPlace(show)}` : ""}
+                      </span>
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          ) : null}
+
           {artist.links.length ? (
             <section aria-labelledby="links-heading" className="mt-14">
               <h2 id="links-heading">
@@ -178,6 +217,23 @@ async function Profile({ params }: { params: Props["params"] }) {
           ) : null}
         </div>
       </Container>
+
+      {videos.length ? (
+        <section aria-labelledby="videos-heading" className="pb-16">
+          <Container>
+            <h2 id="videos-heading" className="font-display text-headline">
+              Videos
+            </h2>
+            <ul className="mt-8 grid gap-x-6 gap-y-12 sm:grid-cols-2">
+              {videos.map((video) => (
+                <li key={video.id}>
+                  <VideoCard video={video} />
+                </li>
+              ))}
+            </ul>
+          </Container>
+        </section>
+      ) : null}
 
       {gallery.length ? (
         <section aria-labelledby="gallery-heading" className="pb-24">
