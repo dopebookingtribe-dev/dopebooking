@@ -656,3 +656,48 @@ Verified on a clean copy against the real database:
 **Next (Phase 08):**
 
 - Stripe Checkout, Stripe Connect onboarding, orders, commissions and digital delivery, all in test mode
+
+---
+
+## Phase 08 status (2026-10-20)
+
+Branch `phase-08-payments` (stacked on `phase-07-marketplace`). Built; **live Stripe testing is postponed until the Stripe account exists** (owner's decision).
+
+- **Payment model** (checked against Stripe's docs on 2026-10-20):
+  - **Separate charges and transfers.** The platform charges the buyer once with Stripe Checkout (cards incl. Apple Pay and Google Pay), then transfers each seller their share using `source_transaction`. Supported for a Germany platform; cross-border transfers are possible within the US, CA, UK, EEA and CH.
+  - **Seller accounts:** Stripe Accounts v2 with the Recipient configuration and the Express Dashboard. The platform carries fees and losses, and Stripe collects identity details (KYC).
+  - SDK `stripe@23.0.0`, API version `2026-09-30.endive`.
+- **Money math** (`src/modules/orders/split.ts`, unit-tested):
+  - Commission applies to items only (default **15%**, per-seller override); flat shipping per seller per order.
+  - Seller share = items − commission + shipping.
+  - Refunds take sellers' shares back proportionally, and in full on a full refund.
+- **Database** (`supabase/migrations/20261026000000_orders_payments.sql`, applied):
+  - `orders`, `seller_orders`, `order_items` (price snapshots), `seller_stripe`, `stripe_events` (idempotency), `product_files`, private `digital-goods` bucket, `sellers.shipping_flat_amount`
+  - `apply_order_stock()` (detects overselling) and `mark_seller_order_shipped()`
+  - Orders are written only by the server with the service role. Buyers, sellers and staff read through RLS.
+- **Flows:**
+  - **Checkout:** the cart is re-priced and checked against the database (stock, approved seller, active payouts) → pending order → Stripe Checkout (30-min expiry, idempotent).
+  - **Webhook** `/api/webhooks/stripe`: signature-verified and idempotent. On payment it marks the order paid, lowers stock, transfers to sellers, and notifies buyer and sellers. It also handles expiry and refunds.
+  - **Guest checkout:** a private order link (only a sha256 of the token is stored).
+  - **Buyers:** `/dashboard/orders` and `/orders/[id]?token=`, with 15-minute signed download links for digital items.
+  - **Sellers:** payout onboarding (`/dashboard/seller` → Stripe), Stripe dashboard link, shipping fee, `/dashboard/seller/orders` with "Mark as shipped" and tracking.
+  - **Admin:** `/admin/orders` (paid, needs attention), finance breakdown, full or partial refunds with transfer reversals, retry failed transfers.
+- **Safety while not configured:**
+  - Without `STRIPE_SECRET_KEY` the cart shows "Checkout opens soon", the webhook returns 503, and order pages show "not found".
+  - Without `SUPABASE_SECRET_KEY`, order lookups are refused.
+
+Verified on a clean copy:
+
+- Passing: lint, typecheck, format check, 121 unit tests (money math, templates), production build, 43 Playwright tests.
+- Order tables are locked to the public. The Supabase secret key was verified on the owner's machine.
+
+**Not verified yet:**
+
+- Any real Stripe call: Checkout, transfers, Accounts v2 onboarding, refunds, webhook events. They need the Stripe test account (see the review checklist).
+- pgTAP tests (need Docker)
+
+**Still open / legal:**
+
+- VAT/OSS for goods and digital products (consider Stripe Tax and an accountant)
+- Seller terms, refund policy
+- Live keys only after legal review

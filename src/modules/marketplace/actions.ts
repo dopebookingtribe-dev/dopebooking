@@ -227,6 +227,24 @@ export async function updateProduct(
   if (!(await myProduct(supabase, user.id, productId)))
     return failedForm(formData);
 
+  if (
+    parsed.data.status === "published" &&
+    parsed.data.product_type === "digital"
+  ) {
+    const { count: files } = await supabase
+      .from("product_files")
+      .select("id", { count: "exact", head: true })
+      .eq("product_id", productId);
+    if (!files) {
+      return {
+        status: "error",
+        fieldErrors: {
+          status: ["Add a download file before publishing a digital product."],
+        },
+        values: formValues(formData),
+      };
+    }
+  }
   if (parsed.data.status === "published") {
     const { count } = await supabase
       .from("product_variants")

@@ -23,6 +23,11 @@ import {
   VariantsForm,
 } from "@/modules/marketplace/components/product-forms";
 import { getMyProduct } from "@/modules/marketplace/queries";
+import { FileUploader } from "@/modules/marketplace/components/file-uploader";
+import {
+  deleteProductFile,
+  registerProductFile,
+} from "@/modules/marketplace/file-actions";
 import { ImageGrid } from "@/modules/media/components/image-grid";
 import { ImageUploader } from "@/modules/media/components/image-uploader";
 import { mediaFolder } from "@/modules/media/server";
@@ -49,7 +54,7 @@ async function Editor({
   const { id } = await params;
   const data = await getMyProduct(id);
   if (!data) notFound();
-  const { product, variants, images, sellerStatus } = data;
+  const { product, variants, images, files, sellerStatus } = data;
   const editable = sellerStatus === "approved";
 
   return (
@@ -115,6 +120,57 @@ async function Editor({
             />
           </div>
         </EditSection>
+        {product.product_type === "digital" ? (
+          <EditSection
+            title="Download files"
+            description="What buyers get after paying. Stored privately; links expire after 15 minutes."
+          >
+            <div className="flex flex-col gap-6">
+              {files.length ? (
+                <ul className="divide-y divide-line border-y border-line text-sm">
+                  {files.map((file) => (
+                    <li
+                      key={file.id}
+                      className="flex items-center justify-between gap-3 py-3"
+                    >
+                      <span>
+                        {file.file_name}
+                        <span className="ml-2 text-muted">
+                          {(file.size_bytes / 1024 / 1024).toFixed(1)} MB
+                        </span>
+                      </span>
+                      <form
+                        action={deleteProductFile.bind(
+                          null,
+                          product.id,
+                          file.id,
+                        )}
+                      >
+                        <ConfirmSubmit
+                          message="Remove this file? Past buyers lose access to it."
+                          className={buttonClasses(
+                            "ghost",
+                            "min-h-9 px-3 text-xs",
+                          )}
+                        >
+                          Remove
+                        </ConfirmSubmit>
+                      </form>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p className="text-sm text-danger">
+                  No files yet. Add one before publishing.
+                </p>
+              )}
+              <FileUploader
+                productId={product.id}
+                register={registerProductFile.bind(null, product.id)}
+              />
+            </div>
+          </EditSection>
+        ) : null}
         {product.status === "draft" ? (
           <EditSection
             title="Delete"

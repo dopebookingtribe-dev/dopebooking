@@ -70,3 +70,24 @@ Use a **second (non-admin) account** as the promoter. A private/incognito window
 - [ ] `/cart`: change quantity, remove; prices match the product page
 - [ ] As admin: **Suspend** the seller → the shop and products disappear from `/shop`; approve again → they return
 - [ ] Try a digital product (no stock = unlimited)
+
+## Phase 08: payments (do this when you set up Stripe)
+
+### One-time Stripe setup (test mode)
+
+- [ ] Create the Stripe account (Germany) and stay in **test mode / Sandbox**
+- [ ] Developers → API keys → copy the **Secret key** (`sk_test_…`) into `.env.local` as `STRIPE_SECRET_KEY=`
+- [ ] Connect → **Get started** (choose Marketplace), finish the platform profile
+- [ ] Settings → Connect → Onboarding interface: name **DopeBooking**, colour, icon
+- [ ] Tell Claude: it will start the Stripe event forwarder on your Mac (`stripe listen`) and add `STRIPE_WEBHOOK_SECRET` for you
+
+### Test purchase
+
+- [ ] As the seller: `/dashboard/seller` → **Set up payouts** → in Stripe's test onboarding use **"Use test data"** → status becomes **Active**
+- [ ] Set a shipping fee; publish a physical and a digital product (with a download file)
+- [ ] As a buyer (and once as a guest in a private window): add both to the cart → **Checkout** → card `4242 4242 4242 4242`, any future date, any CVC
+- [ ] Back on the site: "Thank you!", order shows **Paid**, the download works
+- [ ] Seller sees the order, marks it shipped with tracking; buyer sees tracking
+- [ ] `/admin/orders`: amounts, commission and transfers look right; try a **partial refund**, then a full one
+- [ ] In Stripe (test): the payment, the transfer to the seller and the refund/reversal appear
+- [ ] Before going live: Stripe Tax/VAT decision, seller terms and refund policy, then switch to live keys and add the webhook endpoint for the real domain

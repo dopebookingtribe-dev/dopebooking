@@ -182,3 +182,35 @@ test("seller and marketplace admin pages are protected", async ({ page }) => {
   await page.goto("/admin/sellers");
   await expect(page).toHaveURL(/\/login\?next=/);
 });
+
+test("payments stay off safely until Stripe is configured", async ({
+  page,
+  request,
+}) => {
+  // Webhook refuses without configuration (CI has no Stripe keys).
+  const webhook = await request.post("/api/webhooks/stripe", { data: "{}" });
+  expect([400, 503]).toContain(webhook.status());
+
+  await page.goto(
+    "/checkout/success?order=00000000-0000-0000-0000-000000000000&token=nope",
+  );
+  await expect(
+    page.getByRole("heading", { name: "Order not found" }),
+  ).toBeVisible();
+
+  await page.goto("/orders/00000000-0000-0000-0000-000000000000?token=nope");
+  await expect(
+    page.getByText("This page took a different stage."),
+  ).toBeVisible();
+});
+
+test("order pages are protected", async ({ page }) => {
+  for (const path of [
+    "/dashboard/orders",
+    "/dashboard/seller/orders",
+    "/admin/orders",
+  ]) {
+    await page.goto(path);
+    await expect(page).toHaveURL(/\/login\?next=/);
+  }
+});

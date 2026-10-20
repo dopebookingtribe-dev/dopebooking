@@ -16,6 +16,17 @@ import { SellerStatusBadge } from "@/modules/marketplace/components/seller-statu
 import { getMySeller } from "@/modules/marketplace/queries";
 import { PRODUCT_TYPES } from "@/modules/marketplace/schemas";
 import { ImageUploader } from "@/modules/media/components/image-uploader";
+import { hasPayments } from "@/lib/env.server";
+import {
+  ActionButton,
+  ShippingForm,
+} from "@/modules/orders/components/seller-forms";
+import { getMyPayoutStatus } from "@/modules/orders/queries";
+import {
+  openPayoutDashboard,
+  startPayoutOnboarding,
+  updateShipping,
+} from "@/modules/orders/seller-actions";
 import { mediaFolder } from "@/modules/media/server";
 
 export const metadata: Metadata = { title: "My shop" };
@@ -138,6 +149,35 @@ async function Shop({
           </EditSection>
         ) : null}
 
+        {seller.status === "approved" ? (
+          <>
+            <EditSection
+              title="Orders"
+              description="Paid orders to prepare and ship."
+            >
+              <ButtonLink href="/dashboard/seller/orders" variant="secondary">
+                View orders
+              </ButtonLink>
+            </EditSection>
+            <EditSection
+              title="Payouts"
+              description="Get paid by Stripe. Buyers can only check out your products once this is active."
+            >
+              <Suspense
+                fallback={<p className="text-sm text-muted">Loading…</p>}
+              >
+                <Payouts />
+              </Suspense>
+            </EditSection>
+            <EditSection title="Shipping" description="One flat fee per order.">
+              <ShippingForm
+                action={updateShipping}
+                current={seller.shipping_flat_amount}
+              />
+            </EditSection>
+          </>
+        ) : null}
+
         <EditSection
           title="Shop profile"
           description="Shown on your storefront."
@@ -174,5 +214,47 @@ async function Shop({
         </EditSection>
       </div>
     </>
+  );
+}
+
+async function Payouts() {
+  if (!hasPayments()) {
+    return (
+      <p className="text-sm text-muted">
+        Payments aren&apos;t switched on yet.
+      </p>
+    );
+  }
+  const payout = await getMyPayoutStatus();
+  const status = payout?.transfers_status ?? "not_started";
+  const text: Record<string, string> = {
+    not_started: "Not set up yet.",
+    pending: "Stripe is checking your details.",
+    active: "Active: you can receive payments.",
+    restricted: "Stripe needs more information.",
+    rejected: "Stripe couldn't approve this account.",
+    unsupported: "Payouts aren't available in your country yet.",
+  };
+  return (
+    <div className="flex flex-col gap-4">
+      <p className={status === "active" ? "text-success" : "text-muted"}>
+        {text[status] ?? status}
+        {payout?.requirements_due
+          ? ` (${payout.requirements_due} item(s) to complete)`
+          : ""}
+      </p>
+      <div className="flex flex-wrap gap-3">
+        {status !== "active" ? (
+          <ActionButton action={startPayoutOnboarding}>
+            {payout ? "Continue payout setup" : "Set up payouts"}
+          </ActionButton>
+        ) : null}
+        {payout ? (
+          <ActionButton action={openPayoutDashboard} variant="secondary">
+            Open Stripe dashboard
+          </ActionButton>
+        ) : null}
+      </div>
+    </div>
   );
 }

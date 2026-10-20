@@ -16,6 +16,11 @@ const SECTIONS = [
     body: "Promotion, catering and production; providers.",
   },
   {
+    href: "/admin/orders",
+    title: "Orders",
+    body: "Payments, seller transfers and refunds.",
+  },
+  {
     href: "/admin/sellers",
     title: "Sellers",
     body: "Shop applications, approvals and moderation.",

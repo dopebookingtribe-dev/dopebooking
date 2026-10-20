@@ -10,7 +10,7 @@ import { replaceCart, setCartQuantity, useCart } from "../cart-store";
 import type { PricedLine } from "../queries";
 import { formatCents } from "../schemas";
 
-export function CartView() {
+export function CartView({ checkout }: { checkout: React.ReactNode }) {
   const items = useCart();
   const [lines, setLines] = useState<PricedLine[] | null>(null);
   const [pending, startTransition] = useTransition();
@@ -133,10 +133,7 @@ export function CartView() {
         <p className="text-sm text-muted">
           Shipping and taxes are calculated at checkout.
         </p>
-        <p className="rounded-(--radius) border border-line p-4 text-sm">
-          <strong className="font-medium">Checkout opens soon.</strong> Your
-          cart is saved on this device until then.
-        </p>
+        {checkout}
       </aside>
     </div>
   );

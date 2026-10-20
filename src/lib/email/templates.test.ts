@@ -75,6 +75,28 @@ describe("renderEmail", () => {
     ).toContain("accepted");
   });
 
+  it("renders order emails", () => {
+    const paid = renderEmail(
+      "order_paid",
+      {
+        reference: "OR-1",
+        total: 8889,
+        currency: "EUR",
+        link: "/orders/x?token=abc",
+      },
+      site,
+    );
+    expect(paid?.text).toContain("€88.89");
+    expect(paid?.text).toContain(`${site}/orders/x?token=abc`);
+    expect(
+      renderEmail(
+        "order_shipped",
+        { reference: "OR-1", carrier: "DHL", tracking: "123", link: "/d" },
+        site,
+      )?.text,
+    ).toContain("DHL · 123");
+  });
+
   it("ignores unknown templates", () => {
     expect(renderEmail("nope", {}, site)).toBeNull();
   });

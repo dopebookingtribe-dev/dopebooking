@@ -69,7 +69,7 @@ export async function getMyProduct(id: string) {
     .maybeSingle();
   if (!product) return null;
 
-  const [variants, media] = await Promise.all([
+  const [variants, media, files] = await Promise.all([
     supabase
       .from("product_variants")
       .select("*")
@@ -80,9 +80,15 @@ export async function getMyProduct(id: string) {
       .select(MEDIA_COLUMNS)
       .eq("product_id", id)
       .order("sort_order"),
+    supabase
+      .from("product_files")
+      .select("id, file_name, size_bytes")
+      .eq("product_id", id)
+      .order("created_at"),
   ]);
   return {
     product,
+    files: files.data ?? [],
     sellerStatus: seller.status,
     variants: variants.data ?? [],
     images: (media.data ?? []).map(toImage),

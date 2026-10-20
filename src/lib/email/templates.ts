@@ -238,6 +238,54 @@ export function renderEmail(
         ...body,
       };
     }
+    case "order_paid": {
+      const total =
+        typeof payload.total === "number"
+          ? new Intl.NumberFormat("en-GB", {
+              style: "currency",
+              currency: str(payload, "currency") || "EUR",
+            }).format(payload.total / 100)
+          : "";
+      const body = layout(
+        siteUrl,
+        "Thanks for your order",
+        [
+          `Order ${ref}${total ? ` · ${total}` : ""} is confirmed.`,
+          "Each seller ships their items separately; downloads are ready on your order page.",
+        ],
+        link,
+        "View your order",
+      );
+      return { subject: `Order ${ref} confirmed`, ...body };
+    }
+    case "order_new_seller": {
+      const body = layout(
+        siteUrl,
+        "You have a new order",
+        [
+          `Order ${ref} is paid. Please prepare it and add tracking when it ships.`,
+        ],
+        link,
+        "Open the order",
+      );
+      return { subject: `New order ${ref}`, ...body };
+    }
+    case "order_shipped": {
+      const tracking = [str(payload, "carrier"), str(payload, "tracking")]
+        .filter(Boolean)
+        .join(" · ");
+      const body = layout(
+        siteUrl,
+        "Your order is on its way",
+        [
+          `Part of order ${ref} has shipped.`,
+          ...(tracking ? [`Tracking: ${tracking}`] : []),
+        ],
+        link,
+        "View your order",
+      );
+      return { subject: `Order ${ref} shipped`, ...body };
+    }
     default:
       return null;
   }

@@ -29,6 +29,16 @@ export type ServiceType =
   "promotion" | "catering" | "photography" | "videography" | "aftermovie";
 export type SellerStatus = "pending" | "approved" | "rejected" | "suspended";
 export type ProductType = "physical" | "digital";
+export type OrderStatus =
+  | "pending_payment"
+  | "paid"
+  | "fulfilled"
+  | "cancelled"
+  | "refunded"
+  | "partially_refunded";
+export type SellerOrderStatus =
+  "pending" | "paid" | "shipped" | "delivered" | "cancelled" | "refunded";
+export type TransferStatus = "pending" | "transferred" | "failed" | "reversed";
 export type ServiceStatus =
   | "submitted"
   | "under_review"
@@ -354,6 +364,7 @@ export type SellerRow = {
   website: string | null;
   logo_asset_id: string | null;
   status: SellerStatus;
+  shipping_flat_amount: number;
   created_at: string;
   updated_at: string;
 };
@@ -392,6 +403,82 @@ export type ProductVariantRow = {
   stock: number | null;
   active: boolean;
   sort_order: number;
+};
+
+export type SellerStripeRow = {
+  seller_id: string;
+  stripe_account_id: string;
+  transfers_status: string;
+  payouts_status: string | null;
+  requirements_due: number;
+  updated_at: string;
+};
+
+export type OrderRow = {
+  id: string;
+  reference: string;
+  buyer_id: string | null;
+  buyer_email: string | null;
+  status: OrderStatus;
+  currency: string;
+  items_total: number;
+  shipping_total: number;
+  total: number;
+  refunded_amount: number;
+  stripe_checkout_session_id: string | null;
+  stripe_payment_intent_id: string | null;
+  stripe_charge_id: string | null;
+  shipping_name: string | null;
+  shipping_address: Record<string, unknown> | null;
+  access_token_hash: string;
+  needs_attention: string | null;
+  paid_at: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type SellerOrderRow = {
+  id: string;
+  order_id: string;
+  seller_id: string;
+  status: SellerOrderStatus;
+  items_total: number;
+  shipping_amount: number;
+  commission_rate_bps: number;
+  commission_amount: number;
+  seller_amount: number;
+  stripe_account_id: string;
+  stripe_transfer_id: string | null;
+  transfer_status: TransferStatus;
+  transfer_error: string | null;
+  carrier: string | null;
+  tracking_number: string | null;
+  shipped_at: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type OrderItemRow = {
+  id: string;
+  order_id: string;
+  seller_order_id: string;
+  product_id: string | null;
+  variant_id: string | null;
+  product_title: string;
+  variant_name: string;
+  product_type: ProductType;
+  unit_price: number;
+  quantity: number;
+  line_total: number;
+};
+
+export type ProductFileRow = {
+  id: string;
+  product_id: string;
+  storage_path: string;
+  file_name: string;
+  size_bytes: number;
+  created_at: string;
 };
 
 type HistoryRow<Status, Fk extends string> = {
@@ -495,7 +582,12 @@ export type Database = {
       >;
       booking_status_history: Table<BookingStatusHistoryRow, never, never>;
       booking_messages: Table<BookingMessageRow, never, never>;
-      notifications: Table<NotificationRow, never, { read_at?: string | null }>;
+      notifications: Table<
+        NotificationRow,
+        Pick<NotificationRow, "user_id" | "type" | "title"> &
+          Partial<Pick<NotificationRow, "body" | "link">>,
+        { read_at?: string | null }
+      >;
       service_providers: Table<
         ServiceProviderRow,
         Pick<ServiceProviderRow, "name"> &
@@ -522,9 +614,72 @@ export type Database = {
         Partial<
           Pick<
             SellerRow,
-            "display_name" | "bio" | "country" | "website" | "logo_asset_id"
+            | "display_name"
+            | "bio"
+            | "country"
+            | "website"
+            | "logo_asset_id"
+            | "shipping_flat_amount"
           >
         >
+      >;
+      seller_stripe: Table<
+        SellerStripeRow,
+        Omit<SellerStripeRow, "updated_at">,
+        Partial<Omit<SellerStripeRow, "seller_id" | "updated_at">>
+      >;
+      orders: Table<
+        OrderRow,
+        Pick<OrderRow, "items_total" | "total" | "access_token_hash"> &
+          Partial<
+            Pick<
+              OrderRow,
+              "buyer_id" | "buyer_email" | "currency" | "shipping_total"
+            >
+          >,
+        Partial<
+          Omit<OrderRow, "id" | "reference" | "created_at" | "updated_at">
+        >
+      >;
+      seller_orders: Table<
+        SellerOrderRow,
+        Pick<
+          SellerOrderRow,
+          | "order_id"
+          | "seller_id"
+          | "items_total"
+          | "shipping_amount"
+          | "commission_rate_bps"
+          | "commission_amount"
+          | "seller_amount"
+          | "stripe_account_id"
+        >,
+        Partial<
+          Pick<
+            SellerOrderRow,
+            | "status"
+            | "stripe_transfer_id"
+            | "transfer_status"
+            | "transfer_error"
+          >
+        >
+      >;
+      order_items: Table<OrderItemRow, Omit<OrderItemRow, "id">, never>;
+      stripe_events: Table<
+        {
+          id: string;
+          type: string;
+          received_at: string;
+          processed_at: string | null;
+          error: string | null;
+        },
+        { id: string; type: string },
+        { processed_at?: string | null; error?: string | null }
+      >;
+      product_files: Table<
+        ProductFileRow,
+        Omit<ProductFileRow, "id" | "created_at">,
+        never
       >;
       seller_private: Table<
         SellerPrivateRow,
@@ -560,7 +715,7 @@ export type Database = {
       >;
       email_outbox: Table<
         EmailOutboxRow,
-        never,
+        Pick<EmailOutboxRow, "to_email" | "template" | "payload">,
         Partial<
           Pick<
             EmailOutboxRow,
@@ -620,6 +775,15 @@ export type Database = {
         };
         Returns: SellerStatus;
       };
+      apply_order_stock: { Args: { p_order: string }; Returns: boolean };
+      mark_seller_order_shipped: {
+        Args: {
+          p_seller_order: string;
+          p_carrier?: string | null;
+          p_tracking?: string | null;
+        };
+        Returns: undefined;
+      };
       claim_email_batch: {
         Args: { p_limit?: number };
         Returns: EmailOutboxRow[];
@@ -638,6 +802,9 @@ export type Database = {
       service_status: ServiceStatus;
       seller_status: SellerStatus;
       product_type: ProductType;
+      order_status: OrderStatus;
+      seller_order_status: SellerOrderStatus;
+      transfer_status: TransferStatus;
     };
     CompositeTypes: Record<string, never>;
   };
