@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Suspense } from "react";
 import { buttonClasses } from "@/components/ui/button";
+import { CartLink } from "@/modules/marketplace/components/cart-link";
 import { AccountLink, SignInLink } from "./account-link";
 import { MobileMenu } from "./mobile-menu";
 import { BOOK_CTA, NAV_ITEMS } from "./nav-items";
@@ -43,13 +44,17 @@ export function SiteHeader() {
         </nav>
 
         <div className="hidden items-center gap-6 md:flex">
+          <CartLink />
           <Account />
           <Link href={BOOK_CTA.href} className={buttonClasses("primary")}>
             {BOOK_CTA.label}
           </Link>
         </div>
 
-        <MobileMenu accountSlot={<Account />} />
+        <div className="flex items-center gap-4 md:hidden">
+          <CartLink />
+          <MobileMenu accountSlot={<Account />} />
+        </div>
       </div>
     </header>
   );

@@ -59,3 +59,14 @@ Use a **second (non-admin) account** as the promoter. A private/incognito window
 - [ ] Send a quote; as promoter, **Accept quote**; as admin, **Confirm**
 - [ ] Messages and internal notes behave like bookings
 - [ ] Review the questions for each service. Anything to add or remove?
+
+## Phase 07: marketplace
+
+- [ ] As a second account: `/sell` → apply (shop name, what you'll sell)
+- [ ] As admin: `/admin/sellers` → open the application → **Approved**, commission e.g. 15%
+- [ ] As the seller: `/dashboard/seller` → upload a logo, edit the profile
+- [ ] **New product** → name, type, price → add options (S/M/L with stock), upload photos, choose a cover, set **Published**
+- [ ] `/shop` shows it; product page: switch options, sold-out option is disabled; **Add to cart**
+- [ ] `/cart`: change quantity, remove; prices match the product page
+- [ ] As admin: **Suspend** the seller → the shop and products disappear from `/shop`; approve again → they return
+- [ ] Try a digital product (no stock = unlimited)

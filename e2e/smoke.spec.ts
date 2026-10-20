@@ -146,3 +146,39 @@ test("unknown service offer is not found", async ({ page }) => {
     page.getByText("This page took a different stage."),
   ).toBeVisible();
 });
+
+test("shop, sell and empty cart render", async ({ page }) => {
+  await page.goto("/shop");
+  await expect(
+    page.getByRole("heading", { level: 1, name: "Shop" }),
+  ).toBeVisible();
+  await page.goto("/sell");
+  await expect(
+    page.getByRole("link", { name: "Create account" }),
+  ).toHaveAttribute("href", "/signup?next=%2Fsell");
+  await page.goto("/cart");
+  await expect(page.getByText("Your cart is empty.")).toBeVisible();
+});
+
+test("cart drops unknown items instead of trusting the browser", async ({
+  page,
+}) => {
+  await page.goto("/");
+  await page.evaluate(() =>
+    localStorage.setItem(
+      "dopebooking.cart.v1",
+      JSON.stringify([
+        { variantId: "3f1c1c9e-6c55-4a8a-9d4e-1f7f0a2b3c4d", quantity: 2 },
+      ]),
+    ),
+  );
+  await page.goto("/cart");
+  await expect(page.getByText("Your cart is empty.")).toBeVisible();
+});
+
+test("seller and marketplace admin pages are protected", async ({ page }) => {
+  await page.goto("/dashboard/seller");
+  await expect(page).toHaveURL(/\/login\?next=%2Fdashboard%2Fseller$/);
+  await page.goto("/admin/sellers");
+  await expect(page).toHaveURL(/\/login\?next=/);
+});

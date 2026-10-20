@@ -6,7 +6,8 @@ import { IMAGE_TYPES } from "./constants";
 
 export const BUCKET = "public-media";
 
-export type MediaOwnerKind = "artist" | "event" | "gallery" | "video";
+export type MediaOwnerKind =
+  "artist" | "event" | "gallery" | "video" | "product" | "seller";
 export type ImageResult = { ok: true } | { ok: false; message: string };
 
 type Client = SupabaseClient<Database>;
@@ -16,6 +17,8 @@ const OWNER_COLUMN = {
   event: "event_id",
   gallery: "gallery_id",
   video: "video_id",
+  product: "product_id",
+  seller: "seller_id",
 } as const;
 
 /** Storage folder for an owner, e.g. "galleries/<id>". */
@@ -81,6 +84,20 @@ async function setLeadImage(
         .update({ poster_asset_id: assetId })
         .eq("id", ownerId);
       return onlyIfEmpty ? query.is("poster_asset_id", null) : query;
+    }
+    case "product": {
+      const query = supabase
+        .from("products")
+        .update({ cover_asset_id: assetId })
+        .eq("id", ownerId);
+      return onlyIfEmpty ? query.is("cover_asset_id", null) : query;
+    }
+    case "seller": {
+      const query = supabase
+        .from("sellers")
+        .update({ logo_asset_id: assetId })
+        .eq("id", ownerId);
+      return onlyIfEmpty ? query.is("logo_asset_id", null) : query;
     }
   }
 }

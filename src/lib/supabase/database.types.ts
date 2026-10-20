@@ -27,6 +27,8 @@ export type BookingStatus =
 export type EmailStatus = "pending" | "sending" | "sent" | "failed";
 export type ServiceType =
   "promotion" | "catering" | "photography" | "videography" | "aftermovie";
+export type SellerStatus = "pending" | "approved" | "rejected" | "suspended";
+export type ProductType = "physical" | "digital";
 export type ServiceStatus =
   | "submitted"
   | "under_review"
@@ -101,6 +103,8 @@ export type MediaAssetRow = {
   event_id: string | null;
   gallery_id: string | null;
   video_id: string | null;
+  product_id: string | null;
+  seller_id: string | null;
   type: MediaType;
   storage_bucket: string;
   storage_path: string;
@@ -340,6 +344,56 @@ export type ServiceRequestInsert = Pick<
     >
   >;
 
+export type SellerRow = {
+  id: string;
+  owner_user_id: string;
+  slug: string;
+  display_name: string;
+  bio: string | null;
+  country: string | null;
+  website: string | null;
+  logo_asset_id: string | null;
+  status: SellerStatus;
+  created_at: string;
+  updated_at: string;
+};
+
+export type SellerPrivateRow = {
+  seller_id: string;
+  application_note: string | null;
+  commission_rate_bps: number | null;
+  review_note: string | null;
+  reviewed_by: string | null;
+  reviewed_at: string | null;
+  updated_at: string;
+};
+
+export type ProductRow = {
+  id: string;
+  seller_id: string;
+  slug: string;
+  title: string;
+  description: string | null;
+  product_type: ProductType;
+  status: ContentStatus;
+  currency: string;
+  cover_asset_id: string | null;
+  published_at: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type ProductVariantRow = {
+  id: string;
+  product_id: string;
+  name: string;
+  sku: string | null;
+  price_amount: number;
+  stock: number | null;
+  active: boolean;
+  sort_order: number;
+};
+
 type HistoryRow<Status, Fk extends string> = {
   id: number;
   from_status: Status | null;
@@ -461,6 +515,49 @@ export type Database = {
         never
       >;
       service_request_messages: Table<MessageRow<"request_id">, never, never>;
+      sellers: Table<
+        SellerRow,
+        Pick<SellerRow, "owner_user_id" | "slug" | "display_name"> &
+          Partial<Pick<SellerRow, "bio" | "country" | "website">>,
+        Partial<
+          Pick<
+            SellerRow,
+            "display_name" | "bio" | "country" | "website" | "logo_asset_id"
+          >
+        >
+      >;
+      seller_private: Table<
+        SellerPrivateRow,
+        Pick<SellerPrivateRow, "seller_id"> &
+          Partial<Pick<SellerPrivateRow, "application_note">>,
+        Partial<Pick<SellerPrivateRow, "commission_rate_bps">>
+      >;
+      products: Table<
+        ProductRow,
+        Pick<ProductRow, "seller_id" | "slug" | "title"> &
+          Partial<
+            Pick<
+              ProductRow,
+              "description" | "product_type" | "status" | "currency"
+            >
+          >,
+        Partial<
+          Pick<
+            ProductRow,
+            | "slug"
+            | "title"
+            | "description"
+            | "product_type"
+            | "status"
+            | "cover_asset_id"
+          >
+        >
+      >;
+      product_variants: Table<
+        ProductVariantRow,
+        Pick<ProductVariantRow, "product_id" | "name" | "price_amount"> &
+          Partial<Omit<ProductVariantRow, "id" | "product_id">>
+      >;
       email_outbox: Table<
         EmailOutboxRow,
         never,
@@ -515,6 +612,14 @@ export type Database = {
         Args: { p_request: string; p_body: string; p_internal?: boolean };
         Returns: string;
       };
+      review_seller: {
+        Args: {
+          p_seller: string;
+          p_status: SellerStatus;
+          p_note?: string | null;
+        };
+        Returns: SellerStatus;
+      };
       claim_email_batch: {
         Args: { p_limit?: number };
         Returns: EmailOutboxRow[];
@@ -531,6 +636,8 @@ export type Database = {
       email_status: EmailStatus;
       service_type: ServiceType;
       service_status: ServiceStatus;
+      seller_status: SellerStatus;
+      product_type: ProductType;
     };
     CompositeTypes: Record<string, never>;
   };

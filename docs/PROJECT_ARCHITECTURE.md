@@ -621,3 +621,38 @@ Verified on a clean copy against the real database:
 
 - The end-to-end flows with real accounts (on the review checklist)
 - pgTAP tests (need Docker)
+
+---
+
+## Phase 07 status (2026-10-20)
+
+Branch `phase-07-marketplace` (stacked on `phase-06-services`). Built:
+
+- **Database** (`supabase/migrations/20261025000000_marketplace.sql`, applied):
+  - `sellers` (public storefront data) and `seller_private` (application note, commission, review trail)
+  - `products` (globally unique slugs; physical or digital) and `product_variants` (price in cents, stock where null means unlimited)
+  - Product images and seller logos in `media_assets`
+  - `review_seller()` (staff only) approves, rejects or suspends a seller, grants or removes the `seller` role, and notifies them. A trigger stops sellers changing their own status, owner or URL.
+  - RLS: the public sees only published products of approved sellers; only approved sellers can create or edit products; owners manage their own options and images.
+  - Storage lets sellers write only to `products/<their product>/` and `sellers/<their shop>/`.
+- **Seller flow:** `/sell` landing and application → `/admin/sellers` review (with commission %) → `/dashboard/seller` shop profile and logo, products, product editor (details, options and prices, photos, delete drafts).
+- **Public:**
+  - `/shop` with a physical/digital filter, `/shop/[slug]` product page with option picker and Product JSON-LD, `/shop/sellers/[slug]` storefront
+  - Header cart link with item count
+  - `/cart`: the cart is kept in the browser; the server re-prices every line and removes unknown or hidden items, stock limits apply
+  - **Checkout is not live yet**
+- **Currency:** EUR only for now (`SHOP_CURRENCY`). The cart already groups subtotals by currency in case that changes.
+
+Verified on a clean copy against the real database:
+
+- Passing: lint, typecheck, format check, 113 unit tests, production build, 39 Playwright tests (including a forged cart item being discarded).
+- Database checks over the API: public tables readable, private seller data blocked, review restricted to staff.
+
+**Not verified yet:**
+
+- The full seller journey with real accounts (on the review checklist)
+- pgTAP tests (need Docker)
+
+**Next (Phase 08):**
+
+- Stripe Checkout, Stripe Connect onboarding, orders, commissions and digital delivery, all in test mode
