@@ -25,6 +25,18 @@ export type BookingStatus =
   | "cancelled"
   | "expired";
 export type EmailStatus = "pending" | "sending" | "sent" | "failed";
+export type ServiceType =
+  "promotion" | "catering" | "photography" | "videography" | "aftermovie";
+export type ServiceStatus =
+  | "submitted"
+  | "under_review"
+  | "quoted"
+  | "accepted"
+  | "confirmed"
+  | "completed"
+  | "declined"
+  | "cancelled"
+  | "expired";
 export type LinkPlatform =
   | "website"
   | "instagram"
@@ -259,6 +271,92 @@ export type EmailOutboxRow = {
   created_at: string;
 };
 
+export type ServiceProviderRow = {
+  id: string;
+  name: string;
+  services: ServiceType[];
+  contact_name: string | null;
+  email: string | null;
+  phone: string | null;
+  regions: string | null;
+  website: string | null;
+  notes: string | null;
+  active: boolean;
+  created_by: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type ServiceRequestRow = {
+  id: string;
+  reference: string;
+  service_type: ServiceType;
+  requester_id: string;
+  organisation: string | null;
+  event_name: string;
+  event_start: string;
+  event_end: string | null;
+  city: string;
+  country: string;
+  venue_name: string | null;
+  expected_attendance: number | null;
+  budget_amount: number | null;
+  budget_currency: string;
+  message: string | null;
+  details: Record<string, unknown>;
+  contact_phone: string | null;
+  contact_email: string | null;
+  status: ServiceStatus;
+  quote_amount: number | null;
+  quote_currency: string | null;
+  quote_note: string | null;
+  assigned_staff_id: string | null;
+  assigned_provider_id: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type ServiceRequestInsert = Pick<
+  ServiceRequestRow,
+  | "service_type"
+  | "requester_id"
+  | "event_name"
+  | "event_start"
+  | "city"
+  | "country"
+> &
+  Partial<
+    Pick<
+      ServiceRequestRow,
+      | "organisation"
+      | "event_end"
+      | "venue_name"
+      | "expected_attendance"
+      | "budget_amount"
+      | "budget_currency"
+      | "message"
+      | "details"
+      | "contact_phone"
+    >
+  >;
+
+type HistoryRow<Status, Fk extends string> = {
+  id: number;
+  from_status: Status | null;
+  to_status: Status;
+  changed_by: string | null;
+  note: string | null;
+  created_at: string;
+} & Record<Fk, string>;
+
+type MessageRow<Fk extends string> = {
+  id: string;
+  author_id: string | null;
+  body: string;
+  internal: boolean;
+  created_at: string;
+} & Record<Fk, string>;
+
 type ContentInsert<Row, Required extends keyof Row> = Pick<Row, Required> &
   Partial<Omit<Row, "id" | "created_at" | "updated_at">>;
 
@@ -344,6 +442,25 @@ export type Database = {
       booking_status_history: Table<BookingStatusHistoryRow, never, never>;
       booking_messages: Table<BookingMessageRow, never, never>;
       notifications: Table<NotificationRow, never, { read_at?: string | null }>;
+      service_providers: Table<
+        ServiceProviderRow,
+        Pick<ServiceProviderRow, "name"> &
+          Partial<Omit<ServiceProviderRow, "id" | "created_at" | "updated_at">>
+      >;
+      service_requests: Table<
+        ServiceRequestRow,
+        ServiceRequestInsert,
+        {
+          assigned_staff_id?: string | null;
+          assigned_provider_id?: string | null;
+        }
+      >;
+      service_request_status_history: Table<
+        HistoryRow<ServiceStatus, "request_id">,
+        never,
+        never
+      >;
+      service_request_messages: Table<MessageRow<"request_id">, never, never>;
       email_outbox: Table<
         EmailOutboxRow,
         never,
@@ -383,6 +500,21 @@ export type Database = {
         Args: { p_booking: string; p_body: string; p_internal?: boolean };
         Returns: string;
       };
+      transition_service_request: {
+        Args: {
+          p_request: string;
+          p_to: ServiceStatus;
+          p_note?: string | null;
+          p_quote_amount?: number | null;
+          p_quote_currency?: string | null;
+          p_quote_note?: string | null;
+        };
+        Returns: ServiceStatus;
+      };
+      add_service_request_message: {
+        Args: { p_request: string; p_body: string; p_internal?: boolean };
+        Returns: string;
+      };
       claim_email_batch: {
         Args: { p_limit?: number };
         Returns: EmailOutboxRow[];
@@ -397,6 +529,8 @@ export type Database = {
       video_provider: VideoProvider;
       booking_status: BookingStatus;
       email_status: EmailStatus;
+      service_type: ServiceType;
+      service_status: ServiceStatus;
     };
     CompositeTypes: Record<string, never>;
   };

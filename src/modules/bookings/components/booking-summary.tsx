@@ -1,25 +1,9 @@
 import type { BookingRequestRow } from "@/lib/supabase/database.types";
 import { countryName } from "@/lib/countries";
 import { Meta } from "@/components/ui/meta";
+import { formatDay, formatMoney } from "@/modules/workflow/constants";
 
-export function formatMoney(amount: number | null, currency: string | null) {
-  if (amount === null) return null;
-  return new Intl.NumberFormat("en-GB", {
-    style: "currency",
-    currency: currency ?? "EUR",
-    maximumFractionDigits: 0,
-  }).format(amount);
-}
-
-export function formatDay(isoDate: string) {
-  return new Intl.DateTimeFormat("en-GB", {
-    weekday: "short",
-    day: "numeric",
-    month: "short",
-    year: "numeric",
-    timeZone: "UTC",
-  }).format(new Date(`${isoDate}T00:00:00Z`));
-}
+export { formatDay, formatMoney } from "@/modules/workflow/constants";
 
 /** Read-only facts of a request. `showPrivate` adds contact details (staff). */
 export function BookingSummary({

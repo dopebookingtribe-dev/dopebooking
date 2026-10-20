@@ -1,9 +1,8 @@
 "use server";
 
 import { redirect } from "next/navigation";
-import { after } from "next/server";
 import { requireUser } from "@/lib/auth/dal";
-import { processEmailOutbox } from "@/lib/email/outbox";
+import { sendQueuedEmailsAfterResponse as sendQueuedEmails } from "@/lib/email/after";
 import { staffClient } from "@/lib/auth/staff";
 import { formValues, invalidForm, type FormState } from "@/lib/forms";
 import { createClient } from "@/lib/supabase/server";
@@ -13,17 +12,6 @@ import {
   messageSchema,
   transitionSchema,
 } from "./schemas";
-
-// Send the emails this action queued once the response has gone out.
-function sendQueuedEmails() {
-  after(async () => {
-    try {
-      await processEmailOutbox();
-    } catch (error) {
-      console.error("Email outbox run failed", error);
-    }
-  });
-}
 
 export async function createBookingRequest(
   artistId: string,

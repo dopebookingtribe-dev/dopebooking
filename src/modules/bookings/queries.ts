@@ -2,30 +2,12 @@ import "server-only";
 import { requireRole, requireUser, STAFF_ROLES } from "@/lib/auth/dal";
 import type { BookingStatus } from "@/lib/supabase/database.types";
 import { createClient } from "@/lib/supabase/server";
+import { loadTimeline } from "@/modules/workflow/server";
 
 // All booking reads use the signed-in user's session, so RLS decides what
 // each person sees (own requests; staff see all; internal notes staff only).
 
 const UUID = /^[0-9a-f-]{36}$/i;
-
-export type TimelineItem =
-  | {
-      kind: "status";
-      id: string;
-      at: string;
-      from: BookingStatus | null;
-      to: BookingStatus;
-      note: string | null;
-      by: string | null;
-    }
-  | {
-      kind: "message";
-      id: string;
-      at: string;
-      body: string;
-      internal: boolean;
-      by: string | null;
-    };
 
 async function artistNames(
   supabase: Awaited<ReturnType<typeof createClient>>,
@@ -42,44 +24,6 @@ async function artistNames(
       { name: artist.stage_name, slug: artist.slug },
     ]),
   );
-}
-
-async function loadTimeline(
-  supabase: Awaited<ReturnType<typeof createClient>>,
-  bookingId: string,
-): Promise<TimelineItem[]> {
-  const [history, messages] = await Promise.all([
-    supabase
-      .from("booking_status_history")
-      .select("id, from_status, to_status, changed_by, note, created_at")
-      .eq("booking_id", bookingId),
-    supabase
-      .from("booking_messages")
-      .select("id, author_id, body, internal, created_at")
-      .eq("booking_id", bookingId),
-  ]);
-  if (history.error || messages.error) {
-    throw new Error("Failed to load booking timeline.");
-  }
-  return [
-    ...history.data.map((row): TimelineItem => ({
-      kind: "status",
-      id: `s${row.id}`,
-      at: row.created_at,
-      from: row.from_status,
-      to: row.to_status,
-      note: row.note,
-      by: row.changed_by,
-    })),
-    ...messages.data.map((row): TimelineItem => ({
-      kind: "message",
-      id: row.id,
-      at: row.created_at,
-      body: row.body,
-      internal: row.internal,
-      by: row.author_id,
-    })),
-  ].sort((a, b) => a.at.localeCompare(b.at));
 }
 
 export async function listMyBookings() {
@@ -115,7 +59,7 @@ export async function getMyBooking(id: string) {
 
   const [artists, timeline] = await Promise.all([
     artistNames(supabase, [booking.artist_id]),
-    loadTimeline(supabase, id),
+    loadTimeline<BookingStatus>(supabase, "booking", id),
   ]);
   return {
     booking,
@@ -170,7 +114,7 @@ export async function getBookingForAdmin(id: string) {
 
   const [artists, timeline, fees] = await Promise.all([
     artistNames(supabase, [booking.artist_id]),
-    loadTimeline(supabase, id),
+    loadTimeline<BookingStatus>(supabase, "booking", id),
     supabase
       .from("artist_private")
       .select("fee_min, fee_max, fee_currency")

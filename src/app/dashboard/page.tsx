@@ -11,6 +11,8 @@ import {
   listMyBookings,
 } from "@/modules/bookings/queries";
 import { OPEN_STATUSES } from "@/modules/bookings/schemas";
+import { listMyServiceRequests } from "@/modules/services/queries";
+import { SERVICE_OPEN_STATUSES } from "@/modules/services/schemas";
 
 export const metadata: Metadata = { title: "Dashboard" };
 
@@ -29,10 +31,14 @@ export default function DashboardPage() {
 
 async function Overview() {
   const user = await requireUser("/dashboard");
-  const [bookings, unread] = await Promise.all([
+  const [bookings, requests, unread] = await Promise.all([
     listMyBookings(),
+    listMyServiceRequests(),
     countUnreadNotifications(user.id),
   ]);
+  const openRequests = requests.filter((request) =>
+    SERVICE_OPEN_STATUSES.includes(request.status),
+  ).length;
   const open = bookings.filter((booking) =>
     OPEN_STATUSES.includes(booking.status),
   ).length;
@@ -47,6 +53,13 @@ async function Overview() {
       body: bookings.length
         ? `${open} open · ${bookings.length} total`
         : "No requests yet",
+    },
+    {
+      href: "/dashboard/requests",
+      title: "Service requests",
+      body: requests.length
+        ? `${openRequests} open · ${requests.length} total`
+        : "Promotion, catering, production",
     },
     {
       href: "/dashboard/notifications",
@@ -70,7 +83,7 @@ async function Overview() {
       <p className="mt-4 text-muted">
         Signed in as <span className="text-text">{user.email}</span>
       </p>
-      <ul className="mt-10 grid gap-px overflow-hidden rounded-(--radius) border border-line bg-line sm:grid-cols-3">
+      <ul className="mt-10 grid gap-px overflow-hidden rounded-(--radius) border border-line bg-line sm:grid-cols-2">
         {tiles.map((tile) => (
           <li key={tile.href} className="bg-bg">
             <Link

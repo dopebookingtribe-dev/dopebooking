@@ -15,12 +15,15 @@ import {
   BookingSummary,
   formatMoney,
 } from "@/modules/bookings/components/booking-summary";
-import { MessageForm } from "@/modules/bookings/components/message-form";
-import { StatusActions } from "@/modules/bookings/components/status-actions";
+import { MessageForm } from "@/modules/workflow/components/message-form";
+import { StatusActions } from "@/modules/workflow/components/status-actions";
 import { BookingStatusBadge } from "@/modules/bookings/components/status-badge";
-import { Timeline } from "@/modules/bookings/components/timeline";
+import { Timeline } from "@/modules/workflow/components/timeline";
 import { getBookingForAdmin } from "@/modules/bookings/queries";
-import { STAFF_TRANSITIONS } from "@/modules/bookings/schemas";
+import {
+  BOOKING_WORKFLOW,
+  STAFF_TRANSITIONS,
+} from "@/modules/bookings/schemas";
 
 export const metadata: Metadata = { title: "Booking" };
 
@@ -134,6 +137,8 @@ async function Detail({
             // Remount when the status changes so the form resets.
             key={booking.status}
             allowed={STAFF_TRANSITIONS[booking.status]}
+            actionLabels={BOOKING_WORKFLOW.actions}
+            quoteLabel="Quote (artist fee)"
             defaultCurrency={booking.budget_currency}
             action={changeBookingStatus.bind(null, booking.id)}
           />
@@ -144,7 +149,11 @@ async function Detail({
           description="Messages are emailed to the requester. Internal notes are staff-only."
         >
           <div className="flex flex-col gap-8">
-            <Timeline items={timeline} nameOf={nameOf} />
+            <Timeline
+              items={timeline}
+              labels={BOOKING_WORKFLOW.labels}
+              nameOf={nameOf}
+            />
             <MessageForm
               action={sendBookingMessage.bind(null, booking.id)}
               allowInternal

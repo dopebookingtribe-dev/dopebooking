@@ -114,3 +114,35 @@ test("booking an unknown artist shows not found", async ({ page }) => {
     page.getByText("This page took a different stage."),
   ).toBeVisible();
 });
+
+test("services overview links to each offer", async ({ page }) => {
+  await page.goto("/services");
+  for (const name of [
+    "Event promotion",
+    "Festival catering",
+    "Photo, video & aftermovies",
+  ]) {
+    await expect(page.getByRole("heading", { name })).toBeVisible();
+  }
+  await page.getByRole("link", { name: /Festival catering/ }).click();
+  await expect(page).toHaveURL(/\/services\/catering$/);
+  await expect(
+    page.getByRole("link", { name: "Create account" }),
+  ).toHaveAttribute("href", "/signup?next=%2Fservices%2Fcatering");
+});
+
+test("service request pages are protected", async ({ page }) => {
+  await page.goto("/dashboard/requests");
+  await expect(page).toHaveURL(/\/login\?next=%2Fdashboard%2Frequests$/);
+  for (const path of ["/admin/services", "/admin/providers"]) {
+    await page.goto(path);
+    await expect(page).toHaveURL(/\/login\?next=/);
+  }
+});
+
+test("unknown service offer is not found", async ({ page }) => {
+  await page.goto("/services/teleportation");
+  await expect(
+    page.getByText("This page took a different stage."),
+  ).toBeVisible();
+});

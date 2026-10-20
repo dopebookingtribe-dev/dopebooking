@@ -1,5 +1,4 @@
-import type { TimelineItem } from "../queries";
-import { STATUS_LABELS } from "../schemas";
+import type { TimelineItem } from "../types";
 
 const time = (iso: string) =>
   new Intl.DateTimeFormat("en-GB", {
@@ -16,9 +15,11 @@ const time = (iso: string) =>
  */
 export function Timeline({
   items,
+  labels,
   nameOf,
 }: {
   items: TimelineItem[];
+  labels: Record<string, string>;
   nameOf: (userId: string | null) => string;
 }) {
   return (
@@ -32,7 +33,9 @@ export function Timeline({
             />
             <div>
               <p>
-                <span className="font-medium">{STATUS_LABELS[item.to]}</span>
+                <span className="font-medium">
+                  {labels[item.to] ?? item.to}
+                </span>
                 <span className="text-muted">
                   {" "}
                   · {nameOf(item.by)} · {time(item.at)}

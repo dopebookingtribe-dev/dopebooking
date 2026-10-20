@@ -1,6 +1,7 @@
 import { z } from "zod";
 import type { BookingStatus } from "@/lib/supabase/database.types";
 import { countrySchema, optionalText, requiredText } from "@/lib/validation";
+import type { WorkflowConfig } from "@/modules/workflow/types";
 
 export const STATUS_LABELS: Record<BookingStatus, string> = {
   submitted: "Submitted",
@@ -49,16 +50,6 @@ export const TRANSITION_LABELS: Partial<Record<BookingStatus, string>> = {
 };
 
 export const SET_LENGTHS = [60, 90, 120, 150, 180, 240] as const;
-export const CURRENCIES = [
-  "EUR",
-  "USD",
-  "GBP",
-  "CHF",
-  "BRL",
-  "ILS",
-  "INR",
-  "AUD",
-];
 
 const optionalInt = (min: number, max: number, message: string) =>
   z
@@ -137,21 +128,23 @@ export const transitionSchema = z
     path: ["quote_amount"],
   });
 
-/** Friendly text for errors raised by the booking database functions. */
-export function bookingErrorMessage(error: {
-  message?: string;
-  code?: string;
-}) {
-  const text = error.message ?? "";
-  if (text.includes("rate_limited")) {
-    return "You've sent a lot in the last hour. Please try again later.";
-  }
-  if (text.includes("invalid_transition")) {
-    return "That step isn't possible from the current status. Refresh the page.";
-  }
-  if (text.includes("quote_required")) return "Enter the quote amount.";
-  if (error.code === "42501" || text.includes("forbidden")) {
-    return "You can't do that for this booking.";
-  }
-  return "Something went wrong. Please try again.";
-}
+export const BOOKING_WORKFLOW: WorkflowConfig<BookingStatus> = {
+  labels: STATUS_LABELS,
+  tones: {
+    submitted: "neutral",
+    under_review: "uv",
+    quoted: "accent",
+    negotiating: "accent",
+    confirmed: "success",
+    completed: "muted",
+    declined: "danger",
+    cancelled: "muted",
+    expired: "muted",
+  },
+  actions: TRANSITION_LABELS,
+};
+
+export {
+  CURRENCIES,
+  workflowErrorMessage as bookingErrorMessage,
+} from "@/modules/workflow/constants";

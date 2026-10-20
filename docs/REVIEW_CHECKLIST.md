@@ -49,3 +49,13 @@ Use a **second (non-admin) account** as the promoter. A private/incognito window
 - [ ] Create a Resend account and verify your sending domain (DNS records)
 - [ ] Add to `.env.local` and to Vercel: `RESEND_API_KEY`, `EMAIL_FROM` (e.g. `DopeBooking <bookings@yourdomain>`), `SUPABASE_SECRET_KEY` (Supabase → Project Settings → API Keys → Secret key), `CRON_SECRET` (any long random string)
 - [ ] Optional but recommended: Supabase → Auth → SMTP settings → use Resend. Sign-up emails then come from your domain (and email templates become editable)
+
+## Phase 06: promotion, catering, production
+
+- [ ] `/services` and the three offer pages read well; edit the pitch texts if you like (`src/modules/services/schemas.ts`)
+- [ ] As promoter: send a **catering** request (choose crew + artist hospitality, dietary needs)
+- [ ] Send a **production** request; switch between Photography / Videography / Aftermovie and check only the chosen questions are asked
+- [ ] As admin: `/admin/providers` → add a caterer; on the catering request, assign the provider and yourself
+- [ ] Send a quote; as promoter, **Accept quote**; as admin, **Confirm**
+- [ ] Messages and internal notes behave like bookings
+- [ ] Review the questions for each service. Anything to add or remove?

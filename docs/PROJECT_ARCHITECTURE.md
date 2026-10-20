@@ -588,3 +588,36 @@ Verified on a clean copy against the real database:
 - The end-to-end booking flow with real accounts (on the review checklist)
 - Actual email delivery (needs Resend)
 - pgTAP tests (need Docker)
+
+---
+
+## Phase 06 status (2026-10-20)
+
+Branch `phase-06-services` (stacked on `phase-05-bookings`). Built:
+
+- **Database** (`supabase/migrations/20261024000000_service_requests.sql`, applied):
+  - One `service_requests` table for promotion, catering, photography, videography and aftermovies. Type-specific answers sit in `details` (JSON object, size-capped).
+  - History, messages with internal notes, and a `service_providers` directory (staff-only).
+  - Workflow in `transition_service_request()`: like bookings, plus the requester can **accept a quote** (quoted → accepted), and staff then confirm.
+  - Same rate limits, account-copied email, notifications and email queue as bookings.
+- **Per-service questions:** declared once in `src/modules/services/schemas.ts` (`DETAIL_FIELDS`) and used to render the form, validate the answers and display them to staff.
+- **Public:** `/services` overview and `/services/promotion | catering | production` with request forms. Production lets the requester choose photo, video or aftermovie, and only that service's questions are submitted.
+- **Requester:** `/dashboard/requests` list and detail with quote, **Accept quote**, cancel, timeline and messages.
+- **Admin:** `/admin/services` inbox and detail (status control with quote, assign staff, assign a provider, conversation with internal notes). `/admin/providers` lets staff add and edit caterers and photo/video teams.
+- **Refactor:** timeline, status badge, status control and message form now live in `src/modules/workflow` and are shared by bookings and services.
+- **Route change from the Phase 01 plan:** request forms live on the `/services/*` pages instead of separate `/request/*` routes.
+
+Verified on a clean copy against the real database:
+
+- Passing: lint, typecheck, format check, 96 unit tests (including the SQL workflow mirror), production build, 33 Playwright tests.
+- Database checks over the API: all new tables and functions refuse anonymous access.
+
+**Deferred:**
+
+- Provider portal (providers sign in to see and answer their assigned jobs)
+- Promotion campaign tracking (deliverables and results)
+
+**Not verified yet:**
+
+- The end-to-end flows with real accounts (on the review checklist)
+- pgTAP tests (need Docker)

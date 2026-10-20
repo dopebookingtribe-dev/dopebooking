@@ -6,26 +6,31 @@ import { Field, SelectField, TextareaField } from "@/components/ui/field";
 import { fieldError } from "@/components/ui/form-helpers";
 import { FormStatus } from "@/components/ui/form-status";
 import { initialFormState, type FormState } from "@/lib/forms";
-import type { BookingStatus } from "@/lib/supabase/database.types";
-import { CURRENCIES, TRANSITION_LABELS } from "../schemas";
+import { CURRENCIES } from "../constants";
 
-/** Staff control for moving a booking along the workflow. */
+const QUIET = new Set(["declined", "cancelled", "expired"]);
+
+/** Staff control for moving a request along its workflow. */
 export function StatusActions({
   allowed,
+  actionLabels,
   defaultCurrency,
+  quoteLabel = "Quote",
   action,
 }: {
-  allowed: BookingStatus[];
+  allowed: string[];
+  actionLabels: Record<string, string>;
   defaultCurrency: string;
+  quoteLabel?: string;
   action: (prev: FormState, formData: FormData) => Promise<FormState>;
 }) {
   const [state, formAction, pending] = useActionState(action, initialFormState);
-  const [to, setTo] = useState<BookingStatus>(allowed[0]);
+  const [to, setTo] = useState(allowed[0] ?? "");
 
   if (!allowed.length) {
     return (
       <p className="text-sm text-muted">
-        This booking is closed. No further steps.
+        This request is closed. No further steps.
       </p>
     );
   }
@@ -36,11 +41,11 @@ export function StatusActions({
         name="to"
         label="Next step"
         value={to}
-        onChange={(event) => setTo(event.target.value as BookingStatus)}
+        onChange={(event) => setTo(event.target.value)}
       >
         {allowed.map((status) => (
           <option key={status} value={status}>
-            {TRANSITION_LABELS[status] ?? status}
+            {actionLabels[status] ?? status}
           </option>
         ))}
       </SelectField>
@@ -50,7 +55,7 @@ export function StatusActions({
           <div className="grid gap-5 sm:grid-cols-[1fr_8rem]">
             <Field
               name="quote_amount"
-              label="Quote (artist fee)"
+              label={quoteLabel}
               type="number"
               inputMode="numeric"
               min={0}
@@ -73,7 +78,6 @@ export function StatusActions({
             name="quote_note"
             label="What's included (shown to the requester)"
             rows={3}
-            hint="e.g. “Excl. flights from TLV and 2 nights hotel; 50% deposit on contract.”"
           />
         </div>
       ) : null}
@@ -89,11 +93,9 @@ export function StatusActions({
         <Button
           type="submit"
           disabled={pending}
-          variant={
-            to === "declined" || to === "cancelled" ? "secondary" : "primary"
-          }
+          variant={QUIET.has(to) ? "secondary" : "primary"}
         >
-          {pending ? "Saving…" : (TRANSITION_LABELS[to] ?? "Update")}
+          {pending ? "Saving…" : (actionLabels[to] ?? "Update")}
         </Button>
         <FormStatus state={state} />
       </div>

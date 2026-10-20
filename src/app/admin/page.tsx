@@ -11,6 +11,11 @@ const SECTIONS = [
     body: "Requests, quotes and conversations.",
   },
   {
+    href: "/admin/services",
+    title: "Service requests",
+    body: "Promotion, catering and production; providers.",
+  },
+  {
     href: "/admin/artists",
     title: "Artists",
     body: "Roster, profiles, photos and links.",

@@ -11,11 +11,11 @@ import {
   sendBookingMessage,
 } from "@/modules/bookings/actions";
 import { BookingSummary } from "@/modules/bookings/components/booking-summary";
-import { MessageForm } from "@/modules/bookings/components/message-form";
+import { MessageForm } from "@/modules/workflow/components/message-form";
 import { BookingStatusBadge } from "@/modules/bookings/components/status-badge";
-import { Timeline } from "@/modules/bookings/components/timeline";
+import { Timeline } from "@/modules/workflow/components/timeline";
 import { getMyBooking } from "@/modules/bookings/queries";
-import { OPEN_STATUSES } from "@/modules/bookings/schemas";
+import { BOOKING_WORKFLOW, OPEN_STATUSES } from "@/modules/bookings/schemas";
 
 export const metadata: Metadata = { title: "Booking request" };
 
@@ -103,7 +103,10 @@ async function Detail({
           </h2>
           <Timeline
             items={timeline}
-            nameOf={(by) => (by === userId ? "You" : "DopeBooking team")}
+            labels={BOOKING_WORKFLOW.labels}
+            nameOf={(by: string | null) =>
+              by === userId ? "You" : "DopeBooking team"
+            }
           />
           <MessageForm action={sendBookingMessage.bind(null, booking.id)} />
         </section>

@@ -155,6 +155,89 @@ export function renderEmail(
         ...body,
       };
     }
+    case "service_received": {
+      const body = layout(
+        siteUrl,
+        `We've got your ${str(payload, "service").toLowerCase()} request`,
+        [
+          `Reference ${ref} · ${event}, ${str(payload, "city")} (${str(payload, "event_date")}).`,
+          "We'll review it and reply with a quote, usually within 2 working days.",
+        ],
+        link,
+        "View your request",
+      );
+      return { subject: `Request ${ref} received`, ...body };
+    }
+    case "service_new_staff": {
+      const body = layout(
+        siteUrl,
+        `New request: ${str(payload, "service")}`,
+        [
+          `${event}, ${str(payload, "city")} (${str(payload, "event_date")}). Reference ${ref}.`,
+        ],
+        link,
+        "Open in admin",
+      );
+      return {
+        subject: `New ${str(payload, "service").toLowerCase()} request (${ref})`,
+        ...body,
+      };
+    }
+    case "service_status": {
+      const status = str(payload, "status");
+      const lines = [
+        `Your ${str(payload, "service").toLowerCase()} request for ${event} ${STATUS_TEXT[status] ?? "was updated"}.`,
+      ];
+      if (status === "quoted" && money(payload)) {
+        lines.push(
+          `Quote: ${money(payload)}. You can accept it from your dashboard.`,
+        );
+      }
+      if (note) lines.push(note);
+      const body = layout(
+        siteUrl,
+        `Request ${ref}: update`,
+        lines,
+        link,
+        "View details",
+      );
+      return {
+        subject: `Request ${ref}: ${status.replace(/_/g, " ")}`,
+        ...body,
+      };
+    }
+    case "service_status_staff": {
+      const status = str(payload, "status");
+      const body = layout(
+        siteUrl,
+        `Request ${ref} ${status === "accepted" ? "accepted" : "cancelled"}`,
+        [
+          status === "accepted"
+            ? `The requester accepted the quote for ${event}. Confirm it to go ahead.`
+            : `The requester cancelled ${event}.`,
+        ],
+        link,
+        "Open in admin",
+      );
+      return { subject: `Request ${ref}: ${status} by requester`, ...body };
+    }
+    case "service_message":
+    case "service_message_staff": {
+      const staff = template.endsWith("_staff");
+      const body = layout(
+        siteUrl,
+        staff ? `Reply on request ${ref}` : `New message about request ${ref}`,
+        [str(payload, "excerpt")],
+        link,
+        "Read and reply",
+      );
+      return {
+        subject: staff
+          ? `Reply on ${ref}`
+          : `Message about your request ${ref}`,
+        ...body,
+      };
+    }
     default:
       return null;
   }

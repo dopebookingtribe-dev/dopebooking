@@ -50,6 +50,31 @@ describe("renderEmail", () => {
     expect(protocolRelative?.html).not.toContain("evil.example");
   });
 
+  it("renders service request templates", () => {
+    const email = renderEmail(
+      "service_status",
+      {
+        reference: "SR-1",
+        service: "Festival catering",
+        event_name: "Forest Gathering",
+        status: "quoted",
+        quote_amount: 4800,
+        quote_currency: "EUR",
+        link: "/dashboard/requests/abc",
+      },
+      site,
+    );
+    expect(email?.text).toContain("festival catering request");
+    expect(email?.text).toContain("accept it");
+    expect(
+      renderEmail(
+        "service_status_staff",
+        { status: "accepted", link: "/x" },
+        site,
+      )?.subject,
+    ).toContain("accepted");
+  });
+
   it("ignores unknown templates", () => {
     expect(renderEmail("nope", {}, site)).toBeNull();
   });
