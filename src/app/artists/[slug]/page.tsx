@@ -32,7 +32,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     description,
     alternates: { canonical: `/artists/${artist.slug}` },
     openGraph: {
-      title: `${artist.stageName} · DopeBooking`,
+      title: `${artist.stageName} | DopeBooking`,
       description,
       type: "profile",
       images: artist.portrait
@@ -123,7 +123,7 @@ async function Profile({ params }: { params: Props["params"] }) {
             )}
           </div>
           {artist.portrait?.credit ? (
-            <p className="mt-2 font-mono text-[0.7rem] tracking-[0.12em] text-muted uppercase">
+            <p className="mt-2 font-label text-xs text-muted">
               Photo: {artist.portrait.credit}
             </p>
           ) : null}
@@ -136,9 +136,7 @@ async function Profile({ params }: { params: Props["params"] }) {
           >
             ← All artists
           </Link>
-          {meta.length ? (
-            <Meta className="mt-8">{meta.join(" · ")}</Meta>
-          ) : null}
+          {meta.length ? <Meta className="mt-8">{meta.join(", ")}</Meta> : null}
           <h1 className="mt-4 font-display text-display">{artist.stageName}</h1>
           {artist.tagline ? (
             <p className="mt-6 text-xl text-muted">{artist.tagline}</p>
@@ -179,7 +177,7 @@ async function Profile({ params }: { params: Props["params"] }) {
                           show.endsAt,
                           show.timezone,
                         )}
-                        {eventPlace(show) ? ` · ${eventPlace(show)}` : ""}
+                        {eventPlace(show) ? `, ${eventPlace(show)}` : ""}
                       </span>
                     </Link>
                   </li>
@@ -254,7 +252,7 @@ async function Profile({ params }: { params: Props["params"] }) {
                       className="h-auto w-full rounded-(--radius)"
                     />
                     {image.credit ? (
-                      <figcaption className="mt-2 font-mono text-[0.7rem] tracking-[0.12em] text-muted uppercase">
+                      <figcaption className="mt-2 font-label text-xs text-muted">
                         Photo: {image.credit}
                       </figcaption>
                     ) : null}

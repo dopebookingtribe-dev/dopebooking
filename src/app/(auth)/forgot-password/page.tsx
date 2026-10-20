@@ -9,7 +9,7 @@ export const metadata: Metadata = { title: "Reset your password" };
 export default function ForgotPasswordPage() {
   return (
     <>
-      <AuthHeading eyebrow="Account" title="Reset your password">
+      <AuthHeading title="Reset your password">
         We&apos;ll email you a link to choose a new password.
       </AuthHeading>
       <AuthForm

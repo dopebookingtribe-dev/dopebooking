@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { Suspense } from "react";
 import { Container } from "@/components/ui/container";
-import { Meta } from "@/components/ui/meta";
 import { requireRole, STAFF_ROLES } from "@/lib/auth/dal";
 
 const SECTIONS = [
@@ -63,8 +62,7 @@ async function AdminHome() {
 
   return (
     <>
-      <Meta>Admin</Meta>
-      <h1 className="mt-3 font-display text-headline">Control room</h1>
+      <h1 className="font-display text-headline">Control room</h1>
       <p className="mt-4 text-muted">
         Signed in as {user.email} ({user.roles.join(", ")}).
       </p>

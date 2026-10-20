@@ -78,14 +78,14 @@ export function PhotoGrid({ images }: { images: ImageData[] }) {
         {current ? (
           <div className="flex h-full flex-col">
             <div className="flex items-center justify-between px-(--gutter) py-3">
-              <p className="font-mono text-xs tracking-[0.14em] text-muted uppercase">
+              <p className="font-label text-xs text-muted">
                 {(index ?? 0) + 1} / {images.length}
-                {current.credit ? ` · Photo: ${current.credit}` : ""}
+                {current.credit ? `. Photo: ${current.credit}` : ""}
               </p>
               <button
                 type="button"
                 onClick={() => dialogRef.current?.close()}
-                className="min-h-11 min-w-11 font-mono text-xs tracking-[0.18em] uppercase"
+                className="min-h-11 min-w-11 font-label text-xs"
               >
                 Close
               </button>

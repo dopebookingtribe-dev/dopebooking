@@ -11,7 +11,7 @@ export const metadata: Metadata = { title: "Create an account" };
 export default function SignupPage({ searchParams }: PageProps<"/signup">) {
   return (
     <>
-      <AuthHeading eyebrow="Account" title="Create an account">
+      <AuthHeading title="Create an account">
         Book artists, request festival services and track your orders.
       </AuthHeading>
       <AuthForm

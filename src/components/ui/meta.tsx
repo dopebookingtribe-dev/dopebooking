@@ -1,11 +1,8 @@
 import type { ComponentProps } from "react";
 
-/** Mono "festival ticket" metadata: dates, cities, BPM, labels. */
+/** Condensed metadata: dates, cities, places, references. Sentence case. */
 export function Meta({ className = "", ...props }: ComponentProps<"p">) {
   return (
-    <p
-      className={`font-mono text-xs tracking-[0.18em] text-muted uppercase ${className}`}
-      {...props}
-    />
+    <p className={`font-label text-sm text-muted ${className}`} {...props} />
   );
 }

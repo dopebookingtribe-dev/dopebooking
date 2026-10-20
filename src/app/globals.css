@@ -15,19 +15,37 @@
   --color-danger: var(--danger);
   --color-success: var(--success);
 
-  --font-sans: var(--font-inter-tight), ui-sans-serif, system-ui, sans-serif;
-  --font-display: var(--font-instrument-serif), ui-serif, Georgia, serif;
-  --font-mono: var(--font-jetbrains-mono), ui-monospace, monospace;
+  --color-thread-cyan: var(--thread-cyan);
 
-  /* Fluid editorial scale */
-  --text-display: clamp(2.75rem, 1.5rem + 6vw, 7rem);
-  --text-display--line-height: 0.95;
-  --text-display--letter-spacing: -0.02em;
-  --text-headline: clamp(2rem, 1.25rem + 3vw, 3.75rem);
+  --font-sans:
+    var(--font-instrument-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-anybody), ui-sans-serif, system-ui, sans-serif;
+
+  /* Modular scale (1.25) from a 16px body; display sizes are fluid. */
+  --text-display: clamp(2.5rem, 1.1rem + 6.2vw, 6.5rem);
+  --text-display--line-height: 0.92;
+  --text-display--letter-spacing: -0.01em;
+  --text-headline: clamp(1.95rem, 1.3rem + 2.6vw, 3.4rem);
   --text-headline--line-height: 1;
-  --text-headline--letter-spacing: -0.015em;
+  --text-headline--letter-spacing: -0.005em;
 
   --ease-out: var(--ease-out);
+}
+
+/* Extended Anybody carries every headline: wide like a festival banner. */
+@utility font-display {
+  font-family: var(--font-anybody), ui-sans-serif, system-ui, sans-serif;
+  font-stretch: 140%;
+  font-weight: 750;
+}
+
+/* Condensed Anybody for dates, places and references: compact, sentence case. */
+@utility font-label {
+  font-family: var(--font-anybody), ui-sans-serif, system-ui, sans-serif;
+  font-stretch: 78%;
+  font-weight: 560;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.01em;
 }
 
 @layer base {
@@ -59,8 +77,25 @@
   *::before,
   *::after {
     animation-duration: 0.01ms !important;
+    animation-delay: 0s !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
+  }
+}
+
+/* Hero string art: one orchestrated draw-in, sector by sector, then still. */
+.string-art__sector {
+  filter: drop-shadow(0 0 5px currentColor);
+}
+.string-art__sector line {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  animation: thread-draw 1.1s var(--ease-out) both;
+  animation-delay: calc(var(--sector) * 120ms + 150ms);
+}
+@keyframes thread-draw {
+  to {
+    stroke-dashoffset: 0;
   }
 }

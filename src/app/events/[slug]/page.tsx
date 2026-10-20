@@ -29,13 +29,13 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (!event) return { title: "Event not found" };
   const description =
     event.summary ??
-    `${formatEventRange(event.startsAt, event.endsAt, event.timezone)} · ${eventPlace(event)}`;
+    `${formatEventRange(event.startsAt, event.endsAt, event.timezone)}, ${eventPlace(event)}`;
   return {
     title: event.title,
     description,
     alternates: { canonical: `/events/${event.slug}` },
     openGraph: {
-      title: `${event.title} · DopeBooking`,
+      title: `${event.title} | DopeBooking`,
       description,
       images: event.cover
         ? [{ url: event.cover.url, alt: event.cover.alt }]
@@ -135,7 +135,7 @@ async function EventDetail({ params }: { params: Props["params"] }) {
           </Link>
           <Meta className="mt-8">
             {formatEventRange(event.startsAt, event.endsAt, event.timezone)}
-            {event.city ? ` · ${event.city}` : ""}
+            {event.city ? `, ${event.city}` : ""}
             {event.country ? `, ${countryName(event.country)}` : ""}
           </Meta>
           <h1 className="mt-4 max-w-5xl font-display text-display">
@@ -193,7 +193,7 @@ async function EventDetail({ params }: { params: Props["params"] }) {
                         {act.stageName}
                       </p>
                       {act.stage || act.setStartsAt ? (
-                        <p className="mt-1 font-mono text-[0.7rem] tracking-[0.12em] text-muted uppercase">
+                        <p className="mt-1 font-label text-xs text-muted">
                           {[
                             act.stage,
                             act.setStartsAt
@@ -201,7 +201,7 @@ async function EventDetail({ params }: { params: Props["params"] }) {
                               : null,
                           ]
                             .filter(Boolean)
-                            .join(" · ")}
+                            .join(", ")}
                         </p>
                       ) : null}
                     </Link>

@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import { Suspense } from "react";
 import { ButtonLink } from "@/components/ui/button";
 import { Container } from "@/components/ui/container";
-import { Meta } from "@/components/ui/meta";
 import { getCurrentUser } from "@/lib/auth/dal";
 import { COUNTRIES } from "@/lib/countries";
 import { applyToSell } from "@/modules/marketplace/actions";
@@ -35,8 +34,7 @@ const POINTS = [
 export default function SellPage() {
   return (
     <Container className="py-16 sm:py-24">
-      <Meta>Marketplace</Meta>
-      <h1 className="mt-4 max-w-4xl font-display text-display">
+      <h1 className="max-w-4xl font-display text-display">
         Sell to the psytrance world.
       </h1>
       <ul className="mt-12 grid gap-8 sm:grid-cols-3">

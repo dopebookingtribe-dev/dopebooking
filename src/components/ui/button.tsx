@@ -4,11 +4,12 @@ import type { ComponentProps } from "react";
 type Variant = "primary" | "secondary" | "ghost";
 
 const base =
-  "inline-flex min-h-11 items-center justify-center gap-2 rounded-(--radius) px-5 text-sm font-medium tracking-wide transition-colors duration-200 disabled:pointer-events-none disabled:opacity-50";
+  "inline-flex min-h-11 items-center justify-center gap-2 rounded-full px-6 text-sm font-semibold transition-colors duration-200 disabled:pointer-events-none disabled:opacity-50";
 
 const variants: Record<Variant, string> = {
   primary: "bg-accent text-accent-ink hover:bg-text",
-  secondary: "border border-line-strong text-text hover:border-text",
+  secondary:
+    "border border-line-strong text-text hover:border-accent hover:text-accent",
   ghost: "text-muted hover:text-text",
 };
 

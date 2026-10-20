@@ -3,7 +3,6 @@ import Link from "next/link";
 import { Suspense } from "react";
 import { Button } from "@/components/ui/button";
 import { Container } from "@/components/ui/container";
-import { Meta } from "@/components/ui/meta";
 import { markNotificationsRead } from "@/modules/bookings/actions";
 import { getMyNotifications } from "@/modules/bookings/queries";
 
@@ -12,8 +11,7 @@ export const metadata: Metadata = { title: "Notifications" };
 export default function NotificationsPage() {
   return (
     <Container className="py-16">
-      <Meta>Dashboard</Meta>
-      <h1 className="mt-3 font-display text-headline">Notifications</h1>
+      <h1 className="font-display text-headline">Notifications</h1>
       <Suspense fallback={<p className="mt-10 text-muted">Loading…</p>}>
         <List />
       </Suspense>
@@ -69,7 +67,7 @@ async function List() {
                     {item.body}
                   </span>
                 ) : null}
-                <span className="mt-1 block font-mono text-xs text-muted">
+                <span className="mt-1 block font-label text-xs text-muted">
                   {when(item.created_at)}
                 </span>
               </span>

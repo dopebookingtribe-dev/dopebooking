@@ -1,9 +1,13 @@
 import { ImageResponse } from "next/og";
+import { STRING_ART } from "@/components/site/string-art";
 
 // Default share image for every page without its own photo.
-export const alt = "DopeBooking — international psytrance artist agency";
+export const alt = "DopeBooking, international psytrance artist agency";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
+
+const THREADS = ["#ff5ca8", "#ffb23f", "#5be0e6"];
+const R = STRING_ART.radius;
 
 export default function OpengraphImage() {
   return new ImageResponse(
@@ -12,23 +16,41 @@ export default function OpengraphImage() {
         width: "100%",
         height: "100%",
         display: "flex",
-        flexDirection: "column",
-        justifyContent: "space-between",
-        padding: 72,
-        background:
-          "radial-gradient(120% 80% at 75% 10%, #1f2a0b 0%, #0a0a0c 55%), #0a0a0c",
-        color: "#f3f0ea",
+        position: "relative",
+        background: "#15112b",
+        color: "#efebfa",
       }}
     >
-      <div style={{ fontSize: 28, letterSpacing: 8, color: "#a6a3ad" }}>
-        INTERNATIONAL PSYTRANCE AGENCY
-      </div>
-      <div style={{ display: "flex", flexDirection: "column" }}>
-        <div style={{ fontSize: 120, lineHeight: 1, letterSpacing: -3 }}>
+      <svg
+        width={760}
+        height={760}
+        viewBox={`${-R} ${-R} ${R * 2} ${R * 2}`}
+        style={{ position: "absolute", right: -170, top: -65 }}
+      >
+        {STRING_ART.sectors.map((threads, s) =>
+          threads.map((t, i) => (
+            <line
+              key={`${s}-${i}`}
+              {...t}
+              stroke={THREADS[s % THREADS.length]}
+              strokeWidth={1.6}
+            />
+          )),
+        )}
+      </svg>
+      <div
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          justifyContent: "flex-end",
+          padding: 72,
+        }}
+      >
+        <div style={{ fontSize: 112, fontWeight: 800, letterSpacing: -2 }}>
           DopeBooking
         </div>
-        <div style={{ marginTop: 24, fontSize: 40, color: "#c6f432" }}>
-          Artists · Events · Festival services · Shop
+        <div style={{ marginTop: 20, fontSize: 38, color: "#aca5cb" }}>
+          Psytrance artists and festival services
         </div>
       </div>
     </div>,

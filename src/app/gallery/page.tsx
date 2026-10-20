@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import { Suspense } from "react";
 import { MediaTabs } from "@/components/site/media-tabs";
 import { Container } from "@/components/ui/container";
-import { Meta } from "@/components/ui/meta";
 import { GalleryCard } from "@/modules/galleries/components/gallery-card";
 import { getPublishedGalleries } from "@/modules/galleries/queries";
 
@@ -15,8 +14,7 @@ export const metadata: Metadata = {
 export default function GalleryIndexPage() {
   return (
     <Container className="py-16 sm:py-24">
-      <Meta>Media</Meta>
-      <h1 className="mt-4 font-display text-display">Photos</h1>
+      <h1 className="font-display text-display">Photos</h1>
       <MediaTabs active="photos" />
       <Suspense
         fallback={<p className="mt-16 text-muted">Loading galleries…</p>}

@@ -15,7 +15,7 @@ type SearchParams = PageProps<"/login">["searchParams"];
 export default function LoginPage({ searchParams }: PageProps<"/login">) {
   return (
     <>
-      <AuthHeading eyebrow="Account" title="Sign in" />
+      <AuthHeading title="Sign in" />
       <Suspense fallback={null}>
         <LinkError searchParams={searchParams} />
       </Suspense>

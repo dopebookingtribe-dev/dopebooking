@@ -3,7 +3,6 @@ import Link from "next/link";
 import { Suspense } from "react";
 import { ButtonLink } from "@/components/ui/button";
 import { Container } from "@/components/ui/container";
-import { Meta } from "@/components/ui/meta";
 import { ServiceStatusBadge } from "@/modules/services/components/service-status-badge";
 import { listMyServiceRequests } from "@/modules/services/queries";
 import { SERVICE_LABELS } from "@/modules/services/schemas";
@@ -14,8 +13,7 @@ export const metadata: Metadata = { title: "My service requests" };
 export default function MyRequestsPage() {
   return (
     <Container className="py-16">
-      <Meta>Dashboard</Meta>
-      <h1 className="mt-3 font-display text-headline">Service requests</h1>
+      <h1 className="font-display text-headline">Service requests</h1>
       <Suspense fallback={<p className="mt-10 text-muted">Loading…</p>}>
         <List />
       </Suspense>
@@ -50,12 +48,12 @@ async function List() {
                 {SERVICE_LABELS[request.service_type]}
               </p>
               <p className="mt-1 text-sm text-muted">
-                {request.event_name} · {request.city} ·{" "}
+                {request.event_name}, {request.city},{" "}
                 {formatDay(request.event_start)}
               </p>
             </div>
             <div className="flex items-center gap-4">
-              <span className="font-mono text-xs text-muted">
+              <span className="font-label text-xs text-muted">
                 {request.reference}
               </span>
               <ServiceStatusBadge status={request.status} />

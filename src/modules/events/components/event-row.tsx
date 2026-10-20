@@ -12,7 +12,7 @@ export function eventPlace(
     .join(", ");
 }
 
-/** Editorial list row: date · title · place, with a cover thumbnail. */
+/** Editorial list row: date, title, place, with a cover thumbnail. */
 export function EventRow({ event }: { event: EventCard }) {
   const place = eventPlace(event);
   return (
@@ -20,7 +20,7 @@ export function EventRow({ event }: { event: EventCard }) {
       href={`/events/${event.slug}`}
       className="group grid items-center gap-4 border-b border-line py-6 sm:grid-cols-[11rem_1fr_9rem] sm:gap-8"
     >
-      <p className="font-mono text-xs tracking-[0.14em] text-muted uppercase">
+      <p className="font-label text-xs text-muted">
         {formatEventRange(event.startsAt, event.endsAt, event.timezone)}
       </p>
       <div>

@@ -19,7 +19,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       gallery.description?.slice(0, 155) ?? `Photos: ${gallery.title}`,
     alternates: { canonical: `/gallery/${gallery.slug}` },
     openGraph: {
-      title: `${gallery.title} · DopeBooking`,
+      title: `${gallery.title} | DopeBooking`,
       images: gallery.cover
         ? [{ url: gallery.cover.url, alt: gallery.cover.alt }]
         : undefined,
@@ -52,7 +52,7 @@ async function Gallery({ params }: { params: Props["params"] }) {
     <>
       <Meta className="mt-8">
         {gallery.images.length} photos
-        {gallery.photographer ? ` · Photography: ${gallery.photographer}` : ""}
+        {gallery.photographer ? `. Photography: ${gallery.photographer}` : ""}
       </Meta>
       <h1 className="mt-4 font-display text-display">{gallery.title}</h1>
       {gallery.event ? (

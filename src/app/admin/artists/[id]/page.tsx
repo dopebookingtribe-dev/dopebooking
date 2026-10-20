@@ -3,7 +3,6 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense, type ReactNode } from "react";
 import { Container } from "@/components/ui/container";
-import { Meta } from "@/components/ui/meta";
 import { COUNTRIES } from "@/lib/countries";
 import {
   deleteArtistImage,
@@ -56,10 +55,7 @@ async function Editor({
     <>
       <header className="mt-8 flex flex-wrap items-end justify-between gap-4">
         <div>
-          <Meta>Edit artist</Meta>
-          <h1 className="mt-3 font-display text-headline">
-            {artist.stage_name}
-          </h1>
+          <h1 className="font-display text-headline">{artist.stage_name}</h1>
         </div>
         <div className="flex items-center gap-4">
           <StatusBadge status={artist.status} />

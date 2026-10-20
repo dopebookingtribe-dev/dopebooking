@@ -3,7 +3,7 @@ import { expect, test } from "@playwright/test";
 test("home page renders the hero and primary CTA", async ({ page }) => {
   await page.goto("/");
   await expect(page.getByRole("heading", { level: 1 })).toContainText(
-    "dancefloor",
+    "psytrance artists",
   );
   await expect(
     page.getByRole("main").getByRole("link", { name: "Book an artist" }),

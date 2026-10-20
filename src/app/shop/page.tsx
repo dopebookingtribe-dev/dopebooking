@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Suspense } from "react";
 import { Container } from "@/components/ui/container";
-import { Meta } from "@/components/ui/meta";
 import { ProductCard } from "@/modules/marketplace/components/product-card";
 import { getShopProducts } from "@/modules/marketplace/queries";
 
@@ -22,8 +21,7 @@ const TYPES = [
 export default function ShopPage({ searchParams }: PageProps<"/shop">) {
   return (
     <Container className="py-16 sm:py-24">
-      <Meta>Marketplace</Meta>
-      <h1 className="mt-4 font-display text-display">Shop</h1>
+      <h1 className="font-display text-display">Shop</h1>
       <p className="mt-6 max-w-xl text-lg text-muted">
         Independent makers from the scene.{" "}
         <Link href="/sell" className="text-text underline underline-offset-4">

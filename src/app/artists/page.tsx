@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Suspense } from "react";
 import { Container } from "@/components/ui/container";
-import { Meta } from "@/components/ui/meta";
 import { ArtistCard } from "@/modules/artists/components/artist-card";
 import { getPublishedArtists } from "@/modules/artists/queries";
 import { GENRES, GENRE_KEYS, isGenre } from "@/modules/artists/schemas";
@@ -17,8 +16,7 @@ export const metadata: Metadata = {
 export default function ArtistsPage({ searchParams }: PageProps<"/artists">) {
   return (
     <Container className="py-16 sm:py-24">
-      <Meta>Roster</Meta>
-      <h1 className="mt-4 max-w-4xl font-display text-display">Artists</h1>
+      <h1 className="max-w-4xl font-display text-display">Artists</h1>
       <p className="mt-6 max-w-xl text-lg text-muted">
         International psytrance acts for festivals, open-airs and club nights,
         from progressive sunrise sets to night-time full-on.

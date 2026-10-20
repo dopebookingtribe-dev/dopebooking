@@ -4,7 +4,6 @@ import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { ButtonLink } from "@/components/ui/button";
 import { Container } from "@/components/ui/container";
-import { Meta } from "@/components/ui/meta";
 import { getCurrentUser } from "@/lib/auth/dal";
 import { COUNTRIES } from "@/lib/countries";
 import { createServiceRequest } from "@/modules/services/actions";
@@ -37,8 +36,7 @@ export default async function OfferPage({ params }: Props) {
       <Link href="/services" className="text-sm text-muted hover:text-text">
         ← All services
       </Link>
-      <Meta className="mt-8">{details.eyebrow}</Meta>
-      <h1 className="mt-4 max-w-4xl font-display text-display">
+      <h1 className="mt-8 max-w-4xl font-display text-display">
         {details.title}
       </h1>
       <p className="mt-6 max-w-2xl text-lg text-muted">{details.pitch}</p>

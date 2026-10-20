@@ -73,7 +73,7 @@ async function Inbox({
           cells: [
             <>
               {booking.event_name}
-              <span className="ml-2 font-mono text-xs text-muted">
+              <span className="ml-2 font-label text-xs text-muted">
                 {booking.reference}
               </span>
               {!booking.assigned_staff_id ? (

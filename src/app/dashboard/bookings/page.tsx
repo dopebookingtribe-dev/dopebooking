@@ -3,7 +3,6 @@ import Link from "next/link";
 import { Suspense } from "react";
 import { ButtonLink } from "@/components/ui/button";
 import { Container } from "@/components/ui/container";
-import { Meta } from "@/components/ui/meta";
 import { formatDay } from "@/modules/bookings/components/booking-summary";
 import { BookingStatusBadge } from "@/modules/bookings/components/status-badge";
 import { listMyBookings } from "@/modules/bookings/queries";
@@ -13,8 +12,7 @@ export const metadata: Metadata = { title: "My booking requests" };
 export default function MyBookingsPage() {
   return (
     <Container className="py-16">
-      <Meta>Dashboard</Meta>
-      <h1 className="mt-3 font-display text-headline">Booking requests</h1>
+      <h1 className="font-display text-headline">Booking requests</h1>
       <Suspense fallback={<p className="mt-10 text-muted">Loading…</p>}>
         <List />
       </Suspense>
@@ -47,12 +45,12 @@ async function List() {
                 {booking.artist?.name ?? "Artist"}
               </p>
               <p className="mt-1 text-sm text-muted">
-                {booking.event_name} · {booking.city} ·{" "}
+                {booking.event_name}, {booking.city},{" "}
                 {formatDay(booking.event_date)}
               </p>
             </div>
             <div className="flex items-center gap-4">
-              <span className="font-mono text-xs text-muted">
+              <span className="font-label text-xs text-muted">
                 {booking.reference}
               </span>
               <BookingStatusBadge status={booking.status} />

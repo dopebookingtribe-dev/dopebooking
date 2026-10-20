@@ -54,7 +54,7 @@ const statusStyles: Record<ContentStatus, string> = {
 export function StatusBadge({ status }: { status: ContentStatus }) {
   return (
     <span
-      className={`inline-flex rounded-full border px-2.5 py-0.5 font-mono text-[0.7rem] tracking-[0.12em] uppercase ${statusStyles[status]}`}
+      className={`inline-flex rounded-full border px-2.5 py-0.5 font-label text-xs ${statusStyles[status]}`}
     >
       {STATUSES[status]}
     </span>
@@ -74,7 +74,7 @@ export function AdminTable({
   return (
     <div className="mt-10 overflow-x-auto rounded-(--radius) border border-line">
       <table className="w-full min-w-[40rem] text-left text-sm">
-        <thead className="bg-surface-1 font-mono text-xs tracking-[0.12em] text-muted uppercase">
+        <thead className="bg-surface-1 font-label text-xs text-muted">
           <tr>
             {columns.map((column) => (
               <th key={column} scope="col" className="px-4 py-3 font-normal">

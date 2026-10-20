@@ -31,7 +31,7 @@ export function MobileMenu({ accountSlot }: { accountSlot: React.ReactNode }) {
         aria-expanded={open}
         aria-controls={panelId}
         onClick={() => setOpen((value) => !value)}
-        className="inline-flex min-h-11 min-w-11 items-center justify-center font-mono text-xs tracking-[0.18em] uppercase"
+        className="inline-flex min-h-11 min-w-11 items-center justify-center font-label text-xs"
       >
         {open ? "Close" : "Menu"}
       </button>

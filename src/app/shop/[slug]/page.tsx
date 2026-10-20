@@ -104,7 +104,7 @@ async function Product({ params }: { params: Props["params"] }) {
             >
               {product.seller.name}
             </Link>
-            {product.productType === "digital" ? " · Digital download" : ""}
+            {product.productType === "digital" ? ", digital download" : ""}
           </Meta>
           <h1 className="mt-4 font-display text-headline">{product.title}</h1>
           <div className="mt-8">

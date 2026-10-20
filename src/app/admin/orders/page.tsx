@@ -65,7 +65,7 @@ async function List({
           href: `/admin/orders/${order.id}`,
           cells: [
             <>
-              <span className="font-mono">{order.reference}</span>
+              <span className="font-label">{order.reference}</span>
               {order.needs_attention ? (
                 <span className="ml-2 text-xs text-danger">⚠ Attention</span>
               ) : null}

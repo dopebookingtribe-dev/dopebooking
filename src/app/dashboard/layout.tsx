@@ -3,7 +3,7 @@ import Link from "next/link";
 import { Container } from "@/components/ui/container";
 
 export const metadata: Metadata = {
-  title: { default: "Dashboard", template: "%s · DopeBooking" },
+  title: { default: "Dashboard", template: "%s | DopeBooking" },
   robots: { index: false, follow: false },
 };
 
@@ -29,7 +29,7 @@ export default function DashboardLayout({
                 <li key={item.href}>
                   <Link
                     href={item.href}
-                    className="inline-flex min-h-11 items-center font-mono text-xs tracking-[0.18em] whitespace-nowrap text-muted uppercase hover:text-text"
+                    className="inline-flex min-h-11 items-center font-label text-xs whitespace-nowrap text-muted hover:text-text"
                   >
                     {item.label}
                   </Link>

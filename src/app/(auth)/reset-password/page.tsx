@@ -9,7 +9,7 @@ export const metadata: Metadata = { title: "Choose a new password" };
 export default function ResetPasswordPage() {
   return (
     <>
-      <AuthHeading eyebrow="Account" title="Choose a new password" />
+      <AuthHeading title="Choose a new password" />
       <AuthForm
         action={resetPassword}
         submitLabel="Update password"

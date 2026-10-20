@@ -94,11 +94,11 @@ export function OrderView({
                 Tracking:{" "}
                 {[part.carrier, part.tracking_number]
                   .filter(Boolean)
-                  .join(" · ")}
+                  .join(", ")}
               </p>
             ) : null}
             {showFinance ? (
-              <dl className="mt-4 grid grid-cols-2 gap-x-4 gap-y-1 border-t border-line pt-3 font-mono text-xs text-muted">
+              <dl className="mt-4 grid grid-cols-2 gap-x-4 gap-y-1 border-t border-line pt-3 font-label text-xs text-muted">
                 <dt>Commission ({part.commission_rate_bps / 100}%)</dt>
                 <dd className="text-right">{money(part.commission_amount)}</dd>
                 <dt>Paid to seller</dt>

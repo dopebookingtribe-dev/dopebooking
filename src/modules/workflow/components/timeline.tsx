@@ -38,7 +38,7 @@ export function Timeline({
                 </span>
                 <span className="text-muted">
                   {" "}
-                  · {nameOf(item.by)} · {time(item.at)}
+                  by {nameOf(item.by)}, {time(item.at)}
                 </span>
               </p>
               {item.note ? (
@@ -55,11 +55,9 @@ export function Timeline({
           >
             <p className="text-xs text-muted">
               {item.internal ? (
-                <span className="mr-2 font-mono tracking-[0.12em] text-uv uppercase">
-                  Internal note
-                </span>
+                <span className="mr-2 font-label text-uv">Internal note</span>
               ) : null}
-              {nameOf(item.by)} · {time(item.at)}
+              {nameOf(item.by)}, {time(item.at)}
             </p>
             <p className="mt-2 text-sm whitespace-pre-line">{item.body}</p>
           </li>

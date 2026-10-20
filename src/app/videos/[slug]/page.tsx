@@ -22,7 +22,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     description: video.description?.slice(0, 155) ?? video.title,
     alternates: { canonical: `/videos/${video.slug}` },
     openGraph: {
-      title: `${video.title} · DopeBooking`,
+      title: `${video.title} | DopeBooking`,
       type: "video.other",
       images: video.poster ? [{ url: video.poster.url }] : undefined,
     },
@@ -80,7 +80,7 @@ async function Video({ params }: { params: Props["params"] }) {
               >
                 {video.artist.stageName}
               </Link>
-              {video.event ? " · " : ""}
+              {video.event ? ", " : ""}
             </>
           ) : null}
           {video.event ? (

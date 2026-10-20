@@ -61,7 +61,7 @@ async function Store({ params }: { params: Props["params"] }) {
           <Meta>
             {[countryName(seller.country), `${products.length} products`]
               .filter(Boolean)
-              .join(" · ")}
+              .join(", ")}
           </Meta>
           <h1 className="mt-2 font-display text-headline">
             {seller.display_name}

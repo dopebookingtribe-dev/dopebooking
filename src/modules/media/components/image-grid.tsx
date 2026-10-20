@@ -39,7 +39,7 @@ export function ImageGrid({
                 className="object-cover"
               />
               {isLead ? (
-                <span className="absolute top-2 left-2 rounded-full bg-accent px-2 py-0.5 font-mono text-[0.65rem] tracking-widest text-accent-ink uppercase">
+                <span className="absolute top-2 left-2 rounded-full bg-accent px-2 py-0.5 font-label text-xs text-accent-ink">
                   {leadLabel}
                 </span>
               ) : null}

@@ -18,7 +18,7 @@ export function ArtistCard({
   const meta = [countryName(artist.country), ...genreLabels(artist.genres)]
     .filter(Boolean)
     .slice(0, 3)
-    .join(" · ");
+    .join(", ");
 
   return (
     <Link href={`/artists/${artist.slug}`} className="group block">
@@ -49,9 +49,7 @@ export function ArtistCard({
         {artist.stageName}
       </h2>
       {meta ? (
-        <p className="mt-1 font-mono text-xs tracking-[0.14em] text-muted uppercase">
-          {meta}
-        </p>
+        <p className="mt-1 font-label text-xs text-muted">{meta}</p>
       ) : null}
     </Link>
   );

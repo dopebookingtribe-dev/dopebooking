@@ -3,7 +3,6 @@ import Link from "next/link";
 import { Suspense } from "react";
 import { Button, ButtonLink } from "@/components/ui/button";
 import { Container } from "@/components/ui/container";
-import { Meta } from "@/components/ui/meta";
 import { requireUser, STAFF_ROLES } from "@/lib/auth/dal";
 import { signOut } from "@/modules/auth/actions";
 import {
@@ -19,7 +18,6 @@ export const metadata: Metadata = { title: "Dashboard" };
 export default function DashboardPage() {
   return (
     <Container className="py-16">
-      <Meta>Dashboard</Meta>
       <Suspense
         fallback={<p className="mt-6 text-muted">Loading your account…</p>}
       >
@@ -51,14 +49,14 @@ async function Overview() {
       href: "/dashboard/bookings",
       title: "Booking requests",
       body: bookings.length
-        ? `${open} open · ${bookings.length} total`
+        ? `${open} open, ${bookings.length} total`
         : "No requests yet",
     },
     {
       href: "/dashboard/requests",
       title: "Service requests",
       body: requests.length
-        ? `${openRequests} open · ${requests.length} total`
+        ? `${openRequests} open, ${requests.length} total`
         : "Promotion, catering, production",
     },
     {

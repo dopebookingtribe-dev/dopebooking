@@ -3,7 +3,6 @@ import Link from "next/link";
 import { Suspense } from "react";
 import { ButtonLink } from "@/components/ui/button";
 import { Container } from "@/components/ui/container";
-import { Meta } from "@/components/ui/meta";
 import { listArtistsForAdmin } from "@/modules/artists/admin-queries";
 import { StatusBadge } from "@/components/admin/admin-ui";
 import { GENRES, isGenre } from "@/modules/artists/schemas";
@@ -15,8 +14,7 @@ export default function AdminArtistsPage() {
     <Container className="py-12">
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <Meta>Admin</Meta>
-          <h1 className="mt-3 font-display text-headline">Artists</h1>
+          <h1 className="font-display text-headline">Artists</h1>
         </div>
         <ButtonLink href="/admin/artists/new">New artist</ButtonLink>
       </div>
@@ -40,7 +38,7 @@ async function ArtistTable() {
   return (
     <div className="mt-10 overflow-x-auto rounded-(--radius) border border-line">
       <table className="w-full min-w-[40rem] text-left text-sm">
-        <thead className="bg-surface-1 font-mono text-xs tracking-[0.12em] text-muted uppercase">
+        <thead className="bg-surface-1 font-label text-xs text-muted">
           <tr>
             <th scope="col" className="px-4 py-3 font-normal">
               Artist

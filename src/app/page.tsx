@@ -2,55 +2,52 @@ import Link from "next/link";
 import { Suspense, type ReactNode } from "react";
 import { ButtonLink } from "@/components/ui/button";
 import { Container } from "@/components/ui/container";
-import { Meta } from "@/components/ui/meta";
+import { StringArt } from "@/components/site/string-art";
 import { ArtistCard } from "@/modules/artists/components/artist-card";
 import { getPublishedArtists } from "@/modules/artists/queries";
 import { EventRow } from "@/modules/events/components/event-row";
 import { getPublishedEvents } from "@/modules/events/queries";
 import { ProductCard } from "@/modules/marketplace/components/product-card";
 import { getShopProducts } from "@/modules/marketplace/queries";
+import { OFFERS, type Offer } from "@/modules/services/schemas";
 import { VideoCard } from "@/modules/videos/components/video-card";
 import { getPublishedVideos } from "@/modules/videos/queries";
 
-const PILLARS = [
+// The booking workflow really is a sequence, so it is numbered.
+const BOOKING_STEPS = [
   {
-    href: "/artists",
-    index: "01",
-    title: "Artists",
-    body: "A curated roster of international psytrance acts, from progressive sunrise sets to full-on night journeys.",
+    title: "Send a request",
+    body: "Pick an artist and tell us the date, city, stage and budget.",
   },
   {
-    href: "/gallery",
-    index: "02",
-    title: "Events & media",
-    body: "Festival photography, aftermovies and the stories behind the stages we help build.",
+    title: "Get a quote",
+    body: "We check availability with the artist and reply with a fee and terms.",
   },
   {
-    href: "/services",
-    index: "03",
-    title: "Festival services",
-    body: "Promotion campaigns, festival catering, and photo, video and aftermovie production.",
+    title: "Confirm the booking",
+    body: "Accept the quote in your dashboard and we confirm the date with the artist.",
   },
 ] as const;
+
+const SERVICE_LINKS = (Object.keys(OFFERS) as Offer[]).map((offer) => ({
+  href: `/services/${offer}`,
+  title: OFFERS[offer].title,
+  body: OFFERS[offer].pitch,
+}));
 
 export default function HomePage() {
   return (
     <>
       <section className="relative isolate overflow-hidden border-b border-line">
-        {/* Placeholder for cinematic festival photography (Phase 03). */}
-        <div
-          aria-hidden
-          className="absolute inset-0 -z-10 bg-[radial-gradient(120%_80%_at_70%_10%,#1f2a0b_0%,transparent_55%),radial-gradient(90%_70%_at_10%_90%,#1a1430_0%,transparent_60%)]"
-        />
-        <Container className="flex min-h-[78svh] flex-col justify-end pt-24 pb-16 sm:pb-24">
-          <Meta>International psytrance agency · Est. Germany</Meta>
-          <h1 className="mt-6 max-w-5xl font-display text-display">
-            Artists for the <em className="text-accent">dancefloor</em> at the
-            edge of the night.
+        <StringArt className="pointer-events-none absolute top-0 -right-[30%] -z-10 w-[92%] max-w-none -translate-y-[16%] opacity-90 sm:top-1/2 sm:-right-[40%] sm:w-[85%] sm:-translate-y-1/2 sm:opacity-50 lg:-right-[6%] lg:w-[56%] lg:opacity-100" />
+        <Container className="flex min-h-[82svh] flex-col justify-end pt-40 pb-16 sm:justify-center sm:py-28">
+          <h1 className="max-w-[11ch] font-display text-display text-balance">
+            Book psytrance artists for your festival.
           </h1>
-          <p className="mt-8 max-w-xl text-lg text-muted">
-            DopeBooking connects festivals and promoters with international
-            psytrance artists, and the people who make the weekend happen.
+          <p className="mt-8 max-w-[34rem] text-lg text-muted">
+            DopeBooking represents international acts from Goa and progressive
+            to forest and hi-tech, and runs promotion, catering and aftermovie
+            production for open airs and club nights.
           </p>
           <div className="mt-10 flex flex-wrap gap-3">
             <ButtonLink href="/artists">Book an artist</ButtonLink>
@@ -64,52 +61,82 @@ export default function HomePage() {
       <Suspense fallback={null}>
         <FeaturedArtists />
       </Suspense>
+
+      <section
+        aria-labelledby="steps-heading"
+        className="border-b border-line py-20 sm:py-24"
+      >
+        <Container>
+          <h2 id="steps-heading" className="font-display text-headline">
+            How booking works
+          </h2>
+          <ol className="mt-12 grid gap-10 md:grid-cols-3 md:gap-8">
+            {BOOKING_STEPS.map((step, i) => (
+              <li key={step.title} className="border-t-2 border-accent pt-6">
+                <p className="font-label text-5xl text-accent">{i + 1}</p>
+                <h3 className="mt-4 text-xl font-semibold">{step.title}</h3>
+                <p className="mt-2 max-w-[32ch] text-muted">{step.body}</p>
+              </li>
+            ))}
+          </ol>
+        </Container>
+      </section>
+
       <Suspense fallback={null}>
         <UpcomingEvents />
       </Suspense>
-      <Suspense fallback={null}>
-        <LatestVideos />
-      </Suspense>
-      <Suspense fallback={null}>
-        <FromTheShop />
-      </Suspense>
 
-      <section aria-labelledby="pillars-heading" className="py-20 sm:py-28">
+      <section
+        aria-labelledby="services-heading"
+        className="border-b border-line py-20 sm:py-24"
+      >
         <Container>
-          <h2 id="pillars-heading" className="sr-only">
-            What we do
-          </h2>
-          <ul className="grid gap-px overflow-hidden rounded-(--radius) border border-line bg-line md:grid-cols-3">
-            {PILLARS.map((pillar) => (
-              <li key={pillar.href} className="bg-bg">
+          <div className="flex flex-wrap items-end justify-between gap-4">
+            <h2 id="services-heading" className="font-display text-headline">
+              Festival services
+            </h2>
+            <Link
+              href="/services"
+              className="inline-flex min-h-11 items-center text-sm underline underline-offset-4 hover:text-accent"
+            >
+              All services
+            </Link>
+          </div>
+          <ul className="mt-10 border-t border-line">
+            {SERVICE_LINKS.map((service) => (
+              <li key={service.href}>
                 <Link
-                  href={pillar.href}
-                  className="group flex h-full flex-col p-8 transition-colors duration-300 hover:bg-surface-1"
+                  href={service.href}
+                  className="group grid gap-2 border-b border-line py-8 md:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)] md:gap-10"
                 >
-                  <Meta>{pillar.index}</Meta>
-                  <h3 className="mt-10 font-display text-4xl transition-colors group-hover:text-accent">
-                    {pillar.title}
+                  <h3 className="font-display text-3xl transition-colors group-hover:text-accent sm:text-4xl">
+                    {service.title}
                   </h3>
-                  <p className="mt-4 text-muted">{pillar.body}</p>
+                  <p className="max-w-[60ch] text-muted">{service.body}</p>
                 </Link>
               </li>
             ))}
           </ul>
         </Container>
       </section>
+
+      <Suspense fallback={null}>
+        <LatestVideos />
+      </Suspense>
+      <Suspense fallback={null}>
+        <FromTheShop />
+      </Suspense>
     </>
   );
 }
 
 function HomeSection({
   id,
-  eyebrow,
   title,
   link,
   children,
 }: {
   id: string;
-  eyebrow: string;
   title: string;
   link: { href: string; label: string };
   children: ReactNode;
@@ -121,15 +148,12 @@ function HomeSection({
     >
       <Container>
         <div className="flex flex-wrap items-end justify-between gap-4">
-          <div>
-            <Meta>{eyebrow}</Meta>
-            <h2 id={id} className="mt-3 font-display text-headline">
-              {title}
-            </h2>
-          </div>
+          <h2 id={id} className="font-display text-headline">
+            {title}
+          </h2>
           <Link
             href={link.href}
-            className="text-sm underline underline-offset-4 hover:text-accent"
+            className="inline-flex min-h-11 items-center text-sm underline underline-offset-4 hover:text-accent"
           >
             {link.label}
           </Link>
@@ -146,8 +170,7 @@ async function FeaturedArtists() {
   return (
     <HomeSection
       id="artists-heading"
-      eyebrow="Roster"
-      title="Featured artists"
+      title="Artists on the roster"
       link={{ href: "/artists", label: "All artists" }}
     >
       <ul className="grid grid-cols-2 gap-x-4 gap-y-10 sm:gap-x-6 lg:grid-cols-4">
@@ -167,8 +190,7 @@ async function UpcomingEvents() {
   return (
     <HomeSection
       id="events-heading"
-      eyebrow="Calendar"
-      title="Next up"
+      title="Upcoming events"
       link={{ href: "/events", label: "All events" }}
     >
       <ul className="border-t border-line">
@@ -188,8 +210,7 @@ async function LatestVideos() {
   return (
     <HomeSection
       id="videos-heading"
-      eyebrow="Media"
-      title="Latest videos"
+      title="Aftermovies and sets"
       link={{ href: "/videos", label: "All videos" }}
     >
       <ul className="grid gap-x-6 gap-y-12 sm:grid-cols-2">
@@ -209,7 +230,6 @@ async function FromTheShop() {
   return (
     <HomeSection
       id="shop-heading"
-      eyebrow="Marketplace"
       title="From the shop"
       link={{ href: "/shop", label: "Visit the shop" }}
     >

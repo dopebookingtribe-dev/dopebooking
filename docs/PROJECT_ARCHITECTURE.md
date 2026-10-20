@@ -352,33 +352,37 @@ Abbreviations: **R** read · **C** create · **U** update · **own** = only own/
 
 ---
 
-## 8. Visual design direction (preliminary)
+## 8. Visual design direction
 
-**Concept: "After dark, in print."** The look pairs cinematic festival photography with the restraint of a high-end print magazine. Photography carries the colour. The UI stays dark, quiet, and precise.
+**Concept: "Blacklight string art"** (redesign, October 2026; replaces the earlier "After dark, in print" look). The site borrows from the UV-reactive thread installations hung over psytrance dancefloors. A deep indigo "cloth" carries fluorescent threads. The hero has one string-art star that draws in once and then stays still. Everything else is quiet.
 
-### Palette (tokens; contrast checked against WCAG AA during Phase 02)
+### Palette (tokens in `src/styles/tokens.css`; WCAG AA checked by the axe tests)
 
-| Token                    | Value                 | Use                                                               |
-| ------------------------ | --------------------- | ----------------------------------------------------------------- |
-| `--bg`                   | `#0A0A0C`             | Page background                                                   |
-| `--surface-1`            | `#121216`             | Cards, panels                                                     |
-| `--surface-2`            | `#1B1B21`             | Raised / hover                                                    |
-| `--line`                 | `#2A2A33`             | Hairline borders                                                  |
-| `--text`                 | `#F3F0EA`             | Primary text (warm off-white)                                     |
-| `--text-muted`           | `#A6A3AD`             | Secondary text                                                    |
-| `--accent`               | `#C6F432`             | Single acid accent: primary CTAs, focus rings, active states only |
-| `--accent-ink`           | `#0A0A0C`             | Text on accent                                                    |
-| `--uv`                   | `#8E6CFF`             | Rare secondary (tags, data viz), never for body text              |
-| `--danger` / `--success` | `#FF5A5F` / `#3DDC97` | Status only                                                       |
+| Token                    | Value                 | Use                                                     |
+| ------------------------ | --------------------- | ------------------------------------------------------- |
+| `--bg`                   | `#15112B`             | Page background (indigo cloth)                          |
+| `--surface-1`            | `#1D1838`             | Panels                                                  |
+| `--surface-2`            | `#272148`             | Raised / hover                                          |
+| `--line`                 | `#382F5E`             | Decorative borders                                      |
+| `--line-strong`          | `#7C72A8`             | Form borders (4.1:1)                                    |
+| `--text`                 | `#EFEBFA`             | Primary text (blacklight white)                         |
+| `--text-muted`           | `#ACA5CB`             | Secondary text                                          |
+| `--accent`               | `#FF5CA8`             | UV pink: primary CTAs, focus rings, hover, step numbers |
+| `--uv`                   | `#FFB23F`             | Marigold: "needs attention" states, internal notes      |
+| `--thread-cyan`          | `#5BE0E6`             | String-art threads only                                 |
+| `--danger` / `--success` | `#FF6B6B` / `#4ADE9B` | Status only                                             |
 
-Rule: the accent covers **less than about 5% of any screen**. Each view has one primary CTA.
+### Typography
 
-### Typography (free / open licences)
+- **Anybody** (variable width): extended 140% / weight 750 for every headline (`font-display`), condensed 78% for dates, places and references (`font-label`). The width axis carries the hierarchy.
+- **Instrument Sans** for body and UI, 16px minimum, 1.5 line height.
+- Sentence case everywhere. No all-caps labels, no eyebrow labels above headings, commas instead of middle dots.
 
-- **Display:** _Instrument Serif_ for editorial headlines and large artist names, with tight tracking.
-- **UI / body:** _Inter Tight_, 16px minimum body size, 1.5 line height.
-- **Metadata:** _JetBrains Mono_ in small caps style for dates, BPM, cities, coordinates. This gives a "festival ticket" texture.
-- Fluid type scale with `clamp()`. Self-hosted via `next/font`.
+### Rules
+
+- Numbers only on real sequences (the three booking steps).
+- One motion moment: the hero threads draw in. Reduced motion shows them at once.
+- Buttons are pills; images and inputs use a small 4px radius.
 
 ### Layout & imagery
 

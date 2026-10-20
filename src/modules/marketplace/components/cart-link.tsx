@@ -13,7 +13,7 @@ export function CartLink({ className = "" }: { className?: string }) {
     >
       Cart
       {count ? (
-        <span className="inline-flex min-w-5 items-center justify-center rounded-full bg-accent px-1.5 font-mono text-[0.7rem] text-accent-ink">
+        <span className="inline-flex min-w-5 items-center justify-center rounded-full bg-accent px-1.5 font-label text-xs text-accent-ink">
           {count}
           <span className="sr-only"> items</span>
         </span>

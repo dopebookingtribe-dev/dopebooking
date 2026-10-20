@@ -25,7 +25,7 @@ export function SiteFooter() {
           <div>
             <p className="font-display text-3xl">DopeBooking</p>
             <Meta className="mt-3">
-              International psytrance agency · Germany
+              International psytrance agency, based in Germany
             </Meta>
           </div>
           <nav aria-label="Footer">

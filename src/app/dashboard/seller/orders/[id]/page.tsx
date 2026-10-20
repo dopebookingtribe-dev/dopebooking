@@ -111,7 +111,7 @@ async function Detail({
           ) : (
             <p className="text-sm text-muted">
               {part.status === "shipped"
-                ? `Shipped${part.carrier || part.tracking_number ? `: ${[part.carrier, part.tracking_number].filter(Boolean).join(" · ")}` : ""}.`
+                ? `Shipped${part.carrier || part.tracking_number ? `: ${[part.carrier, part.tracking_number].filter(Boolean).join(", ")}` : ""}.`
                 : PART_STATUS[part.status].label}
             </p>
           )}

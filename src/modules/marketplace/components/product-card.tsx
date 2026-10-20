@@ -26,7 +26,7 @@ export function ProductCard({
           />
         ) : null}
         {product.productType === "digital" ? (
-          <span className="absolute top-3 left-3 rounded-full bg-bg/80 px-2 py-0.5 font-mono text-[0.65rem] tracking-[0.12em] uppercase">
+          <span className="absolute top-3 left-3 rounded-full bg-bg/80 px-2 py-0.5 font-label text-xs">
             Digital
           </span>
         ) : null}
@@ -38,7 +38,7 @@ export function ProductCard({
         {product.fromPrice !== null
           ? formatCents(product.fromPrice, product.currency)
           : "—"}
-        {showSeller ? ` · ${product.seller.name}` : ""}
+        {showSeller ? `, ${product.seller.name}` : ""}
       </p>
     </Link>
   );

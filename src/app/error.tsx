@@ -3,7 +3,6 @@
 import { useEffect } from "react";
 import { Button, ButtonLink } from "@/components/ui/button";
 import { Container } from "@/components/ui/container";
-import { Meta } from "@/components/ui/meta";
 
 export default function ErrorPage({
   error,
@@ -19,8 +18,7 @@ export default function ErrorPage({
 
   return (
     <Container className="py-24 sm:py-32">
-      <Meta>Error</Meta>
-      <h1 className="mt-4 max-w-3xl font-display text-headline">
+      <h1 className="max-w-3xl font-display text-headline">
         Something went off-beat.
       </h1>
       <p className="mt-6 max-w-xl text-muted">

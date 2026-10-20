@@ -5,7 +5,6 @@ import { Suspense } from "react";
 import { EditSection, StatusBadge } from "@/components/admin/admin-ui";
 import { ButtonLink } from "@/components/ui/button";
 import { Container } from "@/components/ui/container";
-import { Meta } from "@/components/ui/meta";
 import { COUNTRIES } from "@/lib/countries";
 import {
   registerSellerLogo,
@@ -36,7 +35,6 @@ export default function SellerDashboardPage({
 }: PageProps<"/dashboard/seller">) {
   return (
     <Container className="py-16">
-      <Meta>Dashboard</Meta>
       <Suspense
         fallback={<p className="mt-6 text-muted">Loading your shop…</p>}
       >

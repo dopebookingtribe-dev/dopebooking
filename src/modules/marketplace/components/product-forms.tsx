@@ -176,7 +176,7 @@ export function VariantsForm({
 
   return (
     <form action={formAction} className="flex flex-col gap-4" noValidate>
-      <div className="hidden grid-cols-[1fr_7rem_6rem_7rem_5rem_auto] gap-2 px-3 font-mono text-[0.7rem] tracking-[0.12em] text-muted uppercase lg:grid">
+      <div className="hidden grid-cols-[1fr_7rem_6rem_7rem_5rem_auto] gap-2 px-3 font-label text-xs text-muted lg:grid">
         <span>Option</span>
         <span>Price €</span>
         <span>Stock</span>

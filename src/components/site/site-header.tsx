@@ -24,7 +24,7 @@ export function SiteHeader() {
         className="absolute inset-0 -z-10 bg-bg/90 backdrop-blur-md"
       />
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-6 px-(--gutter)">
-        <Link href="/" className="font-display text-2xl leading-none">
+        <Link href="/" className="font-display text-xl leading-none">
           DopeBooking
         </Link>
 

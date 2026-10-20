@@ -3,7 +3,7 @@ import Link from "next/link";
 import { Container } from "@/components/ui/container";
 
 export const metadata: Metadata = {
-  title: { default: "Admin", template: "%s · Admin · DopeBooking" },
+  title: { default: "Admin", template: "%s | Admin | DopeBooking" },
   robots: { index: false, follow: false },
 };
 
@@ -30,7 +30,7 @@ export default function AdminLayout({ children }: LayoutProps<"/admin">) {
                 <li key={item.href}>
                   <Link
                     href={item.href}
-                    className="inline-flex min-h-11 items-center font-mono text-xs tracking-[0.18em] text-muted uppercase hover:text-text"
+                    className="inline-flex min-h-11 items-center font-label text-xs text-muted hover:text-text"
                   >
                     {item.label}
                   </Link>

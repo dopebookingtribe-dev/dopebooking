@@ -15,8 +15,7 @@ export const metadata: Metadata = {
 export default function EventsPage() {
   return (
     <Container className="py-16 sm:py-24">
-      <Meta>Calendar</Meta>
-      <h1 className="mt-4 font-display text-display">Events</h1>
+      <h1 className="font-display text-display">Events</h1>
       <Suspense fallback={<p className="mt-16 text-muted">Loading events…</p>}>
         <EventLists />
       </Suspense>

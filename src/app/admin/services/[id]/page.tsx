@@ -56,7 +56,7 @@ async function Detail({
     <>
       <AdminHeader
         title={request.event_name}
-        eyebrow={`${SERVICE_LABELS[request.service_type]} · ${request.reference}`}
+        eyebrow={`${SERVICE_LABELS[request.service_type]}, ${request.reference}`}
         backHref="/admin/services"
         backLabel="All service requests"
       >
