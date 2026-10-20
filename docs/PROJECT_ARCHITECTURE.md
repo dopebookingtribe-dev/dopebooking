@@ -701,3 +701,35 @@ Verified on a clean copy:
 - VAT/OSS for goods and digital products (consider Stripe Tax and an accountant)
 - Seller terms, refund policy
 - Live keys only after legal review
+
+---
+
+## Phase 09 status (2026-10-20)
+
+Branch `phase-09-launch` (stacked on `phase-08-payments`; contains Phases 03–09). Built:
+
+- **Security:**
+  - Content-Security-Policy without nonces, which keeps static shells. It blocks plugins, framing, foreign forms and unknown hosts, and allows only Supabase, the four video players and Stripe redirects. Checked in the browser with no violations.
+  - Audit: no committed secrets; every secret-key file is server-only; JSON-LD is escaped.
+  - All 18 tables and storage refuse anonymous writes (probed live).
+  - `npm audit --omit=dev`: 0 vulnerabilities. The remaining `braces` advisory is in dev-only lint tooling.
+- **Resilience:** friendly `error.tsx` and `global-error.tsx` (Next 16 `retry` API); `/api/health` reports app and database status for uptime monitors.
+- **Legal (drafts):**
+  - Imprint (Impressum), privacy policy, terms, shop terms, seller terms, cookies; linked in the footer and sitemap
+  - Written to match the real data flows: Supabase in Frankfurt, Vercel, Stripe, Resend, click-to-load videos, essential storage only so no consent banner is needed
+  - Placeholders and lawyer notes in `[BRACKETS]`; a visible "Draft" note stays while `LEGAL_DRAFT = true`
+- **Home:** featured artists, upcoming events, latest videos and shop products appear automatically when published.
+- **Branding:** default share image (`opengraph-image`) and app icon (replaces the Next.js favicon).
+- **Accessibility:** axe WCAG 2.1 AA checks on 13 key pages (desktop and mobile) are now part of the e2e suite.
+- **Launch guide:** `docs/LAUNCH.md` covers Vercel, environment variables, domain, Supabase production settings, Resend SMTP, Stripe live switch and webhook, and the final checks.
+
+Verified on a clean copy against the real database:
+
+- Passing: lint, typecheck, format check, 121 unit tests, production build (77 routes), 69 Playwright tests including accessibility.
+
+**Open, needs the owner:**
+
+- Stripe, Resend and Vercel accounts and keys
+- Legal review and company details
+- Real content
+- Merging `phase-09-launch` into `main`

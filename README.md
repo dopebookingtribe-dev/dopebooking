@@ -2,6 +2,7 @@
 
 Premium international psytrance artist agency and festival services platform.
 Architecture, decisions and roadmap: [docs/PROJECT_ARCHITECTURE.md](docs/PROJECT_ARCHITECTURE.md).
+Going live: [docs/LAUNCH.md](docs/LAUNCH.md). Manual test list: [docs/REVIEW_CHECKLIST.md](docs/REVIEW_CHECKLIST.md).
 
 **Stack:** Next.js 16 (App Router) · React 19 · TypeScript · Tailwind CSS 4 · Supabase (Postgres, Auth, Storage) · Vercel · Stripe (later phases) · Resend (later phases).
 
@@ -22,7 +23,7 @@ Values for `.env.local` come from the Supabase dashboard → **Project Settings 
 
 ## Supabase setup (once per project)
 
-1. **Apply the database migration.** Paste `supabase/migrations/*.sql` into the Supabase SQL editor in order, or use the CLI:
+1. **Apply the database migrations.** Paste each file in `supabase/migrations/` into the Supabase SQL editor **in filename order**, or use the CLI:
    ```bash
    npx supabase login
    ```
@@ -52,6 +53,7 @@ Values for `.env.local` come from the Supabase dashboard → **Project Settings 
 | `npm test`             | Unit tests (Vitest)                                   |
 | `npm run test:e2e`     | Browser tests (Playwright; builds and starts the app) |
 | `npx supabase test db` | Database/RLS tests (needs Docker or a linked project) |
+| `GET /api/health`      | Uptime check (app + database)                         |
 
 To run the browser tests with your installed Google Chrome instead of downloading Playwright's browser, set `PLAYWRIGHT_CHANNEL=chrome`.
 

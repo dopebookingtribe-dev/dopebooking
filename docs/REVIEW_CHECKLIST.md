@@ -91,3 +91,10 @@ Use a **second (non-admin) account** as the promoter. A private/incognito window
 - [ ] `/admin/orders`: amounts, commission and transfers look right; try a **partial refund**, then a full one
 - [ ] In Stripe (test): the payment, the transfer to the seller and the refund/reversal appear
 - [ ] Before going live: Stripe Tax/VAT decision, seller terms and refund policy, then switch to live keys and add the webhook endpoint for the real domain
+
+## Phase 09: launch prep
+
+- [ ] Read the legal drafts (`/legal/…`) and send them, with the `[PLACEHOLDERS]` list, to your lawyer
+- [ ] Check the home page once you've added content (featured artists, events, videos, products)
+- [ ] Share a page link in WhatsApp/Telegram: the DopeBooking preview image appears
+- [ ] Follow `docs/LAUNCH.md` step by step

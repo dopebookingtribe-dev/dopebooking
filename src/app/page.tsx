@@ -1,7 +1,16 @@
 import Link from "next/link";
+import { Suspense, type ReactNode } from "react";
 import { ButtonLink } from "@/components/ui/button";
 import { Container } from "@/components/ui/container";
 import { Meta } from "@/components/ui/meta";
+import { ArtistCard } from "@/modules/artists/components/artist-card";
+import { getPublishedArtists } from "@/modules/artists/queries";
+import { EventRow } from "@/modules/events/components/event-row";
+import { getPublishedEvents } from "@/modules/events/queries";
+import { ProductCard } from "@/modules/marketplace/components/product-card";
+import { getShopProducts } from "@/modules/marketplace/queries";
+import { VideoCard } from "@/modules/videos/components/video-card";
+import { getPublishedVideos } from "@/modules/videos/queries";
 
 const PILLARS = [
   {
@@ -52,6 +61,19 @@ export default function HomePage() {
         </Container>
       </section>
 
+      <Suspense fallback={null}>
+        <FeaturedArtists />
+      </Suspense>
+      <Suspense fallback={null}>
+        <UpcomingEvents />
+      </Suspense>
+      <Suspense fallback={null}>
+        <LatestVideos />
+      </Suspense>
+      <Suspense fallback={null}>
+        <FromTheShop />
+      </Suspense>
+
       <section aria-labelledby="pillars-heading" className="py-20 sm:py-28">
         <Container>
           <h2 id="pillars-heading" className="sr-only">
@@ -76,5 +98,128 @@ export default function HomePage() {
         </Container>
       </section>
     </>
+  );
+}
+
+function HomeSection({
+  id,
+  eyebrow,
+  title,
+  link,
+  children,
+}: {
+  id: string;
+  eyebrow: string;
+  title: string;
+  link: { href: string; label: string };
+  children: ReactNode;
+}) {
+  return (
+    <section
+      aria-labelledby={id}
+      className="border-b border-line py-20 sm:py-24"
+    >
+      <Container>
+        <div className="flex flex-wrap items-end justify-between gap-4">
+          <div>
+            <Meta>{eyebrow}</Meta>
+            <h2 id={id} className="mt-3 font-display text-headline">
+              {title}
+            </h2>
+          </div>
+          <Link
+            href={link.href}
+            className="text-sm underline underline-offset-4 hover:text-accent"
+          >
+            {link.label}
+          </Link>
+        </div>
+        <div className="mt-10">{children}</div>
+      </Container>
+    </section>
+  );
+}
+
+async function FeaturedArtists() {
+  const artists = (await getPublishedArtists()).slice(0, 4);
+  if (!artists.length) return null;
+  return (
+    <HomeSection
+      id="artists-heading"
+      eyebrow="Roster"
+      title="Featured artists"
+      link={{ href: "/artists", label: "All artists" }}
+    >
+      <ul className="grid grid-cols-2 gap-x-4 gap-y-10 sm:gap-x-6 lg:grid-cols-4">
+        {artists.map((artist) => (
+          <li key={artist.id}>
+            <ArtistCard artist={artist} />
+          </li>
+        ))}
+      </ul>
+    </HomeSection>
+  );
+}
+
+async function UpcomingEvents() {
+  const { upcoming } = await getPublishedEvents();
+  if (!upcoming.length) return null;
+  return (
+    <HomeSection
+      id="events-heading"
+      eyebrow="Calendar"
+      title="Next up"
+      link={{ href: "/events", label: "All events" }}
+    >
+      <ul className="border-t border-line">
+        {upcoming.slice(0, 3).map((event) => (
+          <li key={event.id}>
+            <EventRow event={event} />
+          </li>
+        ))}
+      </ul>
+    </HomeSection>
+  );
+}
+
+async function LatestVideos() {
+  const videos = (await getPublishedVideos()).slice(0, 2);
+  if (!videos.length) return null;
+  return (
+    <HomeSection
+      id="videos-heading"
+      eyebrow="Media"
+      title="Latest videos"
+      link={{ href: "/videos", label: "All videos" }}
+    >
+      <ul className="grid gap-x-6 gap-y-12 sm:grid-cols-2">
+        {videos.map((video) => (
+          <li key={video.id}>
+            <VideoCard video={video} />
+          </li>
+        ))}
+      </ul>
+    </HomeSection>
+  );
+}
+
+async function FromTheShop() {
+  const products = (await getShopProducts()).slice(0, 4);
+  if (!products.length) return null;
+  return (
+    <HomeSection
+      id="shop-heading"
+      eyebrow="Marketplace"
+      title="From the shop"
+      link={{ href: "/shop", label: "Visit the shop" }}
+    >
+      <ul className="grid grid-cols-2 gap-x-4 gap-y-10 sm:gap-x-6 lg:grid-cols-4">
+        {products.map((product) => (
+          <li key={product.id}>
+            <ProductCard product={product} />
+          </li>
+        ))}
+      </ul>
+    </HomeSection>
   );
 }
