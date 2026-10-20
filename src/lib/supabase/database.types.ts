@@ -14,6 +14,17 @@ export type ContentStatus = "draft" | "published" | "archived";
 export type ArtistMemberRole = "owner" | "manager";
 export type MediaType = "image";
 export type VideoProvider = "cloudflare_stream" | "mux" | "youtube" | "vimeo";
+export type BookingStatus =
+  | "submitted"
+  | "under_review"
+  | "quoted"
+  | "negotiating"
+  | "confirmed"
+  | "completed"
+  | "declined"
+  | "cancelled"
+  | "expired";
+export type EmailStatus = "pending" | "sending" | "sent" | "failed";
 export type LinkPlatform =
   | "website"
   | "instagram"
@@ -153,6 +164,101 @@ export type VideoRow = {
   updated_at: string;
 };
 
+export type BookingRequestRow = {
+  id: string;
+  reference: string;
+  artist_id: string;
+  requester_id: string;
+  organisation: string | null;
+  event_name: string;
+  event_date: string;
+  city: string;
+  country: string;
+  venue_name: string | null;
+  expected_attendance: number | null;
+  set_length_minutes: number | null;
+  budget_amount: number | null;
+  budget_currency: string;
+  message: string | null;
+  contact_phone: string | null;
+  contact_email: string | null;
+  status: BookingStatus;
+  quote_amount: number | null;
+  quote_currency: string | null;
+  quote_note: string | null;
+  assigned_staff_id: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type BookingRequestInsert = Pick<
+  BookingRequestRow,
+  | "artist_id"
+  | "requester_id"
+  | "event_name"
+  | "event_date"
+  | "city"
+  | "country"
+> &
+  Partial<
+    Pick<
+      BookingRequestRow,
+      | "organisation"
+      | "venue_name"
+      | "expected_attendance"
+      | "set_length_minutes"
+      | "budget_amount"
+      | "budget_currency"
+      | "message"
+      | "contact_phone"
+    >
+  >;
+
+export type BookingStatusHistoryRow = {
+  id: number;
+  booking_id: string;
+  from_status: BookingStatus | null;
+  to_status: BookingStatus;
+  changed_by: string | null;
+  note: string | null;
+  created_at: string;
+};
+
+export type BookingMessageRow = {
+  id: string;
+  booking_id: string;
+  author_id: string | null;
+  body: string;
+  internal: boolean;
+  created_at: string;
+};
+
+export type NotificationRow = {
+  id: string;
+  user_id: string;
+  type: string;
+  title: string;
+  body: string | null;
+  link: string | null;
+  read_at: string | null;
+  created_at: string;
+};
+
+export type EmailOutboxRow = {
+  id: string;
+  to_email: string;
+  template: string;
+  payload: Record<string, unknown>;
+  status: EmailStatus;
+  attempts: number;
+  last_error: string | null;
+  provider_message_id: string | null;
+  send_after: string;
+  claimed_at: string | null;
+  sent_at: string | null;
+  created_at: string;
+};
+
 type ContentInsert<Row, Required extends keyof Row> = Pick<Row, Required> &
   Partial<Omit<Row, "id" | "created_at" | "updated_at">>;
 
@@ -230,6 +336,28 @@ export type Database = {
         VideoRow,
         ContentInsert<VideoRow, "slug" | "title" | "provider" | "provider_ref">
       >;
+      booking_requests: Table<
+        BookingRequestRow,
+        BookingRequestInsert,
+        { assigned_staff_id?: string | null }
+      >;
+      booking_status_history: Table<BookingStatusHistoryRow, never, never>;
+      booking_messages: Table<BookingMessageRow, never, never>;
+      notifications: Table<NotificationRow, never, { read_at?: string | null }>;
+      email_outbox: Table<
+        EmailOutboxRow,
+        never,
+        Partial<
+          Pick<
+            EmailOutboxRow,
+            | "status"
+            | "last_error"
+            | "provider_message_id"
+            | "sent_at"
+            | "send_after"
+          >
+        >
+      >;
     };
     Views: Record<string, never>;
     Functions: {
@@ -240,6 +368,25 @@ export type Database = {
       is_published_event: { Args: { target: string }; Returns: boolean };
       is_published_gallery: { Args: { target: string }; Returns: boolean };
       is_published_video: { Args: { target: string }; Returns: boolean };
+      transition_booking: {
+        Args: {
+          p_booking: string;
+          p_to: BookingStatus;
+          p_note?: string | null;
+          p_quote_amount?: number | null;
+          p_quote_currency?: string | null;
+          p_quote_note?: string | null;
+        };
+        Returns: BookingStatus;
+      };
+      add_booking_message: {
+        Args: { p_booking: string; p_body: string; p_internal?: boolean };
+        Returns: string;
+      };
+      claim_email_batch: {
+        Args: { p_limit?: number };
+        Returns: EmailOutboxRow[];
+      };
     };
     Enums: {
       app_role: AppRole;
@@ -248,6 +395,8 @@ export type Database = {
       media_type: MediaType;
       link_platform: LinkPlatform;
       video_provider: VideoProvider;
+      booking_status: BookingStatus;
+      email_status: EmailStatus;
     };
     CompositeTypes: Record<string, never>;
   };

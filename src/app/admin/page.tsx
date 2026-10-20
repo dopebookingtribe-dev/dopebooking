@@ -6,6 +6,11 @@ import { requireRole, STAFF_ROLES } from "@/lib/auth/dal";
 
 const SECTIONS = [
   {
+    href: "/admin/bookings",
+    title: "Bookings",
+    body: "Requests, quotes and conversations.",
+  },
+  {
     href: "/admin/artists",
     title: "Artists",
     body: "Roster, profiles, photos and links.",

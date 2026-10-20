@@ -31,3 +31,21 @@ Things to test by hand at the end. They need a real login or real content, so au
 - [ ] Video page: poster shows first; clicking plays
 - [ ] Event page shows the gallery and video; artist page shows "Upcoming shows" and "Videos"
 - [ ] Decide: **Mux or Cloudflare Stream** for your own aftermovie hosting
+
+## Phase 05: bookings
+
+Use a **second (non-admin) account** as the promoter. A private/incognito window works.
+
+- [ ] As promoter: open a published artist → **Request booking** → fill the form → lands on the request page with "Request sent"
+- [ ] As admin: `/admin/bookings` shows it under Open; open it, **Assign to me**, **Start review**
+- [ ] **Send quote** with an amount and "what's included"; the promoter sees the quote box and a timeline entry
+- [ ] Message back and forth; an **internal note** is not visible to the promoter
+- [ ] Promoter: **Cancel request** works on an open request; admin sees the cancellation
+- [ ] Notifications appear on `/dashboard/notifications` for both sides
+- [ ] Guest (signed out) on `/book/<artist>` sees "Create account / Sign in", and after sign-up returns to the form
+
+### Turning on email (one-time setup, you do this)
+
+- [ ] Create a Resend account and verify your sending domain (DNS records)
+- [ ] Add to `.env.local` and to Vercel: `RESEND_API_KEY`, `EMAIL_FROM` (e.g. `DopeBooking <bookings@yourdomain>`), `SUPABASE_SECRET_KEY` (Supabase → Project Settings → API Keys → Secret key), `CRON_SECRET` (any long random string)
+- [ ] Optional but recommended: Supabase → Auth → SMTP settings → use Resend. Sign-up emails then come from your domain (and email templates become editable)

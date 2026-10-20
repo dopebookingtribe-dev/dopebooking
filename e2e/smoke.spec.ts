@@ -97,3 +97,20 @@ test("admin sections are guarded", async ({ page }) => {
     await expect(page).toHaveURL(/\/login\?next=/);
   }
 });
+
+test("booking pages are protected", async ({ page, request }) => {
+  await page.goto("/dashboard/bookings");
+  await expect(page).toHaveURL(/\/login\?next=%2Fdashboard%2Fbookings$/);
+  await page.goto("/admin/bookings");
+  await expect(page).toHaveURL(/\/login\?next=/);
+
+  const cron = await request.get("/api/cron/email");
+  expect(cron.status()).toBe(401);
+});
+
+test("booking an unknown artist shows not found", async ({ page }) => {
+  await page.goto("/book/this-artist-does-not-exist");
+  await expect(
+    page.getByText("This page took a different stage."),
+  ).toBeVisible();
+});

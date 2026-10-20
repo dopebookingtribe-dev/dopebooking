@@ -556,3 +556,35 @@ Verified on a clean copy against the real database:
 
 - Admin create/upload flows (need a staff login; on the review checklist)
 - pgTAP tests (need Docker)
+
+---
+
+## Phase 05 status (2026-10-20)
+
+Branch `phase-05-bookings` (stacked on `phase-04-events-media`). Built:
+
+- **Database** (`supabase/migrations/20261023000000_bookings.sql`, applied):
+  - `booking_requests` with a short reference like `BK-1A2B3C4D`; private phone, plus an email copied from the account by a trigger
+  - `booking_status_history` (append-only), `booking_messages` (with staff-only internal notes), `notifications`, `email_outbox`
+  - **The workflow lives in the database.** `transition_booking()` checks every step (staff: submitted → under review → quoted ⇄ negotiating → confirmed → completed, or declined, expired or cancelled; requesters may only cancel open requests). It also writes history and queues the notification and email. `add_booking_message()` does the same for messages.
+  - Clients can't update status, quotes or messages directly.
+  - Rate limits: 5 requests and 30 messages per user per hour.
+  - RLS: requesters see their own requests only; staff see everything; internal notes are staff-only; `email_outbox` is service-role only.
+- **Request form** at `/book/[slug]` (sign-in required; sign-up returns to the form).
+- **Requester dashboard:** `/dashboard/bookings` list and detail with quote, timeline, messages and cancel. `/dashboard/notifications` with mark-all-read.
+- **Admin:** `/admin/bookings` inbox (open, confirmed, completed, all) and detail with private contact info, the artist's private fee range, assign to me, a status control with a quote form, and conversation with internal notes.
+- **Email:** escaped HTML and text templates (`src/lib/email`), sent through Resend from the outbox.
+  - Sends run right after the triggering action (`after()`), with a daily Vercel Cron backup at `/api/cron/email`, protected by `CRON_SECRET`.
+  - Sends are idempotent per outbox row and retried with backoff.
+  - **Sending is off until** `SUPABASE_SECRET_KEY`, `RESEND_API_KEY` and `EMAIL_FROM` are set. Until then emails wait in the queue and in-app notifications work.
+
+Verified on a clean copy against the real database:
+
+- Passing: lint, typecheck, format check, 90 unit tests (including a check that the UI's step list mirrors the SQL), production build, 27 Playwright tests.
+- Database checks over the API: all booking tables and functions refuse anonymous access.
+
+**Not verified yet:**
+
+- The end-to-end booking flow with real accounts (on the review checklist)
+- Actual email delivery (needs Resend)
+- pgTAP tests (need Docker)

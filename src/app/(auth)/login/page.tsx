@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Suspense } from "react";
-import { safeNextPath } from "@/lib/auth/redirect";
 import { login } from "@/modules/auth/actions";
 import { AuthForm } from "@/modules/auth/components/auth-form";
 import { AuthHeading } from "../auth-heading";
+import { NextInput } from "../next-input";
 
 export const metadata: Metadata = { title: "Sign in" };
 
@@ -60,11 +60,6 @@ export default function LoginPage({ searchParams }: PageProps<"/login">) {
       </div>
     </>
   );
-}
-
-async function NextInput({ searchParams }: { searchParams: SearchParams }) {
-  const { next } = await searchParams;
-  return <input type="hidden" name="next" value={safeNextPath(next)} />;
 }
 
 async function LinkError({ searchParams }: { searchParams: SearchParams }) {

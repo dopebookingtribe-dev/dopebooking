@@ -71,7 +71,7 @@ export async function signup(
     password: parsed.data.password,
     options: {
       data: { display_name: parsed.data.displayName },
-      emailRedirectTo: confirmUrl("/dashboard"),
+      emailRedirectTo: confirmUrl(safeNextPath(formData.get("next"))),
     },
   });
   if (error?.code === "weak_password") {

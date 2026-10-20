@@ -9,6 +9,7 @@ export const metadata: Metadata = {
 
 const ADMIN_NAV = [
   { href: "/admin", label: "Overview" },
+  { href: "/admin/bookings", label: "Bookings" },
   { href: "/admin/artists", label: "Artists" },
   { href: "/admin/events", label: "Events" },
   { href: "/admin/galleries", label: "Galleries" },
