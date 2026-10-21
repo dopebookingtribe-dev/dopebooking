@@ -5,12 +5,14 @@ import { expect, test } from "@playwright/test";
 // critical issues; manual testing (keyboard, screen reader) still matters.
 const PAGES = [
   "/",
+  "/about",
   "/artists",
   "/events",
   "/gallery",
   "/videos",
   "/services",
   "/services/production",
+  "/services/promotion",
   "/shop",
   "/sell",
   "/cart",

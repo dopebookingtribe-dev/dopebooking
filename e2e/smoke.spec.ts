@@ -124,7 +124,10 @@ test("services overview links to each offer", async ({ page }) => {
   ]) {
     await expect(page.getByRole("heading", { name })).toBeVisible();
   }
-  await page.getByRole("link", { name: /Festival catering/ }).click();
+  await page
+    .getByRole("main")
+    .getByRole("link", { name: /Festival catering/ })
+    .click();
   await expect(page).toHaveURL(/\/services\/catering$/);
   await expect(
     page.getByRole("link", { name: "Create account" }),
@@ -213,4 +216,40 @@ test("order pages are protected", async ({ page }) => {
     await page.goto(path);
     await expect(page).toHaveURL(/\/login\?next=/);
   }
+});
+
+test("content management and previews are guarded", async ({ page }) => {
+  for (const path of [
+    "/admin/pages",
+    "/admin/pages/home",
+    "/admin/settings",
+    "/admin/media",
+    "/admin/users",
+    "/admin/audit",
+    "/admin/demo",
+    "/admin/categories",
+    "/admin/products",
+    "/preview/home",
+  ]) {
+    await page.goto(path);
+    await expect(page, path).toHaveURL(/\/login\?next=/);
+  }
+});
+
+test("about page and editable pages render", async ({ page }) => {
+  await page.goto("/about");
+  await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
+  await page.goto("/services/catering");
+  await expect(
+    page.getByRole("heading", { name: "Request a quote" }),
+  ).toBeVisible();
+});
+
+test("unknown preview pages are not found for visitors", async ({
+  request,
+}) => {
+  const response = await request.get("/admin/pages/not-a-page", {
+    maxRedirects: 0,
+  });
+  expect([307, 404]).toContain(response.status());
 });

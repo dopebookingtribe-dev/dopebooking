@@ -1,40 +1,28 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
-import { MediaTabs } from "@/components/site/media-tabs";
-import { Container } from "@/components/ui/container";
-import { VideoCard } from "@/modules/videos/components/video-card";
-import { getPublishedVideos } from "@/modules/videos/queries";
+import { PageSections } from "@/modules/cms/components/page-sections";
+import { pageMetadata } from "@/modules/cms/metadata";
+import { getPublishedPage } from "@/modules/cms/queries";
+import { GridSkeleton } from "@/modules/artists/components/artist-directory";
+import { VideoIndex } from "@/modules/videos/components/video-index";
 
-export const metadata: Metadata = {
-  title: "Videos",
-  description: "Aftermovies, live sets and artist videos.",
-  alternates: { canonical: "/videos" },
-};
-
-export default function VideosPage() {
-  return (
-    <Container className="py-16 sm:py-24">
-      <h1 className="font-display text-display">Videos</h1>
-      <MediaTabs active="videos" />
-      <Suspense fallback={<p className="mt-16 text-muted">Loading videos…</p>}>
-        <Videos />
-      </Suspense>
-    </Container>
-  );
+export function generateMetadata(): Promise<Metadata> {
+  return pageMetadata("videos");
 }
 
-async function Videos() {
-  const videos = await getPublishedVideos();
-  if (!videos.length) {
-    return <p className="mt-16 text-muted">Aftermovies are in the edit.</p>;
-  }
+export default async function VideosPage() {
+  const content = await getPublishedPage("videos");
   return (
-    <ul className="mt-12 grid gap-x-6 gap-y-12 sm:grid-cols-2">
-      {videos.map((video, index) => (
-        <li key={video.id}>
-          <VideoCard video={video} priority={index < 2} />
-        </li>
-      ))}
-    </ul>
+    <PageSections
+      content={content}
+      title="Videos"
+      builtins={{
+        "video-index": (
+          <Suspense fallback={<GridSkeleton count={2} />}>
+            <VideoIndex />
+          </Suspense>
+        ),
+      }}
+    />
   );
 }

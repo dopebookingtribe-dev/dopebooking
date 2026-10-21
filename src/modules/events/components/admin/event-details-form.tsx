@@ -140,6 +140,24 @@ export function EventDetailsForm({
       />
 
       <div className="grid gap-6 sm:grid-cols-2">
+        <Field
+          name="seo_title"
+          label="Search title"
+          maxLength={70}
+          hint="Empty uses the title."
+          defaultValue={value("seo_title")}
+          error={error("seo_title")}
+        />
+        <Field
+          name="seo_description"
+          label="Search description"
+          maxLength={200}
+          defaultValue={value("seo_description")}
+          error={error("seo_description")}
+        />
+      </div>
+
+      <div className="grid gap-6 sm:grid-cols-2">
         <SelectField
           name="status"
           label="Status"

@@ -1,50 +1,10 @@
 import Link from "next/link";
 import { Suspense } from "react";
+import { ADMIN_GROUPS } from "@/components/admin/admin-nav";
 import { Container } from "@/components/ui/container";
 import { requireRole, STAFF_ROLES } from "@/lib/auth/dal";
-
-const SECTIONS = [
-  {
-    href: "/admin/bookings",
-    title: "Bookings",
-    body: "Requests, quotes and conversations.",
-  },
-  {
-    href: "/admin/services",
-    title: "Service requests",
-    body: "Promotion, catering and production; providers.",
-  },
-  {
-    href: "/admin/orders",
-    title: "Orders",
-    body: "Payments, seller transfers and refunds.",
-  },
-  {
-    href: "/admin/sellers",
-    title: "Sellers",
-    body: "Shop applications, approvals and moderation.",
-  },
-  {
-    href: "/admin/artists",
-    title: "Artists",
-    body: "Roster, profiles, photos and links.",
-  },
-  {
-    href: "/admin/events",
-    title: "Events",
-    body: "Dates, venues, lineups and covers.",
-  },
-  {
-    href: "/admin/galleries",
-    title: "Galleries",
-    body: "Festival photo sets, bulk upload.",
-  },
-  {
-    href: "/admin/videos",
-    title: "Videos",
-    body: "Aftermovies and sets from any video link.",
-  },
-] as const;
+import { getPermissions } from "@/lib/auth/permissions";
+import { ROLE_LABELS } from "@/modules/admin/roles";
 
 export default function AdminPage() {
   return (
@@ -59,28 +19,50 @@ export default function AdminPage() {
 async function AdminHome() {
   // Non-staff users get a 404, so the admin area isn't advertised.
   const user = await requireRole(STAFF_ROLES, "/admin");
+  const permissions = await getPermissions(user);
 
   return (
     <>
       <h1 className="font-display text-headline">Control room</h1>
       <p className="mt-4 text-muted">
-        Signed in as {user.email} ({user.roles.join(", ")}).
+        Signed in as {user.email} (
+        {user.roles.map((role) => ROLE_LABELS[role] ?? role).join(", ")}).
       </p>
-      <ul className="mt-10 grid gap-px overflow-hidden rounded-(--radius) border border-line bg-line sm:grid-cols-2">
-        {SECTIONS.map((section) => (
-          <li key={section.href} className="bg-bg">
-            <Link
-              href={section.href}
-              className="block p-6 transition-colors hover:bg-surface-1"
-            >
-              <span className="font-display text-3xl">{section.title}</span>
-              <span className="mt-2 block text-sm text-muted">
-                {section.body}
-              </span>
-            </Link>
-          </li>
-        ))}
-      </ul>
+      <div className="mt-12 flex flex-col gap-12">
+        {ADMIN_GROUPS.map((group) => {
+          const links = group.links.filter((link) =>
+            permissions.has(link.permission),
+          );
+          if (!links.length) return null;
+          return (
+            <section key={group.title} aria-labelledby={`group-${group.title}`}>
+              <h2
+                id={`group-${group.title}`}
+                className="font-label text-sm text-accent"
+              >
+                {group.title}
+              </h2>
+              <ul className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                {links.map((link) => (
+                  <li key={link.href}>
+                    <Link
+                      href={link.href}
+                      className="group block h-full rounded-(--radius) border border-line bg-surface-1 p-5 transition-colors hover:border-accent"
+                    >
+                      <span className="font-display text-xl transition-colors group-hover:text-accent">
+                        {link.label}
+                      </span>
+                      <span className="mt-2 block text-sm text-muted">
+                        {link.body}
+                      </span>
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          );
+        })}
+      </div>
     </>
   );
 }

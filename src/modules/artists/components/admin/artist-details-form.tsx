@@ -148,6 +148,34 @@ export function ArtistDetailsForm({
         </label>
       </div>
 
+      <TextareaField
+        name="booking_info"
+        label="Booking information (public)"
+        rows={4}
+        hint="Shown on the profile: set lengths, travel base, availability. Fees stay private below."
+        defaultValue={value("booking_info")}
+        error={error("booking_info")}
+      />
+
+      <div className="grid gap-6 sm:grid-cols-2">
+        <Field
+          name="seo_title"
+          label="Search title"
+          maxLength={70}
+          hint="Empty uses the stage name."
+          defaultValue={value("seo_title")}
+          error={error("seo_title")}
+        />
+        <Field
+          name="seo_description"
+          label="Search description"
+          maxLength={200}
+          hint="Empty uses the tagline."
+          defaultValue={value("seo_description")}
+          error={error("seo_description")}
+        />
+      </div>
+
       <div className="flex items-center gap-4">
         <Button type="submit" disabled={pending}>
           {pending ? "Saving…" : "Save details"}

@@ -1,9 +1,11 @@
 import type { Metadata } from "next";
-import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { Container } from "@/components/ui/container";
+import { DemoBadge } from "@/components/ui/demo-badge";
+import { Picture } from "@/components/ui/picture";
+import { getSiteSettings } from "@/modules/cms/queries";
 import { Meta } from "@/components/ui/meta";
 import { AddToCart } from "@/modules/marketplace/components/add-to-cart";
 import { getShopProduct } from "@/modules/marketplace/queries";
@@ -15,8 +17,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const product = await getShopProduct(slug);
   if (!product) return { title: "Product not found" };
   return {
-    title: product.title,
+    title: product.seoTitle ?? product.title,
     description:
+      product.seoDescription ??
       product.description?.slice(0, 155) ??
       `${product.title} by ${product.seller.name}`,
     alternates: { canonical: `/shop/${product.slug}` },
@@ -43,7 +46,10 @@ export default function ProductPage({ params }: Props) {
 
 async function Product({ params }: { params: Props["params"] }) {
   const { slug } = await params;
-  const product = await getShopProduct(slug);
+  const [product, settings] = await Promise.all([
+    getShopProduct(slug),
+    getSiteSettings(),
+  ]);
   if (!product) notFound();
   const paragraphs = (product.description ?? "")
     .split(/\n\s*\n/)
@@ -78,35 +84,58 @@ async function Product({ params }: { params: Props["params"] }) {
         }}
       />
       <div className="mt-8 grid gap-10 lg:grid-cols-[minmax(0,6fr)_minmax(0,5fr)] lg:gap-16">
-        <div className="flex flex-col gap-4">
+        <div className="grid gap-3 sm:grid-cols-2">
           {product.images.length ? (
             product.images.map((image, index) => (
-              <Image
+              <div
                 key={image.id}
-                src={image.url}
-                alt={image.alt}
-                width={image.width}
-                height={image.height}
-                priority={index === 0}
-                sizes="(min-width: 1024px) 55vw, 92vw"
-                className="h-auto w-full rounded-(--radius)"
-              />
+                className={`relative overflow-hidden rounded-(--radius) bg-surface-2 ${index === 0 ? "aspect-[4/5] sm:col-span-2" : "aspect-square"}`}
+              >
+                <Picture
+                  image={image}
+                  priority={index === 0}
+                  sizes={
+                    index === 0
+                      ? "(min-width: 1024px) 55vw, 92vw"
+                      : "(min-width: 1024px) 27vw, 46vw"
+                  }
+                />
+              </div>
             ))
           ) : (
-            <div className="aspect-[4/5] rounded-(--radius) bg-surface-2" />
+            <div className="aspect-[4/5] rounded-(--radius) bg-surface-2 sm:col-span-2" />
           )}
         </div>
         <div className="lg:sticky lg:top-24 lg:self-start">
-          <Meta>
-            <Link
-              href={`/shop/sellers/${product.seller.slug}`}
-              className="hover:text-text"
-            >
-              {product.seller.name}
-            </Link>
-            {product.productType === "digital" ? ", digital download" : ""}
-          </Meta>
-          <h1 className="mt-4 font-display text-headline">{product.title}</h1>
+          <div className="flex flex-wrap items-center gap-3">
+            <Meta>
+              <Link
+                href={`/shop/sellers/${product.seller.slug}`}
+                className="hover:text-text"
+              >
+                {product.seller.name}
+              </Link>
+              {product.category ? (
+                <>
+                  ,{" "}
+                  <Link
+                    href={`/shop?category=${product.category.slug}`}
+                    className="hover:text-text"
+                  >
+                    {product.category.name}
+                  </Link>
+                </>
+              ) : null}
+              {product.productType === "digital" ? ", digital download" : ""}
+            </Meta>
+            {product.isDemo && settings.showDemoLabels ? <DemoBadge /> : null}
+          </div>
+          <h1 className="mt-4 font-display text-headline text-balance">
+            {product.title}
+          </h1>
+          {!product.inStock ? (
+            <p className="mt-4 font-label text-muted">Sold out</p>
+          ) : null}
           <div className="mt-8">
             <AddToCart
               variants={product.variants}

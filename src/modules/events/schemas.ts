@@ -101,6 +101,8 @@ export const eventDetailsSchema = z
     ticket_url: optionalHttpsUrl,
     status: statusSchema,
     featured: checkboxSchema,
+    seo_title: optionalText(70).default(null),
+    seo_description: optionalText(200).default(null),
   })
   .transform(withUtcTimes);
 

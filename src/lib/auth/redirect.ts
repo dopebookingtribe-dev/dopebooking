@@ -10,7 +10,7 @@ export function safeNextPath(value: unknown, fallback = "/dashboard"): string {
   return value;
 }
 
-const PROTECTED_PREFIXES = ["/dashboard", "/admin"] as const;
+const PROTECTED_PREFIXES = ["/dashboard", "/admin", "/preview"] as const;
 
 export function isProtectedPath(pathname: string): boolean {
   return PROTECTED_PREFIXES.some(

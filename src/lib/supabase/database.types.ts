@@ -11,6 +11,14 @@ export type AppRole =
   | "admin";
 
 export type ContentStatus = "draft" | "published" | "archived";
+export type AppPermission =
+  | "content.manage"
+  | "pages.edit"
+  | "pages.publish"
+  | "settings.manage"
+  | "demo.manage"
+  | "users.manage"
+  | "audit.view";
 export type ArtistMemberRole = "owner" | "manager";
 export type MediaType = "image";
 export type VideoProvider = "cloudflare_stream" | "mux" | "youtube" | "vimeo";
@@ -81,6 +89,11 @@ export type ArtistRow = {
   featured: boolean;
   sort_order: number;
   portrait_asset_id: string | null;
+  cover_asset_id: string | null;
+  booking_info: string | null;
+  is_demo: boolean;
+  seo_title: string | null;
+  seo_description: string | null;
   published_at: string | null;
   created_by: string | null;
   created_at: string;
@@ -115,6 +128,10 @@ export type MediaAssetRow = {
   video_id: string | null;
   product_id: string | null;
   seller_id: string | null;
+  library: "site" | null;
+  is_demo: boolean;
+  focal_x: number;
+  focal_y: number;
   type: MediaType;
   storage_bucket: string;
   storage_path: string;
@@ -143,6 +160,9 @@ export type EventRow = {
   status: ContentStatus;
   featured: boolean;
   cover_asset_id: string | null;
+  is_demo: boolean;
+  seo_title: string | null;
+  seo_description: string | null;
   published_at: string | null;
   created_by: string | null;
   created_at: string;
@@ -166,6 +186,10 @@ export type GalleryRow = {
   photographer: string | null;
   status: ContentStatus;
   cover_asset_id: string | null;
+  is_demo: boolean;
+  seo_title: string | null;
+  seo_description: string | null;
+
   published_at: string | null;
   created_by: string | null;
   created_at: string;
@@ -184,6 +208,7 @@ export type VideoRow = {
   status: ContentStatus;
   featured: boolean;
   poster_asset_id: string | null;
+  is_demo: boolean;
   published_at: string | null;
   created_by: string | null;
   created_at: string;
@@ -365,6 +390,7 @@ export type SellerRow = {
   logo_asset_id: string | null;
   status: SellerStatus;
   shipping_flat_amount: number;
+  is_demo: boolean;
   created_at: string;
   updated_at: string;
 };
@@ -389,9 +415,52 @@ export type ProductRow = {
   status: ContentStatus;
   currency: string;
   cover_asset_id: string | null;
+  category_id: string | null;
+  featured: boolean;
+  sort_order: number;
+  is_demo: boolean;
+  seo_title: string | null;
+  seo_description: string | null;
   published_at: string | null;
   created_at: string;
   updated_at: string;
+};
+
+export type ProductCategoryRow = {
+  id: string;
+  slug: string;
+  name: string;
+  description: string | null;
+  sort_order: number;
+  visible: boolean;
+  is_demo: boolean;
+  created_at: string;
+  updated_at: string;
+};
+
+export type SitePageRow = {
+  key: string;
+  title: string;
+  draft: unknown;
+  published: unknown;
+  draft_updated_at: string;
+  published_at: string | null;
+  updated_by: string | null;
+  published_by: string | null;
+};
+
+export type SiteSettingsRow = Omit<SitePageRow, "key" | "title"> & {
+  id: number;
+};
+
+export type AuditLogRow = {
+  id: number;
+  actor_id: string | null;
+  action: "INSERT" | "UPDATE" | "DELETE";
+  table_name: string;
+  record_id: string | null;
+  changed: string[];
+  created_at: string;
 };
 
 export type ProductVariantRow = {
@@ -705,9 +774,36 @@ export type Database = {
             | "product_type"
             | "status"
             | "cover_asset_id"
+            | "category_id"
+            | "featured"
+            | "sort_order"
+            | "is_demo"
+            | "seo_title"
+            | "seo_description"
           >
         >
       >;
+      product_categories: Table<
+        ProductCategoryRow,
+        Pick<ProductCategoryRow, "slug" | "name"> &
+          Partial<Omit<ProductCategoryRow, "id" | "created_at" | "updated_at">>
+      >;
+      site_pages: Table<
+        SitePageRow,
+        Pick<SitePageRow, "key" | "title" | "draft">,
+        Partial<Pick<SitePageRow, "title" | "draft">>
+      >;
+      site_settings: Table<
+        SiteSettingsRow,
+        Pick<SiteSettingsRow, "draft"> & { id?: number },
+        Partial<Pick<SiteSettingsRow, "draft">>
+      >;
+      role_permissions: Table<
+        { role: AppRole; permission: AppPermission },
+        { role: AppRole; permission: AppPermission },
+        never
+      >;
+      audit_log: Table<AuditLogRow, never, never>;
       product_variants: Table<
         ProductVariantRow,
         Pick<ProductVariantRow, "product_id" | "name" | "price_amount"> &
@@ -732,6 +828,15 @@ export type Database = {
     Functions: {
       has_role: { Args: { required: AppRole }; Returns: boolean };
       is_staff: { Args: Record<string, never>; Returns: boolean };
+      has_permission: { Args: { required: AppPermission }; Returns: boolean };
+      get_published_page: { Args: { p_key: string }; Returns: unknown };
+      get_published_settings: {
+        Args: Record<string, never>;
+        Returns: unknown;
+      };
+      publish_site_page: { Args: { p_key: string }; Returns: string };
+      publish_site_settings: { Args: Record<string, never>; Returns: string };
+      delete_demo_content: { Args: Record<string, never>; Returns: string[] };
       is_artist_member: { Args: { target: string }; Returns: boolean };
       is_published_artist: { Args: { target: string }; Returns: boolean };
       is_published_event: { Args: { target: string }; Returns: boolean };
@@ -791,6 +896,7 @@ export type Database = {
     };
     Enums: {
       app_role: AppRole;
+      app_permission: AppPermission;
       content_status: ContentStatus;
       artist_member_role: ArtistMemberRole;
       media_type: MediaType;

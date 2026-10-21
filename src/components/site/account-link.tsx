@@ -16,9 +16,17 @@ export function SignInLink() {
 export async function AccountLink() {
   const user = await getCurrentUser();
   if (!user) return <SignInLink />;
+  const staff = user.roles.some((role) => role === "staff" || role === "admin");
   return (
-    <Link href="/dashboard" className={linkClass}>
-      Dashboard
-    </Link>
+    <span className="flex items-center gap-5">
+      {staff ? (
+        <Link href="/admin" className={linkClass}>
+          Admin
+        </Link>
+      ) : null}
+      <Link href="/dashboard" className={linkClass}>
+        Dashboard
+      </Link>
+    </span>
   );
 }

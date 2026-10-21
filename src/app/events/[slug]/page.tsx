@@ -1,9 +1,11 @@
 import type { Metadata } from "next";
-import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
+import { StringArt } from "@/components/site/string-art";
 import { ButtonLink } from "@/components/ui/button";
+import { DemoBadge } from "@/components/ui/demo-badge";
+import { Picture } from "@/components/ui/picture";
 import { Container } from "@/components/ui/container";
 import { Meta } from "@/components/ui/meta";
 import { countryName } from "@/lib/countries";
@@ -12,6 +14,7 @@ import {
   formatEventRange,
   formatEventTime,
 } from "@/lib/datetime";
+import { getSiteSettings } from "@/modules/cms/queries";
 import { eventPlace } from "@/modules/events/components/event-row";
 import { getPublishedEvent } from "@/modules/events/queries";
 import { GalleryCard } from "@/modules/galleries/components/gallery-card";
@@ -28,10 +31,11 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const event = await getPublishedEvent(slug);
   if (!event) return { title: "Event not found" };
   const description =
+    event.seoDescription ??
     event.summary ??
     `${formatEventRange(event.startsAt, event.endsAt, event.timezone)}, ${eventPlace(event)}`;
   return {
-    title: event.title,
+    title: event.seoTitle ?? event.title,
     description,
     alternates: { canonical: `/events/${event.slug}` },
     openGraph: {
@@ -63,9 +67,10 @@ async function EventDetail({ params }: { params: Props["params"] }) {
   const event = await getPublishedEvent(slug);
   if (!event) notFound();
 
-  const [galleries, videos] = await Promise.all([
+  const [galleries, videos, settings] = await Promise.all([
     getPublishedGalleries({ eventId: event.id }),
     getPublishedVideos({ eventId: event.id }),
+    getSiteSettings(),
   ]);
   const paragraphs = (event.description ?? "")
     .split(/\n\s*\n/)
@@ -112,33 +117,41 @@ async function EventDetail({ params }: { params: Props["params"] }) {
       <section className="relative isolate overflow-hidden border-b border-line">
         {event.cover ? (
           <>
-            <Image
-              src={event.cover.url}
-              alt={event.cover.alt}
-              fill
+            <Picture
+              image={event.cover}
               priority
               sizes="100vw"
-              className="-z-20 object-cover"
+              className="-z-20"
             />
             <div
               aria-hidden
-              className="absolute inset-0 -z-10 bg-linear-to-t from-bg via-bg/70 to-bg/20"
+              className="absolute inset-0 -z-10 bg-linear-to-t from-bg via-bg/60 to-bg/10"
             />
           </>
-        ) : null}
-        <Container className="flex min-h-[60svh] flex-col justify-end pt-24 pb-12">
+        ) : (
+          <StringArt className="pointer-events-none absolute top-1/2 -right-40 -z-20 w-[48rem] max-w-none -translate-y-1/2 opacity-50" />
+        )}
+        <Container className="flex min-h-[78svh] flex-col justify-end pt-32 pb-14">
           <Link
             href="/events"
             className="text-sm text-muted transition-colors hover:text-text"
           >
             ← All events
           </Link>
-          <Meta className="mt-8">
-            {formatEventRange(event.startsAt, event.endsAt, event.timezone)}
-            {event.city ? `, ${event.city}` : ""}
-            {event.country ? `, ${countryName(event.country)}` : ""}
-          </Meta>
-          <h1 className="mt-4 max-w-5xl font-display text-display">
+          <div className="mt-8 flex flex-wrap items-center gap-3">
+            <Meta className="text-text/85">
+              {formatEventRange(event.startsAt, event.endsAt, event.timezone)}
+              {event.city ? `, ${event.city}` : ""}
+              {event.country ? `, ${countryName(event.country)}` : ""}
+            </Meta>
+            {event.isDemo && settings.showDemoLabels ? <DemoBadge /> : null}
+            {event.isPast ? (
+              <span className="rounded-full border border-line-strong px-2.5 py-0.5 font-label text-xs text-muted">
+                Past event
+              </span>
+            ) : null}
+          </div>
+          <h1 className="mt-4 max-w-5xl font-display text-[clamp(2.6rem,1rem+7vw,7.5rem)] leading-[0.92] text-balance">
             {event.title}
           </h1>
           {event.summary ? (
@@ -150,6 +163,7 @@ async function EventDetail({ params }: { params: Props["params"] }) {
                 href={event.ticketUrl}
                 target="_blank"
                 rel="noopener noreferrer"
+                size="lg"
               >
                 Get tickets{" "}
                 <span className="sr-only">(opens in a new tab)</span>
@@ -174,36 +188,44 @@ async function EventDetail({ params }: { params: Props["params"] }) {
               <h2 id="lineup-heading" className="font-display text-headline">
                 Lineup
               </h2>
-              <ul className="mt-8 grid grid-cols-2 gap-x-4 gap-y-8 sm:grid-cols-3">
+              <ul className="mt-8 grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4">
                 {event.lineup.map((act) => (
                   <li key={act.slug}>
-                    <Link href={`/artists/${act.slug}`} className="group block">
-                      <div className="relative aspect-[4/5] overflow-hidden rounded-(--radius) bg-surface-2">
+                    <Link
+                      href={`/artists/${act.slug}`}
+                      className="group relative block overflow-hidden rounded-(--radius) bg-surface-2"
+                    >
+                      <div className="relative aspect-[4/5]">
                         {act.portrait ? (
-                          <Image
-                            src={act.portrait.url}
-                            alt=""
-                            fill
+                          <Picture
+                            image={act.portrait}
+                            decorative
                             sizes="(min-width: 1024px) 20vw, 45vw"
-                            className="object-cover transition-transform duration-700 group-hover:scale-[1.03]"
+                            className="transition-transform duration-700 ease-(--ease-out) group-hover:scale-[1.04]"
                           />
                         ) : null}
+                        <div
+                          aria-hidden
+                          className="absolute inset-0 bg-linear-to-t from-bg via-bg/20 to-transparent"
+                        />
                       </div>
-                      <p className="mt-3 font-display text-2xl transition-colors group-hover:text-accent">
-                        {act.stageName}
-                      </p>
-                      {act.stage || act.setStartsAt ? (
-                        <p className="mt-1 font-label text-xs text-muted">
-                          {[
-                            act.stage,
-                            act.setStartsAt
-                              ? `${formatEventDate(act.setStartsAt, event.timezone).slice(0, 3)} ${formatEventTime(act.setStartsAt, event.timezone)}`
-                              : null,
-                          ]
-                            .filter(Boolean)
-                            .join(", ")}
+                      <div className="absolute inset-x-0 bottom-0 p-4">
+                        <p className="font-display text-xl leading-tight transition-colors group-hover:text-accent sm:text-2xl">
+                          {act.stageName}
                         </p>
-                      ) : null}
+                        {act.stage || act.setStartsAt ? (
+                          <p className="mt-1 font-label text-sm text-text/80">
+                            {[
+                              act.stage,
+                              act.setStartsAt
+                                ? `${formatEventDate(act.setStartsAt, event.timezone).slice(0, 3)} ${formatEventTime(act.setStartsAt, event.timezone)}`
+                                : null,
+                            ]
+                              .filter(Boolean)
+                              .join(", ")}
+                          </p>
+                        ) : null}
+                      </div>
                     </Link>
                   </li>
                 ))}
@@ -216,7 +238,7 @@ async function EventDetail({ params }: { params: Props["params"] }) {
           aria-label="Event information"
           className="lg:sticky lg:top-24 lg:self-start"
         >
-          <dl className="divide-y divide-line border-y border-line">
+          <dl className="divide-y divide-line rounded-(--radius) border border-line bg-surface-1 px-6">
             <div className="py-4">
               <dt>
                 <Meta>When</Meta>
@@ -238,6 +260,23 @@ async function EventDetail({ params }: { params: Props["params"] }) {
               </div>
             ) : null}
           </dl>
+          <div className="mt-6 flex flex-col gap-3">
+            {event.ticketUrl && !event.isPast ? (
+              <ButtonLink
+                href={event.ticketUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Get tickets{" "}
+                <span className="sr-only">(opens in a new tab)</span>
+              </ButtonLink>
+            ) : null}
+            {event.lineup.length ? (
+              <ButtonLink href="/artists" variant="secondary">
+                Book artists from this lineup
+              </ButtonLink>
+            ) : null}
+          </div>
         </aside>
       </Container>
 

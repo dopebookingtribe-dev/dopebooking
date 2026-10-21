@@ -14,9 +14,11 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const gallery = await getPublishedGallery(slug);
   if (!gallery) return { title: "Gallery not found" };
   return {
-    title: gallery.title,
+    title: gallery.seoTitle ?? gallery.title,
     description:
-      gallery.description?.slice(0, 155) ?? `Photos: ${gallery.title}`,
+      gallery.seoDescription ??
+      gallery.description?.slice(0, 155) ??
+      `Photos: ${gallery.title}`,
     alternates: { canonical: `/gallery/${gallery.slug}` },
     openGraph: {
       title: `${gallery.title} | DopeBooking`,

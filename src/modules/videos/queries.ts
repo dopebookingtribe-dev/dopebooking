@@ -15,6 +15,7 @@ export type VideoCard = {
   provider: VideoProvider;
   ref: string;
   featured: boolean;
+  isDemo: boolean;
   publishedAt: string | null;
   /** Uploaded poster, else the provider's own thumbnail (if any). */
   poster: Pick<Image, "url" | "width" | "height"> | null;
@@ -29,7 +30,7 @@ export type VideoDetail = VideoCard & {
 type VideoFilter = { eventId?: string; artistId?: string };
 
 const CARD_COLUMNS =
-  "id, slug, title, provider, provider_ref, featured, published_at, poster_asset_id";
+  "id, slug, title, provider, provider_ref, featured, is_demo, published_at, poster_asset_id";
 
 function toCard(
   row: {
@@ -39,6 +40,7 @@ function toCard(
     provider: VideoProvider;
     provider_ref: string;
     featured: boolean;
+    is_demo: boolean;
     published_at: string | null;
     poster_asset_id: string | null;
   },
@@ -58,6 +60,7 @@ function toCard(
     provider: row.provider,
     ref: row.provider_ref,
     featured: row.featured,
+    isDemo: row.is_demo,
     publishedAt: row.published_at,
     poster: uploaded
       ? { url: uploaded.url, width: uploaded.width, height: uploaded.height }

@@ -5,9 +5,11 @@ import { Suspense, type ReactNode } from "react";
 import { Container } from "@/components/ui/container";
 import { COUNTRIES } from "@/lib/countries";
 import {
+  deleteArtist,
   deleteArtistImage,
   registerArtistImage,
   saveArtistLinks,
+  setArtistCover,
   setArtistPortrait,
   updateArtistDetails,
   updateArtistPrivate,
@@ -16,6 +18,7 @@ import { getArtistForAdmin } from "@/modules/artists/admin-queries";
 import { ArtistDetailsForm } from "@/modules/artists/components/admin/artist-details-form";
 import { ArtistLinksForm } from "@/modules/artists/components/admin/artist-links-form";
 import { ArtistPrivateForm } from "@/modules/artists/components/admin/artist-private-form";
+import { DeleteArtistForm } from "@/modules/artists/components/admin/delete-artist-form";
 import { StatusBadge } from "@/components/admin/admin-ui";
 import { ImageGrid } from "@/modules/media/components/image-grid";
 import { ImageUploader } from "@/modules/media/components/image-uploader";
@@ -84,7 +87,7 @@ async function Editor({
 
         <Section
           title="Photos"
-          description="The portrait leads the profile and directory card. Portrait (4:5) photos work best."
+          description="The portrait leads the directory card (4:5 works best). The cover is the wide photo at the top of the profile."
         >
           <div className="flex flex-col gap-8">
             <ImageGrid
@@ -93,6 +96,11 @@ async function Editor({
               leadLabel="Portrait"
               makeLead={setArtistPortrait.bind(null, artist.id)}
               remove={deleteArtistImage.bind(null, artist.id)}
+              second={{
+                id: artist.cover_asset_id,
+                label: "Cover",
+                set: setArtistCover.bind(null, artist.id),
+              }}
             />
             <ImageUploader
               folder={mediaFolder("artist", artist.id)}
@@ -115,6 +123,16 @@ async function Editor({
           <ArtistPrivateForm
             privateInfo={privateInfo}
             action={updateArtistPrivate.bind(null, artist.id)}
+          />
+        </Section>
+
+        <Section
+          title="Delete"
+          description="Removes the artist and their photos for good. Archive instead if you may need them again."
+        >
+          <DeleteArtistForm
+            name={artist.stage_name}
+            action={deleteArtist.bind(null, artist.id)}
           />
         </Section>
       </div>

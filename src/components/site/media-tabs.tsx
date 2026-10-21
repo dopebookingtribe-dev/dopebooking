@@ -7,7 +7,7 @@ export function MediaTabs({ active }: { active: "photos" | "videos" }) {
     { key: "videos", href: "/videos", label: "Videos" },
   ] as const;
   return (
-    <nav aria-label="Media" className="mt-10">
+    <nav aria-label="Media">
       <ul className="flex gap-2">
         {tabs.map((tab) => (
           <li key={tab.key}>

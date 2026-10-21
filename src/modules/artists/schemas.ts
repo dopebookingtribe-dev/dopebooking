@@ -75,6 +75,9 @@ export const artistDetailsSchema = z.object({
   status: statusSchema,
   featured: checkboxSchema,
   sort_order: z.coerce.number().int("Use a whole number.").min(-1000).max(1000),
+  booking_info: optionalText(1000).default(null),
+  seo_title: optionalText(70).default(null),
+  seo_description: optionalText(200).default(null),
 });
 
 const money = z

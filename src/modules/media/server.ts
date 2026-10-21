@@ -206,4 +206,4 @@ export async function deleteOwnedImage(
 }
 
 export const MEDIA_COLUMNS =
-  "id, storage_bucket, storage_path, alt_text, credit, width, height, sort_order";
+  "id, storage_bucket, storage_path, alt_text, credit, width, height, sort_order, focal_x, focal_y";

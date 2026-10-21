@@ -7,6 +7,8 @@ export type Image = {
   credit: string | null;
   width: number;
   height: number;
+  /** CSS object-position from the focal point set in the admin. */
+  position: string;
 };
 
 type MediaRow = {
@@ -17,6 +19,8 @@ type MediaRow = {
   credit: string | null;
   width: number | null;
   height: number | null;
+  focal_x?: number | null;
+  focal_y?: number | null;
 };
 
 /** Public URL for an object in a public Supabase Storage bucket. */
@@ -35,5 +39,6 @@ export function toImage(row: MediaRow): Image {
     // Dimensions are recorded on upload; the fallback keeps layout stable.
     width: row.width ?? 1600,
     height: row.height ?? 2000,
+    position: `${row.focal_x ?? 50}% ${row.focal_y ?? 50}%`,
   };
 }

@@ -2,7 +2,8 @@
  * Blacklight string art: the UV thread installations stretched over
  * psytrance dancefloors. Each sector joins nail i on one spoke to nail
  * (count - i) on the next, so straight threads trace a curved star.
- * Rendered on the server; the threads draw in once, then stay still.
+ * Rendered on the server. The hero version draws in once; static copies
+ * (tiles, placeholders) appear at once so there is a single motion moment.
  */
 
 const COLORS = ["var(--accent)", "var(--uv)", "var(--thread-cyan)"] as const;
@@ -32,33 +33,49 @@ function sectors(spokes: number, nails: number, radius: number) {
 }
 
 const RADIUS = 300;
-const SPOKES = 9;
-const NAILS = 22;
-export const STRING_ART = {
-  radius: RADIUS,
-  sectors: sectors(SPOKES, NAILS, RADIUS),
-};
-const SECTORS = STRING_ART.sectors;
-const TIPS = Array.from({ length: SPOKES }, (_, s) =>
-  point((s * Math.PI * 2) / SPOKES - Math.PI / 2, RADIUS),
-);
+// Variants keep placeholders from looking identical side by side.
+const SHAPES = [
+  { spokes: 9, nails: 22 },
+  { spokes: 6, nails: 18 },
+  { spokes: 7, nails: 20 },
+  { spokes: 5, nails: 16 },
+] as const;
 
-export function StringArt({ className = "" }: { className?: string }) {
+const GEOMETRY = SHAPES.map(({ spokes, nails }) => ({
+  sectors: sectors(spokes, nails, RADIUS),
+  tips: Array.from({ length: spokes }, (_, s) =>
+    point((s * Math.PI * 2) / spokes - Math.PI / 2, RADIUS),
+  ),
+}));
+
+export const STRING_ART = { radius: RADIUS, sectors: GEOMETRY[0].sectors };
+
+export function StringArt({
+  className = "",
+  variant = 0,
+  animate = variant === 0,
+}: {
+  className?: string;
+  variant?: number;
+  animate?: boolean;
+}) {
+  const shape = GEOMETRY[Math.abs(variant) % GEOMETRY.length];
+  const offset = Math.abs(variant) % COLORS.length;
   return (
     <svg
       aria-hidden
       viewBox={`${-RADIUS - 12} ${-RADIUS - 12} ${RADIUS * 2 + 24} ${RADIUS * 2 + 24}`}
-      className={`string-art ${className}`}
+      className={`string-art ${animate ? "" : "string-art--static"} ${className}`}
       fill="none"
     >
-      {SECTORS.map((threads, s) => (
+      {shape.sectors.map((threads, s) => (
         <g
           key={s}
           stroke="currentColor"
           style={
             {
               "--sector": s,
-              color: COLORS[s % COLORS.length],
+              color: COLORS[(s + offset) % COLORS.length],
             } as React.CSSProperties
           }
           className="string-art__sector"
@@ -76,7 +93,7 @@ export function StringArt({ className = "" }: { className?: string }) {
       ))}
       <g fill="var(--text)" opacity={0.55}>
         <circle r={3} />
-        {TIPS.map((tip, s) => (
+        {shape.tips.map((tip, s) => (
           <circle key={s} cx={tip.x} cy={tip.y} r={2.5} />
         ))}
       </g>

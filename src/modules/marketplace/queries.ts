@@ -158,11 +158,24 @@ export type ShopCard = {
   cover: Image | null;
   fromPrice: number | null;
   currency: string;
+  featured: boolean;
+  isDemo: boolean;
+  category: { slug: string; name: string } | null;
+  inStock: boolean;
   seller: { slug: string; name: string };
+};
+
+export type ShopCategory = {
+  id: string;
+  slug: string;
+  name: string;
+  description: string | null;
 };
 
 export type ShopProduct = ShopCard & {
   description: string | null;
+  seoTitle: string | null;
+  seoDescription: string | null;
   images: Image[];
   variants: { id: string; name: string; price: number; inStock: boolean }[];
 };
@@ -174,21 +187,22 @@ async function loadCards(
   let query = supabase
     .from("products")
     .select(
-      "id, slug, title, product_type, currency, cover_asset_id, seller_id, published_at",
+      "id, slug, title, product_type, currency, cover_asset_id, seller_id, published_at, featured, is_demo, category_id, sort_order",
     )
     .eq("status", "published");
   if (filter.sellerId) query = query.eq("seller_id", filter.sellerId);
-  const { data: products, error } = await query.order("published_at", {
-    ascending: false,
-  });
+  const { data: products, error } = await query
+    .order("featured", { ascending: false })
+    .order("sort_order")
+    .order("published_at", { ascending: false });
   if (error) throw new Error(`Failed to load products: ${error.message}`);
   if (!products.length) return [];
 
   const ids = products.map((product) => product.id);
-  const [variants, sellers, covers] = await Promise.all([
+  const [variants, sellers, covers, categories] = await Promise.all([
     supabase
       .from("product_variants")
-      .select("product_id, price_amount")
+      .select("product_id, price_amount, stock")
       .in("product_id", ids),
     supabase
       .from("sellers")
@@ -198,12 +212,20 @@ async function loadCards(
       supabase,
       products.map((product) => product.cover_asset_id),
     ),
+    supabase.from("product_categories").select("id, slug, name"),
   ]);
   if (variants.error || sellers.error)
     throw new Error("Failed to load the shop.");
+  const categoryById = new Map(
+    (categories.data ?? []).map((category) => [category.id, category]),
+  );
 
   const minPrice = new Map<string, number>();
+  const available = new Set<string>();
   for (const variant of variants.data) {
+    if (variant.stock === null || variant.stock > 0) {
+      available.add(variant.product_id);
+    }
     const current = minPrice.get(variant.product_id);
     if (current === undefined || variant.price_amount < current) {
       minPrice.set(variant.product_id, variant.price_amount);
@@ -225,6 +247,12 @@ async function loadCards(
           : null,
         fromPrice: minPrice.get(product.id) ?? null,
         currency: product.currency,
+        featured: product.featured,
+        isDemo: product.is_demo,
+        category: product.category_id
+          ? (categoryById.get(product.category_id) ?? null)
+          : null,
+        inStock: available.has(product.id),
         seller: { slug: seller.slug, name: seller.display_name },
       },
     ];
@@ -238,6 +266,22 @@ export async function getShopProducts(): Promise<ShopCard[]> {
   return loadCards();
 }
 
+/** Visible categories that have at least one live product. */
+export async function getShopCategories(): Promise<ShopCategory[]> {
+  "use cache";
+  cacheLife("hours");
+  cacheTag(SHOP_TAG);
+
+  const supabase = createPublicClient();
+  const { data, error } = await supabase
+    .from("product_categories")
+    .select("id, slug, name, description")
+    .order("sort_order")
+    .order("name");
+  if (error) return [];
+  return data;
+}
+
 export async function getShopProduct(
   slug: string,
 ): Promise<ShopProduct | null> {
@@ -249,14 +293,14 @@ export async function getShopProduct(
   const { data: product } = await supabase
     .from("products")
     .select(
-      "id, slug, title, description, product_type, currency, cover_asset_id, seller_id",
+      "id, slug, title, description, product_type, currency, cover_asset_id, seller_id, featured, is_demo, category_id, seo_title, seo_description",
     )
     .eq("slug", slug)
     .eq("status", "published")
     .maybeSingle();
   if (!product) return null;
 
-  const [variants, media, seller] = await Promise.all([
+  const [variants, media, seller, category] = await Promise.all([
     supabase
       .from("product_variants")
       .select("id, name, price_amount, stock")
@@ -272,6 +316,13 @@ export async function getShopProduct(
       .select("slug, display_name")
       .eq("id", product.seller_id)
       .maybeSingle(),
+    product.category_id
+      ? supabase
+          .from("product_categories")
+          .select("slug, name")
+          .eq("id", product.category_id)
+          .maybeSingle()
+      : Promise.resolve({ data: null }),
   ]);
   if (!seller.data) return null;
 
@@ -291,8 +342,14 @@ export async function getShopProduct(
     slug: product.slug,
     title: product.title,
     description: product.description,
+    seoTitle: product.seo_title,
+    seoDescription: product.seo_description,
     productType: product.product_type,
     currency: product.currency,
+    featured: product.featured,
+    isDemo: product.is_demo,
+    category: category.data ?? null,
+    inStock: options.some((option) => option.inStock),
     cover,
     // Cover first, then the rest.
     images: cover

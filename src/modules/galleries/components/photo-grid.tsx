@@ -4,8 +4,20 @@ import Image from "next/image";
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { Image as ImageData } from "@/lib/media";
 
-/** Masonry grid; a photo opens in a full-screen viewer with arrow keys. */
-export function PhotoGrid({ images }: { images: ImageData[] }) {
+type Layout = "masonry" | "mosaic" | "filmstrip";
+
+// Mosaic rhythm: every seventh photo takes a 2x2 tile.
+const mosaicSpan = (i: number) =>
+  i % 7 === 0 ? "col-span-2 row-span-2" : i % 7 === 4 ? "col-span-2" : "";
+
+/** Photos in a masonry, mosaic or filmstrip layout; each opens full screen. */
+export function PhotoGrid({
+  images,
+  layout = "masonry",
+}: {
+  images: ImageData[];
+  layout?: Layout;
+}) {
   const dialogRef = useRef<HTMLDialogElement>(null);
   const [index, setIndex] = useState<number | null>(null);
   const current = index === null ? null : images[index];
@@ -40,32 +52,66 @@ export function PhotoGrid({ images }: { images: ImageData[] }) {
     };
   }, [step]);
 
+  const trigger = (image: ImageData, i: number, className: string) => (
+    <button
+      type="button"
+      onClick={() => open(i)}
+      className={`group relative block overflow-hidden rounded-(--radius) bg-surface-2 ${className}`}
+    >
+      <Image
+        src={image.url}
+        alt={image.alt}
+        fill
+        priority={i < 2}
+        sizes={
+          layout === "filmstrip"
+            ? "(min-width: 1024px) 34vw, 80vw"
+            : "(min-width: 1024px) 30vw, 50vw"
+        }
+        style={{ objectPosition: image.position }}
+        className="object-cover transition-transform duration-700 ease-(--ease-out) group-hover:scale-[1.03]"
+      />
+      <span className="sr-only">
+        Open photo {i + 1} of {images.length}
+      </span>
+    </button>
+  );
+
   return (
     <>
-      <ul className="columns-1 gap-4 sm:columns-2 lg:columns-3">
-        {images.map((image, i) => (
-          <li key={image.id} className="mb-4 break-inside-avoid">
-            <button
-              type="button"
-              onClick={() => open(i)}
-              className="block w-full overflow-hidden rounded-(--radius)"
+      {layout === "mosaic" ? (
+        <ul className="grid grid-flow-row-dense auto-rows-[38vw] grid-cols-2 gap-2 sm:auto-rows-[22vw] sm:grid-cols-4 sm:gap-3 xl:auto-rows-[17rem]">
+          {images.map((image, i) => (
+            <li key={image.id} className={mosaicSpan(i)}>
+              {trigger(image, i, "size-full")}
+            </li>
+          ))}
+        </ul>
+      ) : layout === "filmstrip" ? (
+        <ul className="-mx-(--gutter) flex snap-x snap-mandatory [scrollbar-width:thin] gap-3 overflow-x-auto px-(--gutter) pb-4">
+          {images.map((image, i) => (
+            <li
+              key={image.id}
+              className="h-[min(60vh,32rem)] max-w-[85vw] shrink-0 snap-start"
+              style={{ aspectRatio: `${image.width} / ${image.height}` }}
             >
-              <Image
-                src={image.url}
-                alt={image.alt}
-                width={image.width}
-                height={image.height}
-                priority={i < 3}
-                sizes="(min-width: 1024px) 30vw, (min-width: 640px) 45vw, 92vw"
-                className="h-auto w-full transition-transform duration-700 ease-(--ease-out) hover:scale-[1.02]"
-              />
-              <span className="sr-only">
-                Open photo {i + 1} of {images.length}
-              </span>
-            </button>
-          </li>
-        ))}
-      </ul>
+              {trigger(image, i, "size-full")}
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <ul className="columns-1 gap-4 sm:columns-2 lg:columns-3">
+          {images.map((image, i) => (
+            <li
+              key={image.id}
+              className="mb-4 break-inside-avoid"
+              style={{ aspectRatio: `${image.width} / ${image.height}` }}
+            >
+              {trigger(image, i, "size-full")}
+            </li>
+          ))}
+        </ul>
+      )}
 
       <dialog
         ref={dialogRef}

@@ -1,23 +1,47 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { Suspense } from "react";
+import { ADMIN_GROUPS, type AdminLink } from "@/components/admin/admin-nav";
 import { Container } from "@/components/ui/container";
+import { currentPermissions } from "@/lib/auth/permissions";
 
 export const metadata: Metadata = {
   title: { default: "Admin", template: "%s | Admin | DopeBooking" },
   robots: { index: false, follow: false },
 };
 
-const ADMIN_NAV = [
-  { href: "/admin", label: "Overview" },
-  { href: "/admin/bookings", label: "Bookings" },
-  { href: "/admin/services", label: "Services" },
-  { href: "/admin/sellers", label: "Sellers" },
-  { href: "/admin/orders", label: "Orders" },
-  { href: "/admin/artists", label: "Artists" },
-  { href: "/admin/events", label: "Events" },
-  { href: "/admin/galleries", label: "Galleries" },
-  { href: "/admin/videos", label: "Videos" },
-] as const;
+function NavList({ links }: { links: AdminLink[] }) {
+  return (
+    <ul className="flex [scrollbar-width:none] gap-1 overflow-x-auto py-1">
+      <li>
+        <Link
+          href="/admin"
+          className="inline-flex min-h-11 items-center rounded-full px-3 text-sm whitespace-nowrap text-muted hover:bg-surface-2 hover:text-text"
+        >
+          Overview
+        </Link>
+      </li>
+      {links.map((item) => (
+        <li key={item.href}>
+          <Link
+            href={item.href}
+            className="inline-flex min-h-11 items-center rounded-full px-3 text-sm whitespace-nowrap text-muted hover:bg-surface-2 hover:text-text"
+          >
+            {item.label}
+          </Link>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+async function PermittedNav() {
+  const permissions = await currentPermissions();
+  const links = ADMIN_GROUPS.flatMap((group) => group.links).filter((link) =>
+    permissions.has(link.permission),
+  );
+  return <NavList links={links} />;
+}
 
 export default function AdminLayout({ children }: LayoutProps<"/admin">) {
   return (
@@ -25,18 +49,9 @@ export default function AdminLayout({ children }: LayoutProps<"/admin">) {
       <div className="border-b border-line bg-surface-1">
         <Container>
           <nav aria-label="Admin">
-            <ul className="flex gap-6 overflow-x-auto">
-              {ADMIN_NAV.map((item) => (
-                <li key={item.href}>
-                  <Link
-                    href={item.href}
-                    className="inline-flex min-h-11 items-center font-label text-xs text-muted hover:text-text"
-                  >
-                    {item.label}
-                  </Link>
-                </li>
-              ))}
-            </ul>
+            <Suspense fallback={<NavList links={[]} />}>
+              <PermittedNav />
+            </Suspense>
           </nav>
         </Container>
       </div>

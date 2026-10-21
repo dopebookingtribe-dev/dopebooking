@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Anybody, Instrument_Sans } from "next/font/google";
 import { SiteFooter } from "@/components/site/site-footer";
 import { SiteHeader } from "@/components/site/site-header";
+import { getImagesByIds, getSiteSettings } from "@/modules/cms/queries";
 import "./globals.css";
 
 // Anybody's width axis does the talking: extended for headlines,
@@ -17,17 +18,27 @@ const sans = Instrument_Sans({
   subsets: ["latin"],
 });
 
-export const metadata: Metadata = {
-  metadataBase: new URL(
-    process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000",
-  ),
-  title: {
-    default: "DopeBooking — International psytrance artist agency",
-    template: "%s | DopeBooking",
-  },
-  description:
-    "Book international psytrance artists and festival services: promotion, catering, photography and aftermovie production.",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const { brand, seo } = await getSiteSettings();
+  const images = seo.image ? await getImagesByIds([seo.image]) : {};
+  const share = images[seo.image];
+  return {
+    metadataBase: new URL(
+      process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000",
+    ),
+    title: { default: seo.title, template: `%s | ${brand.name}` },
+    description: seo.description,
+    ...(share
+      ? {
+          openGraph: {
+            images: [
+              { url: share.url, width: share.width, height: share.height },
+            ],
+          },
+        }
+      : {}),
+  };
+}
 
 export const viewport: Viewport = {
   themeColor: "#15112b",

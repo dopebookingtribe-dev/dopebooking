@@ -18,6 +18,7 @@ export type EventCard = {
   city: string | null;
   country: string | null;
   featured: boolean;
+  isDemo: boolean;
   cover: Image | null;
   updatedAt: string;
 };
@@ -35,11 +36,13 @@ export type EventDetail = EventCard & {
   isPast: boolean;
   description: string | null;
   ticketUrl: string | null;
+  seoTitle: string | null;
+  seoDescription: string | null;
   lineup: LineupEntry[];
 };
 
 const CARD_COLUMNS =
-  "id, slug, title, summary, starts_at, ends_at, timezone, venue_name, city, country, featured, cover_asset_id, updated_at";
+  "id, slug, title, summary, starts_at, ends_at, timezone, venue_name, city, country, featured, is_demo, cover_asset_id, updated_at";
 
 type CardRow = {
   id: string;
@@ -53,6 +56,7 @@ type CardRow = {
   city: string | null;
   country: string | null;
   featured: boolean;
+  is_demo: boolean;
   cover_asset_id: string | null;
   updated_at: string;
 };
@@ -70,6 +74,7 @@ function toCard(row: CardRow, covers: Map<string, Image>): EventCard {
     city: row.city,
     country: row.country,
     featured: row.featured,
+    isDemo: row.is_demo,
     cover: row.cover_asset_id ? (covers.get(row.cover_asset_id) ?? null) : null,
     updatedAt: row.updated_at,
   };
@@ -120,7 +125,9 @@ export async function getPublishedEvent(
   const supabase = createPublicClient();
   const { data: event, error } = await supabase
     .from("events")
-    .select(`${CARD_COLUMNS}, description, ticket_url`)
+    .select(
+      `${CARD_COLUMNS}, description, ticket_url, seo_title, seo_description`,
+    )
     .eq("slug", slug)
     .eq("status", "published")
     .maybeSingle();
@@ -159,6 +166,8 @@ export async function getPublishedEvent(
     isPast: (event.ends_at ?? event.starts_at) < new Date().toISOString(),
     description: event.description,
     ticketUrl: event.ticket_url,
+    seoTitle: event.seo_title,
+    seoDescription: event.seo_description,
     lineup: lineupRows.flatMap((row) => {
       const artist = byId.get(row.artist_id);
       if (!artist) return [];

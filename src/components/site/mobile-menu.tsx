@@ -3,9 +3,17 @@
 import Link from "next/link";
 import { useEffect, useId, useState } from "react";
 import { buttonClasses } from "@/components/ui/button";
-import { BOOK_CTA, NAV_ITEMS } from "./nav-items";
+import type { CmsLink, SiteSettings } from "@/modules/cms/schema";
 
-export function MobileMenu({ accountSlot }: { accountSlot: React.ReactNode }) {
+export function MobileMenu({
+  nav,
+  cta,
+  accountSlot,
+}: {
+  nav: SiteSettings["nav"];
+  cta: CmsLink;
+  accountSlot: React.ReactNode;
+}) {
   // No usePathname(): reading the URL here would make every dynamic route
   // block on it. The menu closes when any link inside it is followed.
   const [open, setOpen] = useState(false);
@@ -25,13 +33,13 @@ export function MobileMenu({ accountSlot }: { accountSlot: React.ReactNode }) {
   }, [open]);
 
   return (
-    <div className="md:hidden">
+    <div className="xl:hidden">
       <button
         type="button"
         aria-expanded={open}
         aria-controls={panelId}
         onClick={() => setOpen((value) => !value)}
-        className="inline-flex min-h-11 min-w-11 items-center justify-center font-label text-xs"
+        className="inline-flex min-h-11 min-w-11 items-center justify-center font-label text-sm"
       >
         {open ? "Close" : "Menu"}
       </button>
@@ -42,30 +50,46 @@ export function MobileMenu({ accountSlot }: { accountSlot: React.ReactNode }) {
         onClick={(event) => {
           if ((event.target as HTMLElement).closest("a")) setOpen(false);
         }}
-        className="fixed inset-x-0 top-16 bottom-0 z-40 flex flex-col bg-bg px-(--gutter) pt-8 pb-[max(1.5rem,env(safe-area-inset-bottom))]"
+        className="fixed inset-x-0 top-16 bottom-0 z-40 flex flex-col overflow-y-auto bg-bg px-(--gutter) pt-6 pb-[max(1.5rem,env(safe-area-inset-bottom))]"
       >
         <nav aria-label="Main">
-          <ul className="flex flex-col gap-1">
-            {NAV_ITEMS.map((item) => (
-              <li key={item.href}>
+          <ul className="flex flex-col">
+            {nav.map((item) => (
+              <li key={item.href} className="border-b border-line py-2">
                 <Link
                   href={item.href}
-                  className="block py-3 font-display text-4xl hover:text-accent"
+                  className="block py-2 font-display text-3xl hover:text-accent"
                 >
                   {item.label}
                 </Link>
+                {item.children.length ? (
+                  <ul className="mb-2 flex flex-wrap gap-x-5">
+                    {item.children.map((child) => (
+                      <li key={child.href}>
+                        <Link
+                          href={child.href}
+                          className="inline-flex min-h-11 items-center text-muted hover:text-text"
+                        >
+                          {child.label}
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
+                ) : null}
               </li>
             ))}
           </ul>
         </nav>
-        <div className="mt-auto flex flex-col gap-3">
+        <div className="mt-auto flex flex-col gap-3 pt-8">
           {accountSlot}
-          <Link
-            href={BOOK_CTA.href}
-            className={buttonClasses("primary", "w-full")}
-          >
-            {BOOK_CTA.label}
-          </Link>
+          {cta.label && cta.href ? (
+            <Link
+              href={cta.href}
+              className={buttonClasses("primary", "w-full")}
+            >
+              {cta.label}
+            </Link>
+          ) : null}
         </div>
       </div>
     </div>

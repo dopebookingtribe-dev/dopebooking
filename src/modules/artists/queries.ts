@@ -14,6 +14,7 @@ export type ArtistCard = {
   country: string | null;
   genres: string[];
   featured: boolean;
+  isDemo: boolean;
   portrait: Image | null;
   updatedAt: string;
 };
@@ -21,12 +22,16 @@ export type ArtistCard = {
 export type ArtistProfile = ArtistCard & {
   bio: string | null;
   basedIn: string | null;
+  bookingInfo: string | null;
+  cover: Image | null;
+  seoTitle: string | null;
+  seoDescription: string | null;
   links: { platform: LinkPlatform; url: string }[];
   images: Image[];
 };
 
 const MEDIA_COLUMNS =
-  "id, artist_id, storage_bucket, storage_path, alt_text, credit, width, height, sort_order";
+  "id, artist_id, storage_bucket, storage_path, alt_text, credit, width, height, sort_order, focal_x, focal_y";
 
 /** Published roster, ordered for display. Cached until an admin edit. */
 export async function getPublishedArtists(): Promise<ArtistCard[]> {
@@ -38,7 +43,7 @@ export async function getPublishedArtists(): Promise<ArtistCard[]> {
   const { data: artists, error } = await supabase
     .from("artists")
     .select(
-      "id, slug, stage_name, tagline, country, genres, featured, portrait_asset_id, updated_at",
+      "id, slug, stage_name, tagline, country, genres, featured, is_demo, portrait_asset_id, updated_at",
     )
     .eq("status", "published")
     .order("featured", { ascending: false })
@@ -69,6 +74,7 @@ export async function getPublishedArtists(): Promise<ArtistCard[]> {
     country: artist.country,
     genres: artist.genres,
     featured: artist.featured,
+    isDemo: artist.is_demo,
     portrait: artist.portrait_asset_id
       ? (portraits.get(artist.portrait_asset_id) ?? null)
       : null,
@@ -87,7 +93,7 @@ export async function getPublishedArtist(
   const { data: artist, error } = await supabase
     .from("artists")
     .select(
-      "id, slug, stage_name, tagline, bio, country, based_in, genres, featured, portrait_asset_id, updated_at",
+      "id, slug, stage_name, tagline, bio, country, based_in, genres, featured, is_demo, booking_info, seo_title, seo_description, portrait_asset_id, cover_asset_id, updated_at",
     )
     .eq("slug", slug)
     .eq("status", "published")
@@ -122,10 +128,15 @@ export async function getPublishedArtist(
     bio: artist.bio,
     country: artist.country,
     basedIn: artist.based_in,
+    bookingInfo: artist.booking_info,
+    seoTitle: artist.seo_title,
+    seoDescription: artist.seo_description,
     genres: artist.genres,
     featured: artist.featured,
+    isDemo: artist.is_demo,
     portrait:
       images.find((image) => image.id === artist.portrait_asset_id) ?? null,
+    cover: images.find((image) => image.id === artist.cover_asset_id) ?? null,
     links: links.data,
     images,
     updatedAt: artist.updated_at,

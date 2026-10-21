@@ -12,17 +12,20 @@ export type GalleryCard = {
   slug: string;
   title: string;
   publishedAt: string | null;
+  isDemo: boolean;
   cover: Image | null;
 };
 
 export type GalleryDetail = GalleryCard & {
   description: string | null;
   photographer: string | null;
+  seoTitle: string | null;
+  seoDescription: string | null;
   event: { slug: string; title: string } | null;
   images: Image[];
 };
 
-const CARD_COLUMNS = "id, slug, title, published_at, cover_asset_id";
+const CARD_COLUMNS = "id, slug, title, published_at, is_demo, cover_asset_id";
 
 /** Published galleries, newest first; optionally only one event's. */
 export async function getPublishedGalleries(
@@ -52,6 +55,7 @@ export async function getPublishedGalleries(
     slug: row.slug,
     title: row.title,
     publishedAt: row.published_at,
+    isDemo: row.is_demo,
     cover: row.cover_asset_id ? (covers.get(row.cover_asset_id) ?? null) : null,
   }));
 }
@@ -66,7 +70,9 @@ export async function getPublishedGallery(
   const supabase = createPublicClient();
   const { data: gallery, error } = await supabase
     .from("galleries")
-    .select(`${CARD_COLUMNS}, description, photographer, event_id`)
+    .select(
+      `${CARD_COLUMNS}, description, photographer, event_id, seo_title, seo_description`,
+    )
     .eq("slug", slug)
     .eq("status", "published")
     .maybeSingle();
@@ -98,8 +104,11 @@ export async function getPublishedGallery(
     slug: gallery.slug,
     title: gallery.title,
     publishedAt: gallery.published_at,
+    isDemo: gallery.is_demo,
     description: gallery.description,
     photographer: gallery.photographer,
+    seoTitle: gallery.seo_title,
+    seoDescription: gallery.seo_description,
     cover: images.find((image) => image.id === gallery.cover_asset_id) ?? null,
     event: event?.data ?? null,
     images,

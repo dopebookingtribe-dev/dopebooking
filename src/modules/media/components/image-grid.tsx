@@ -13,12 +13,19 @@ export function ImageGrid({
   leadLabel,
   makeLead,
   remove,
+  second,
 }: {
   images: ImageData[];
   leadId: string | null;
   leadLabel: string;
   makeLead: (assetId: string) => Promise<void>;
   remove: (assetId: string) => Promise<void>;
+  /** Optional second role, e.g. an artist's wide cover photo. */
+  second?: {
+    id: string | null;
+    label: string;
+    set: (assetId: string) => Promise<void>;
+  };
 }) {
   if (!images.length) {
     return <p className="text-sm text-muted">No photos yet.</p>;
@@ -38,11 +45,18 @@ export function ImageGrid({
                 sizes="(min-width: 1024px) 20vw, 45vw"
                 className="object-cover"
               />
-              {isLead ? (
-                <span className="absolute top-2 left-2 rounded-full bg-accent px-2 py-0.5 font-label text-xs text-accent-ink">
-                  {leadLabel}
-                </span>
-              ) : null}
+              <span className="absolute top-2 left-2 flex flex-wrap gap-1">
+                {isLead ? (
+                  <span className="rounded-full bg-accent px-2 py-0.5 font-label text-xs text-accent-ink">
+                    {leadLabel}
+                  </span>
+                ) : null}
+                {second && second.id === image.id ? (
+                  <span className="rounded-full bg-uv px-2 py-0.5 font-label text-xs text-accent-ink">
+                    {second.label}
+                  </span>
+                ) : null}
+              </span>
             </div>
             <p className="line-clamp-2 text-xs text-muted">{image.alt}</p>
             <div className="flex flex-wrap gap-2">
@@ -56,6 +70,19 @@ export function ImageGrid({
                     )}
                   >
                     Make {leadLabel.toLowerCase()}
+                  </button>
+                </form>
+              ) : null}
+              {second && second.id !== image.id ? (
+                <form action={second.set.bind(null, image.id)}>
+                  <button
+                    type="submit"
+                    className={buttonClasses(
+                      "secondary",
+                      "min-h-9 px-3 text-xs",
+                    )}
+                  >
+                    Make {second.label.toLowerCase()}
                   </button>
                 </form>
               ) : null}

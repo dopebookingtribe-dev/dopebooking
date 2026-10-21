@@ -4,6 +4,7 @@ import { updateTag } from "next/cache";
 import { redirect } from "next/navigation";
 import type { z } from "zod";
 import { requireRole, STAFF_ROLES } from "@/lib/auth/dal";
+import { requirePermission } from "@/lib/auth/permissions";
 import { fieldErrorsOf, formValues, type FormState } from "@/lib/forms";
 import { createClient } from "@/lib/supabase/server";
 import {
@@ -180,6 +181,56 @@ export async function registerArtistImage(
   );
   if (result.ok) updateTag(ARTISTS_TAG);
   return result;
+}
+
+export async function setArtistCover(artistId: string, assetId: string) {
+  const { supabase } = await staffClient(artistId);
+  const { data: asset } = await supabase
+    .from("media_assets")
+    .select("id")
+    .eq("id", assetId)
+    .eq("artist_id", artistId)
+    .maybeSingle();
+  if (!asset) return;
+  await supabase
+    .from("artists")
+    .update({ cover_asset_id: asset.id })
+    .eq("id", artistId);
+  updateTag(ARTISTS_TAG);
+}
+
+/**
+ * Deletes an artist and their photos. The database only lets super admins
+ * delete, and refuses when booking requests exist (archive those instead).
+ */
+export async function deleteArtist(artistId: string): Promise<FormState> {
+  await requirePermission("content.manage", `/admin/artists/${artistId}`);
+  const supabase = await createClient();
+  const { data: media } = await supabase
+    .from("media_assets")
+    .select("storage_bucket, storage_path")
+    .eq("artist_id", artistId);
+  const { error, count } = await supabase
+    .from("artists")
+    .delete({ count: "exact" })
+    .eq("id", artistId);
+  if (error?.code === "23503") {
+    return {
+      status: "error",
+      message:
+        "This artist has booking requests. Set the status to Archived instead.",
+    };
+  }
+  if (error || !count) {
+    return {
+      status: "error",
+      message: "Only super admins can delete artists. Archive instead.",
+    };
+  }
+  const paths = (media ?? []).map((row) => row.storage_path);
+  if (paths.length) await supabase.storage.from("public-media").remove(paths);
+  updateTag(ARTISTS_TAG);
+  redirect("/admin/artists");
 }
 
 export async function setArtistPortrait(artistId: string, assetId: string) {

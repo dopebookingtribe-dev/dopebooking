@@ -28,6 +28,7 @@ describe("isProtectedPath", () => {
     expect(isProtectedPath("/dashboard/orders")).toBe(true);
     expect(isProtectedPath("/admin")).toBe(true);
     expect(isProtectedPath("/admin/users")).toBe(true);
+    expect(isProtectedPath("/preview/home")).toBe(true);
   });
 
   it("leaves public look-alikes alone", () => {
@@ -35,6 +36,7 @@ describe("isProtectedPath", () => {
     expect(isProtectedPath("/artists")).toBe(false);
     expect(isProtectedPath("/administrators")).toBe(false);
     expect(isProtectedPath("/dashboards")).toBe(false);
+    expect(isProtectedPath("/previews")).toBe(false);
   });
 });
 

@@ -32,4 +32,6 @@ export const galleryDetailsSchema = z.object({
   event_id: optionalUuid,
   photographer: optionalText(120),
   status: statusSchema,
+  seo_title: optionalText(70).default(null),
+  seo_description: optionalText(200).default(null),
 });
