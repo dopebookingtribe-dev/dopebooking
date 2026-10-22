@@ -36,10 +36,29 @@ Values for `.env.local` come from the Supabase dashboard → **Project Settings 
 2. **Auth → URL Configuration:** set the Site URL to your site, and add `http://localhost:3000/**` (plus your Vercel URLs) to Redirect URLs.
 3. **Email templates:** nothing to change. `/auth/confirm` accepts Supabase's default links (open them in the same browser you signed up in). Custom templates with `token_hash` also work once custom SMTP (Resend) is set up.
 4. **Make yourself admin.** Sign up through the site, then run this in the SQL editor:
+
    ```sql
    insert into public.user_roles (user_id, role)
    select id, 'admin' from auth.users where email = 'you@example.com';
    ```
+
+5. **Demo content (optional).** Fills the site with sample artists, events, galleries, products and page layouts, all flagged as demo and drawn as original artwork:
+   ```bash
+   node --env-file=.env.local scripts/demo/seed.mjs
+   ```
+   Re-running replaces the earlier demo records. Remove them all in Admin, Demo content.
+
+## Managing content
+
+Everything visitors see is edited in **Admin** (`/admin`):
+
+- **Pages**: every public page is a list of sections (hero, artists, events, gallery, services, packages, steps, FAQ, call to action…). Edit text and photos, reorder, hide, add or delete sections, preview the draft, then publish.
+- **Media library**: upload photos once and use them in any section; click a photo to set what stays in view when cropped.
+- **Site settings**: menu and dropdowns, header button, footer columns, contact, social links, search defaults, demo labels.
+- **Artists, events, galleries, videos, products, categories**: the catalogue, featuring and order.
+- **Users and roles**, **Audit log**, **Demo content**: super admin only.
+
+Access is checked on the server and in the database. Permissions per role live in the `role_permissions` table, so more limited roles can be opened up later without code changes.
 
 ## Scripts
 

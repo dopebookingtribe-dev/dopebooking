@@ -98,3 +98,19 @@ Use a **second (non-admin) account** as the promoter. A private/incognito window
 - [ ] Check the home page once you've added content (featured artists, events, videos, products)
 - [ ] Share a page link in WhatsApp/Telegram: the DopeBooking preview image appears
 - [ ] Follow `docs/LAUNCH.md` step by step
+
+## Phase 10: CMS and redesign
+
+Sign in as your admin account, then:
+
+- [ ] **Admin, Pages, Home page**: change the hero headline, click **Save draft**, then **Preview**: the preview shows the new headline, the live home page doesn't yet.
+- [ ] Click **Publish**: the live home page shows the change (refresh).
+- [ ] Move a section up, hide one, add a **Questions and answers** section, publish, and check the home page.
+- [ ] Choose a different hero photo with **Choose photo**, and upload a new one from the picker.
+- [ ] **Media library**: click a photo to move its focus point and save; the crops update.
+- [ ] **Site settings**: add a menu item and a social link, publish, check the header and footer.
+- [ ] **Artists**: edit one, set a cover photo, change booking information; delete a test artist.
+- [ ] **Products** and **Categories**: feature a product, change its category; check the shop filters.
+- [ ] **Users and roles**: give a test account the Staff role; signed in as that account, Pages works but **Publish** is missing and Users and Audit are not available.
+- [ ] **Audit log** lists your changes.
+- [ ] **Demo content**: when real content is ready, remove the demo content and check the site (or turn the Demo labels off in Site settings).

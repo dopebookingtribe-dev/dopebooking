@@ -737,3 +737,21 @@ Verified on a clean copy against the real database:
 - Legal review and company details
 - Real content
 - Merging `phase-09-launch` into `main`
+
+## Phase 10 status: CMS and cinematic redesign (2026-10-22)
+
+**Content model.** Public pages are lists of typed sections (`src/modules/cms/schema.ts`): hero, artists, events, gallery, videos, products, services, editorial, packages, stats, steps, call to action, portfolio, FAQ, contact, plus built-in blocks (directories and forms) that pages must keep. Each type has a strict Zod schema; links accept only site paths, anchors, https, mailto and tel; images are media ids resolved at render time. No HTML is stored or rendered.
+
+**Storage.** `site_pages` and `site_settings` hold a `draft` and a `published` JSON document each. Editors save drafts; only `publish_site_page()` / `publish_site_settings()` copy a draft live, and a trigger blocks direct writes to `published`. Visitors read through `get_published_page()` / `get_published_settings()`, never the tables. Pages without a row fall back to the defaults in `src/modules/cms/pages.ts`, so the site never renders empty.
+
+**Permissions.** `role_permissions` maps roles to permissions (`content.manage`, `pages.edit`, `pages.publish`, `settings.manage`, `demo.manage`, `users.manage`, `audit.view`). `has_permission()` is used in RLS policies and `requirePermission()` in every admin page and server action. Admin (super admin) has all; staff can edit content and drafts but not publish, manage users or see the audit log. Sellers, artists and providers keep row-level access to their own records only.
+
+**Audit log.** Triggers on content, settings, roles and permissions write who changed which columns (no values) to `audit_log`.
+
+**Media library.** `media_assets.library = 'site'` rows are reusable images with a focal point (`focal_x`, `focal_y`) that becomes `object-position` everywhere the image is cropped.
+
+**Demo content.** `is_demo` on artists, events, galleries, videos, sellers, products, categories and media. `scripts/demo/seed.mjs` creates it with generated artwork (`scripts/demo/art.mjs`); `delete_demo_content()` removes it (records with bookings or orders are archived instead). A site setting shows a "Demo" label on demo records.
+
+**Verified.** Migration applied to Supabase; RLS and publish rules tested against all migrations in an in-memory Postgres (PGlite): 18 checks (anonymous, plain user, staff, admin, seller). Unit tests cover every default page, every new section type and link safety. Browser and accessibility tests pass on a production build.
+
+**Not verified yet.** The signed-in admin screens (page builder, media library, settings, users) were type-checked and built but not clicked through with a real admin session.
