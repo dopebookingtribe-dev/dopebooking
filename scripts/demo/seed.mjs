@@ -737,17 +737,15 @@ async function seedShop() {
       `product ${p.slug}`,
     );
     must(
-      await db
-        .from("product_variants")
-        .insert(
-          p.variants.map(([name, price, stock], order) => ({
-            product_id: product.id,
-            name,
-            price_amount: price,
-            stock,
-            sort_order: order,
-          })),
-        ),
+      await db.from("product_variants").insert(
+        p.variants.map(([name, price, stock], order) => ({
+          product_id: product.id,
+          name,
+          price_amount: price,
+          stock,
+          sort_order: order,
+        })),
+      ),
       "variants",
     );
     let cover = null;
