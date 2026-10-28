@@ -55,14 +55,18 @@ export function EventFeature({
       <div className="absolute inset-x-0 bottom-0 flex items-end gap-5 p-5 sm:gap-8 sm:p-8">
         <p
           aria-hidden
-          className="shrink-0 border-l-2 border-accent pl-4 font-label leading-none"
+          className="flex size-20 shrink-0 flex-col items-center justify-center rounded-full bg-accent leading-none text-accent-ink sm:size-24"
         >
-          <span className="block text-5xl sm:text-6xl">{stamp.day}</span>
-          <span className="mt-1 block text-lg text-accent">{stamp.month}</span>
+          <span className="block font-display text-3xl sm:text-4xl">
+            {stamp.day}
+          </span>
+          <span className="mt-0.5 block text-sm font-semibold">
+            {stamp.month}
+          </span>
         </p>
         <div className="min-w-0">
           <h3
-            className={`font-display leading-none ${compact ? "text-2xl sm:text-3xl" : "text-[clamp(1.8rem,1rem+3vw,4rem)]"}`}
+            className={`tilt-on-hover font-display leading-none ${compact ? "text-2xl sm:text-3xl" : "text-[clamp(1.8rem,1rem+3vw,4rem)]"}`}
           >
             {event.title}
           </h3>

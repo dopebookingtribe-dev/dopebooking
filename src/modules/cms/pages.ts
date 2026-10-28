@@ -85,7 +85,7 @@ export function emptySectionContent(type: SectionType): Section["content"] {
   switch (type) {
     case "hero":
       return {
-        layout: "image",
+        layout: "kaleidoscope",
         heading: "New headline",
         body: "",
         primary: link(),
@@ -256,7 +256,7 @@ const SERVICE_ITEMS = [
 export const DEFAULT_PAGES: Record<PageKey, PageContent> = {
   home: page([
     section("hero", "hero", {
-      layout: "string-art",
+      layout: "kaleidoscope",
       heading: "Book psytrance artists for your festival.",
       body: "DopeBooking represents international acts from Goa and progressive to forest and hi-tech, and runs promotion, catering and aftermovie production for open airs and club nights.",
       primary: link("Book an artist", "/artists"),

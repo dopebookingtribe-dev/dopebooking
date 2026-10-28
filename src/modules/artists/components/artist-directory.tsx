@@ -70,7 +70,7 @@ export async function ArtistDirectory({
         {shown.length} {shown.length === 1 ? "artist" : "artists"} shown
       </p>
       {shown.length ? (
-        <ul className="mt-10 grid gap-4 sm:grid-cols-2 sm:gap-6 lg:grid-cols-3">
+        <ul className="mt-14 grid gap-x-10 gap-y-16 sm:grid-cols-2 lg:grid-cols-3">
           {shown.map((artist, index) => (
             <li key={artist.id}>
               <ArtistCard
@@ -126,7 +126,7 @@ export function GridSkeleton({ count = 3 }: { count?: number }) {
       />
       <ul
         aria-hidden
-        className="mt-10 grid gap-4 sm:grid-cols-2 sm:gap-6 lg:grid-cols-3"
+        className="mt-14 grid gap-x-10 gap-y-16 sm:grid-cols-2 lg:grid-cols-3"
       >
         {Array.from({ length: count }, (_, key) => (
           <li

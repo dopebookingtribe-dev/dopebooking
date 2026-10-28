@@ -60,7 +60,7 @@ export type BuiltinBlock = keyof typeof BUILTIN_BLOCKS;
 
 const sectionContent = {
   hero: z.object({
-    layout: z.enum(["image", "string-art", "split", "compact"]),
+    layout: z.enum(["kaleidoscope", "image", "string-art", "split", "compact"]),
     heading: requiredText("headline", 140),
     body: text(400),
     primary: linkSchema,

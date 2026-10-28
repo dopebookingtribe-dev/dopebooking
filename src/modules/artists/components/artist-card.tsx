@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { ViewTransition } from "react";
 import { DemoBadge } from "@/components/ui/demo-badge";
 import { Picture } from "@/components/ui/picture";
 import { countryName } from "@/lib/countries";
@@ -9,9 +10,51 @@ export function genreLabels(genres: string[]) {
   return genres.map((genre) => (isGenre(genre) ? GENRES[genre] : genre));
 }
 
+/** The round portrait shared by cards and the profile page (it morphs). */
+export function ArtistLens({
+  artist,
+  sizes,
+  priority = false,
+  className = "",
+}: {
+  artist: Pick<ArtistCardData, "slug" | "stageName" | "portrait">;
+  sizes: string;
+  priority?: boolean;
+  className?: string;
+}) {
+  return (
+    <ViewTransition
+      name={`artist-lens-${artist.slug}`}
+      share="lens-morph"
+      default="none"
+    >
+      <div
+        className={`relative aspect-square overflow-hidden rounded-full bg-surface-2 ${className}`}
+      >
+        {artist.portrait ? (
+          <Picture
+            image={artist.portrait}
+            decorative
+            priority={priority}
+            sizes={sizes}
+            className="transition-transform duration-[1.2s] ease-(--ease-out) group-hover:scale-110 group-hover:rotate-3"
+          />
+        ) : (
+          <div
+            aria-hidden
+            className="flex size-full items-center justify-center font-display text-8xl text-line-strong"
+          >
+            {artist.stageName.slice(0, 1)}
+          </div>
+        )}
+      </div>
+    </ViewTransition>
+  );
+}
+
 /**
- * Portrait card with the name set over the photo. "feature" is the large
- * editorial size used for the first artist in a featured row.
+ * An artist seen through a lens: a round portrait whose ring opens when
+ * pointed at, with the name below. "feature" is the large editorial size.
  */
 export function ArtistCard({
   artist,
@@ -36,58 +79,32 @@ export function ArtistCard({
   return (
     <Link
       href={`/artists/${artist.slug}`}
-      className="group relative block h-full overflow-hidden rounded-(--radius) bg-surface-2"
+      className={`group relative mx-auto block text-center ${feature ? "max-w-[34rem]" : "max-w-[22rem]"}`}
     >
-      <div
-        className={`relative ${feature ? "aspect-[4/5] h-full lg:aspect-auto lg:min-h-[36rem]" : "aspect-[4/5]"}`}
+      <div className="relative rounded-full outline-2 outline-offset-[10px] outline-line transition-[outline-color,outline-offset] duration-500 ease-(--ease-out) group-hover:outline-offset-[18px] group-hover:outline-accent">
+        <ArtistLens
+          artist={artist}
+          priority={priority}
+          sizes={
+            feature
+              ? "(min-width: 1024px) 34rem, 85vw"
+              : "(min-width: 1024px) 22rem, (min-width: 640px) 42vw, 80vw"
+          }
+        />
+        {artist.isDemo && showDemo ? (
+          <DemoBadge className="absolute top-[8%] left-[8%]" />
+        ) : null}
+      </div>
+
+      <Heading
+        className={`tilt-on-hover mt-9 font-display leading-[0.95] [overflow-wrap:anywhere] transition-colors group-hover:text-accent ${feature ? "text-[clamp(2.2rem,1.4rem+2.6vw,3.75rem)]" : "text-[clamp(1.6rem,1.2rem+1vw,2.1rem)]"}`}
       >
-        {artist.portrait ? (
-          <Picture
-            image={artist.portrait}
-            decorative
-            priority={priority}
-            sizes={
-              feature
-                ? "(min-width: 1024px) 58vw, 92vw"
-                : "(min-width: 1024px) 30vw, (min-width: 640px) 45vw, 92vw"
-            }
-            className="transition-transform duration-700 ease-(--ease-out) group-hover:scale-[1.04]"
-          />
-        ) : (
-          <div
-            aria-hidden
-            className="flex size-full items-start p-6 font-display text-8xl text-line-strong"
-          >
-            {artist.stageName.slice(0, 1)}
-          </div>
-        )}
-        <div
-          aria-hidden
-          className="absolute inset-0 bg-linear-to-t from-bg via-bg/30 to-transparent"
-        />
-      </div>
-
-      {artist.isDemo && showDemo ? (
-        <DemoBadge className="absolute top-4 left-4" />
+        {artist.stageName}
+      </Heading>
+      {meta ? <p className="mt-2 font-label text-muted">{meta}</p> : null}
+      {feature && artist.tagline ? (
+        <p className="mx-auto mt-3 max-w-md text-muted">{artist.tagline}</p>
       ) : null}
-
-      <div className="absolute inset-x-0 bottom-0 p-5 sm:p-6">
-        <Heading
-          className={`font-display leading-none [overflow-wrap:anywhere] ${feature ? "text-[clamp(2.4rem,1.5rem+3vw,4.5rem)]" : "text-[clamp(1.6rem,1.2rem+1vw,2rem)]"}`}
-        >
-          {artist.stageName}
-        </Heading>
-        <span
-          aria-hidden
-          className="mt-3 block h-px w-10 origin-left bg-accent transition-transform duration-500 ease-(--ease-out) group-hover:scale-x-[3]"
-        />
-        {meta ? (
-          <p className="mt-3 font-label text-sm text-text/80">{meta}</p>
-        ) : null}
-        {feature && artist.tagline ? (
-          <p className="mt-3 max-w-md text-muted">{artist.tagline}</p>
-        ) : null}
-      </div>
     </Link>
   );
 }
@@ -109,7 +126,7 @@ export function ArtistRow({
       href={`/artists/${artist.slug}`}
       className="group flex items-center gap-5 py-5"
     >
-      <span className="relative block size-24 shrink-0 overflow-hidden rounded-(--radius) bg-surface-2 sm:size-28">
+      <span className="relative block size-24 shrink-0 overflow-hidden rounded-full bg-surface-2 outline-2 outline-offset-4 outline-line transition-[outline-color] duration-300 group-hover:outline-accent sm:size-28">
         {artist.portrait ? (
           <Picture
             image={artist.portrait}
@@ -121,7 +138,7 @@ export function ArtistRow({
       </span>
       <div className="min-w-0">
         <div className="flex flex-wrap items-center gap-2">
-          <h3 className="font-display text-2xl leading-tight [overflow-wrap:anywhere] transition-colors group-hover:text-accent">
+          <h3 className="tilt-on-hover font-display text-2xl leading-tight [overflow-wrap:anywhere] transition-colors group-hover:text-accent">
             {artist.stageName}
           </h3>
           {artist.isDemo && showDemo ? <DemoBadge /> : null}

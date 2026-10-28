@@ -7,11 +7,13 @@ import { Container } from "@/components/ui/container";
 import { Meta } from "@/components/ui/meta";
 import { countryName } from "@/lib/countries";
 import { formatEventRange } from "@/lib/datetime";
+import { Kaleidoscope } from "@/components/site/kaleidoscope";
 import { StringArt } from "@/components/site/string-art";
+import { TiltHeading } from "@/components/site/tilt-heading";
 import { DemoBadge } from "@/components/ui/demo-badge";
-import { Picture } from "@/components/ui/picture";
 import {
   ArtistCard,
+  ArtistLens,
   genreLabels,
 } from "@/modules/artists/components/artist-card";
 import { getSiteSettings } from "@/modules/cms/queries";
@@ -120,52 +122,78 @@ async function Profile({ params }: { params: Props["params"] }) {
         }}
       />
 
-      <section className="relative isolate flex min-h-[78svh] items-end overflow-hidden border-b border-line">
+      <section className="relative isolate overflow-hidden border-b border-line">
         {hero ? (
-          <Picture image={hero} priority sizes="100vw" className="-z-20" />
+          <Kaleidoscope
+            src={hero.url}
+            centerX={0.78}
+            centerY={0.5}
+            segments={12}
+            open
+            className="absolute inset-0 -z-20 size-full"
+          />
         ) : (
           <StringArt className="pointer-events-none absolute top-1/2 -right-40 -z-20 w-[48rem] max-w-none -translate-y-1/2 opacity-60" />
         )}
         <div
           aria-hidden
-          className="absolute inset-0 -z-10 bg-linear-to-t from-bg via-bg/50 to-bg/10"
+          className="absolute inset-0 -z-10 hidden sm:block"
+          style={{
+            background:
+              "linear-gradient(90deg, var(--bg) 20%, color-mix(in oklab, var(--bg) 70%, transparent) 50%, color-mix(in oklab, var(--bg) 25%, transparent) 100%), linear-gradient(0deg, var(--bg) 2%, transparent 35%)",
+          }}
         />
-        <Container className="pt-40 pb-12 sm:pb-16">
-          <Link
-            href="/artists"
-            className="text-sm text-text/80 transition-colors hover:text-text"
-          >
-            ← All artists
-          </Link>
-          <div className="mt-6 flex flex-wrap items-center gap-3">
-            {meta.length ? (
-              <Meta className="text-text/85">{meta.join(", ")}</Meta>
+        <div
+          aria-hidden
+          className="absolute inset-0 -z-10 bg-linear-to-t from-bg from-40% via-bg/75 to-bg/30 sm:hidden"
+        />
+        <Container className="grid min-h-[78svh] items-center gap-14 pt-16 pb-16 sm:pb-20 lg:grid-cols-[minmax(0,1.25fr)_minmax(0,1fr)]">
+          <div>
+            <Link
+              href="/artists"
+              className="text-sm text-text/80 transition-colors hover:text-text"
+            >
+              ← All artists
+            </Link>
+            <div className="mt-8 flex flex-wrap items-center gap-3">
+              {meta.length ? (
+                <Meta className="text-text/85">{meta.join(", ")}</Meta>
+              ) : null}
+              {artist.isDemo && settings.showDemoLabels ? <DemoBadge /> : null}
+            </div>
+            <TiltHeading className="mt-4 text-[clamp(3rem,1rem+8vw,8.5rem)] leading-[0.9] text-balance">
+              {artist.stageName}
+            </TiltHeading>
+            {artist.tagline ? (
+              <p className="mt-6 max-w-2xl text-xl text-text/85">
+                {artist.tagline}
+              </p>
             ) : null}
-            {artist.isDemo && settings.showDemoLabels ? <DemoBadge /> : null}
-          </div>
-          <h1 className="mt-4 font-display text-[clamp(3rem,1rem+9vw,9rem)] leading-[0.9] text-balance">
-            {artist.stageName}
-          </h1>
-          {artist.tagline ? (
-            <p className="mt-6 max-w-2xl text-xl text-text/85">
-              {artist.tagline}
-            </p>
-          ) : null}
-          <div className="mt-10 flex flex-wrap gap-3">
-            <ButtonLink href={`/book/${artist.slug}`} size="lg">
-              Request booking
-            </ButtonLink>
-            {artist.links.length ? (
-              <ButtonLink href="#listen" variant="secondary" size="lg">
-                Listen
+            <div className="mt-10 flex flex-wrap gap-3">
+              <ButtonLink href={`/book/${artist.slug}`} size="lg">
+                Request booking
               </ButtonLink>
-            ) : null}
+              {artist.links.length ? (
+                <ButtonLink href="#listen" variant="secondary" size="lg">
+                  Listen
+                </ButtonLink>
+              ) : null}
+            </div>
           </div>
-          {hero?.credit ? (
-            <p className="mt-10 font-label text-sm text-muted">
-              Photo: {hero.credit}
-            </p>
-          ) : null}
+          <figure className="mx-auto w-full max-w-[26rem]">
+            <div className="rounded-full outline-2 outline-offset-[14px] outline-accent/70">
+              <ArtistLens
+                artist={artist}
+                priority
+                sizes="(min-width: 1024px) 26rem, 80vw"
+              />
+            </div>
+            {artist.portrait?.credit ? (
+              <figcaption className="mt-10 text-center font-label text-sm text-muted">
+                Photo: {artist.portrait.credit}
+              </figcaption>
+            ) : null}
+          </figure>
         </Container>
       </section>
 
@@ -246,16 +274,6 @@ async function Profile({ params }: { params: Props["params"] }) {
         </div>
 
         <aside className="lg:sticky lg:top-24 lg:self-start">
-          {artist.portrait &&
-          artist.cover &&
-          artist.portrait.id !== artist.cover.id ? (
-            <div className="relative mb-8 aspect-[4/5] overflow-hidden rounded-(--radius) bg-surface-2">
-              <Picture
-                image={artist.portrait}
-                sizes="(min-width: 1024px) 30vw, 92vw"
-              />
-            </div>
-          ) : null}
           <div className="rounded-(--radius) border border-line bg-surface-1 p-6 sm:p-8">
             <h2 className="font-display text-2xl">Book {artist.stageName}</h2>
             {artist.bookingInfo ? (
@@ -324,7 +342,7 @@ async function Profile({ params }: { params: Props["params"] }) {
                 All artists
               </ButtonLink>
             </div>
-            <ul className="mt-10 grid gap-4 sm:grid-cols-3 sm:gap-6">
+            <ul className="mt-14 grid gap-x-10 gap-y-16 sm:grid-cols-3">
               {others.map((other) => (
                 <li key={other.id}>
                   <ArtistCard

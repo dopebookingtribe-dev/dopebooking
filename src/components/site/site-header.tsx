@@ -27,8 +27,11 @@ export async function SiteHeader() {
         className="absolute inset-0 -z-10 bg-bg/85 backdrop-blur-md"
       />
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-6 px-(--gutter)">
-        <Link href="/" className="font-display text-xl leading-none">
-          {brand.name}
+        <Link
+          href="/"
+          className="group font-display text-2xl leading-none transition-colors hover:text-accent"
+        >
+          <span className="tilt-on-hover inline-block">{brand.name}</span>
         </Link>
 
         <nav aria-label="Main" className="hidden xl:block">

@@ -1,6 +1,8 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
+import { Kaleidoscope } from "@/components/site/kaleidoscope";
 import { StringArt } from "@/components/site/string-art";
+import { TiltHeading } from "@/components/site/tilt-heading";
 import { ButtonLink } from "@/components/ui/button";
 import { Container } from "@/components/ui/container";
 import { Picture } from "@/components/ui/picture";
@@ -164,31 +166,34 @@ function EmptyNote({ preview, text }: { preview: boolean; text: string }) {
   );
 }
 
-/** A thin pink outline offset behind an image, like a thread frame. */
-function FramedImage({
+// ---------------------------------------------------------------------------
+// Hero
+// ---------------------------------------------------------------------------
+
+/** A round lens: the photo seen through a circle with a ring that opens. */
+function Lens({
   image,
   sizes,
-  aspect = "aspect-[4/5]",
   priority = false,
+  className = "",
 }: {
   image: CmsImage;
   sizes: string;
-  aspect?: string;
   priority?: boolean;
+  className?: string;
 }) {
   return (
-    <figure className="relative">
-      <div
-        aria-hidden
-        className="absolute inset-0 translate-x-3 translate-y-3 rounded-(--radius) border border-accent/60"
-      />
-      <div
-        className={`relative overflow-hidden rounded-(--radius) bg-surface-2 ${aspect}`}
-      >
-        <Picture image={image} sizes={sizes} priority={priority} />
+    <figure className={`group/lens relative ${className}`}>
+      <div className="relative aspect-square overflow-hidden rounded-full bg-surface-2 outline-2 outline-offset-[10px] outline-line transition-[outline-color,outline-offset] duration-500 ease-(--ease-out) group-hover/lens:outline-offset-[18px] group-hover/lens:outline-accent">
+        <Picture
+          image={image}
+          sizes={sizes}
+          priority={priority}
+          className="transition-transform duration-[1.2s] ease-(--ease-out) group-hover/lens:scale-110 group-hover/lens:rotate-3"
+        />
       </div>
       {image.credit ? (
-        <figcaption className="mt-5 font-label text-sm text-muted">
+        <figcaption className="mt-8 text-center font-label text-sm text-muted">
           Photo: {image.credit}
         </figcaption>
       ) : null}
@@ -196,18 +201,17 @@ function FramedImage({
   );
 }
 
-// ---------------------------------------------------------------------------
-// Hero
-// ---------------------------------------------------------------------------
-
 export function HeroSection({ section, images, first }: SectionProps<"hero">) {
   const c = section.content;
   const image = c.image ? images[c.image] : undefined;
   const layout =
-    (c.layout === "image" || c.layout === "split") && !image
+    (c.layout === "image" ||
+      c.layout === "split" ||
+      c.layout === "kaleidoscope") &&
+    !image
       ? "string-art"
       : c.layout;
-  const Heading = first ? "h1" : "h2";
+  const headingTag = first ? "h1" : "h2";
 
   if (layout === "compact") {
     return (
@@ -215,20 +219,77 @@ export function HeroSection({ section, images, first }: SectionProps<"hero">) {
         id={section.id}
         className="relative isolate overflow-hidden border-b border-line"
       >
-        <StringArt className="pointer-events-none absolute -top-1/3 -right-40 -z-10 hidden w-[34rem] max-w-none opacity-35 md:block" />
-        <Container className="py-16 sm:py-24">
-          <Heading className="max-w-4xl font-display text-display text-balance">
-            {c.heading}
-          </Heading>
-          {c.body ? (
-            <p className="mt-6 max-w-[56ch] text-lg text-muted">{c.body}</p>
-          ) : null}
-          <Ctas primary={c.primary} secondary={c.secondary} size="md" />
+        <Container className="grid items-center gap-10 py-14 sm:py-20 md:grid-cols-[minmax(0,1fr)_auto]">
+          <div>
+            <TiltHeading
+              as={headingTag}
+              strength={24}
+              className="max-w-4xl text-display text-balance"
+            >
+              {c.heading}
+            </TiltHeading>
+            {c.body ? (
+              <p className="mt-6 max-w-[56ch] text-lg text-muted">{c.body}</p>
+            ) : null}
+            <Ctas primary={c.primary} secondary={c.secondary} size="md" />
+          </div>
           {image ? (
-            <div className="relative mt-12 aspect-[16/9] overflow-hidden rounded-(--radius) bg-surface-2 sm:aspect-[21/9]">
-              <Picture image={image} sizes="100vw" priority={first} />
+            <div
+              aria-hidden
+              className="relative hidden size-64 overflow-hidden rounded-full outline-2 outline-offset-8 outline-line md:block lg:size-80"
+            >
+              <Kaleidoscope
+                src={image.url}
+                segments={8}
+                centerX={0.5}
+                centerY={0.5}
+                className="absolute inset-0 size-full"
+              />
             </div>
+          ) : (
+            <StringArt
+              variant={1}
+              className="pointer-events-none hidden size-64 opacity-60 md:block lg:size-80"
+            />
+          )}
+        </Container>
+      </section>
+    );
+  }
+
+  if (layout === "kaleidoscope" && image) {
+    return (
+      <section
+        id={section.id}
+        className="relative isolate flex min-h-[90svh] flex-col justify-end overflow-hidden border-b border-line"
+      >
+        <Kaleidoscope
+          src={image.url}
+          open={first}
+          className="absolute inset-0 -z-20 size-full"
+        />
+        <div
+          aria-hidden
+          className="absolute inset-0 -z-10 hidden sm:block"
+          style={{
+            background: `linear-gradient(90deg, var(--bg) 18%, color-mix(in oklab, var(--bg) ${c.overlay + 10}%, transparent) 46%, transparent 78%), linear-gradient(0deg, var(--bg) 4%, transparent 42%)`,
+          }}
+        />
+        <div
+          aria-hidden
+          className="absolute inset-0 -z-10 bg-linear-to-t from-bg from-45% via-bg/70 via-60% to-transparent to-80% sm:hidden"
+        />
+        <Container className="pt-36 pb-16 sm:pb-24">
+          <TiltHeading
+            as={headingTag}
+            className="max-w-[12ch] text-display text-balance"
+          >
+            {c.heading}
+          </TiltHeading>
+          {c.body ? (
+            <p className="mt-8 max-w-[34rem] text-lg text-text/80">{c.body}</p>
           ) : null}
+          <Ctas primary={c.primary} secondary={c.secondary} />
         </Container>
       </section>
     );
@@ -255,9 +316,12 @@ export function HeroSection({ section, images, first }: SectionProps<"hero">) {
           }}
         />
         <Container className="pt-40 pb-16 sm:pb-24">
-          <Heading className="max-w-[13ch] font-display text-display text-balance">
+          <TiltHeading
+            as={headingTag}
+            className="max-w-[13ch] text-display text-balance"
+          >
             {c.heading}
-          </Heading>
+          </TiltHeading>
           {c.body ? (
             <p className="mt-8 max-w-[34rem] text-lg text-text/85">{c.body}</p>
           ) : null}
@@ -278,28 +342,28 @@ export function HeroSection({ section, images, first }: SectionProps<"hero">) {
         id={section.id}
         className="relative isolate overflow-hidden border-b border-line"
       >
-        <StringArt className="pointer-events-none absolute -bottom-1/3 -left-60 -z-10 w-[40rem] max-w-none opacity-20" />
-        <Container className="grid items-center gap-14 py-16 sm:py-24 lg:grid-cols-[1.05fr_1fr] lg:gap-20">
+        <Container className="grid items-center gap-16 py-16 sm:py-24 lg:grid-cols-[1.1fr_1fr] lg:gap-20">
           <div>
-            <Heading className="font-display text-display text-balance">
+            <TiltHeading as={headingTag} className="text-display text-balance">
               {c.heading}
-            </Heading>
+            </TiltHeading>
             {c.body ? (
               <p className="mt-8 max-w-[34rem] text-lg text-muted">{c.body}</p>
             ) : null}
             <Ctas primary={c.primary} secondary={c.secondary} />
           </div>
-          <FramedImage
+          <Lens
             image={image}
             priority={first}
-            sizes="(min-width: 1024px) 45vw, 92vw"
+            sizes="(min-width: 1024px) 40vw, 80vw"
+            className="mx-auto w-full max-w-[30rem]"
           />
         </Container>
       </section>
     );
   }
 
-  // String-art hero: the brand's signature, used when no photo is chosen.
+  // No photo yet: the string-art figure stands in.
   return (
     <section
       id={section.id}
@@ -307,9 +371,12 @@ export function HeroSection({ section, images, first }: SectionProps<"hero">) {
     >
       <StringArt className="pointer-events-none absolute top-0 -right-[30%] -z-10 w-[92%] max-w-none -translate-y-[16%] opacity-90 sm:top-1/2 sm:-right-[40%] sm:w-[85%] sm:-translate-y-1/2 sm:opacity-50 lg:-right-[6%] lg:w-[56%] lg:opacity-100" />
       <Container className="flex min-h-[82svh] flex-col justify-end pt-40 pb-16 sm:justify-center sm:py-28">
-        <Heading className="max-w-[11ch] font-display text-display text-balance">
+        <TiltHeading
+          as={headingTag}
+          className="max-w-[11ch] text-display text-balance"
+        >
           {c.heading}
-        </Heading>
+        </TiltHeading>
         {c.body ? (
           <p className="mt-8 max-w-[34rem] text-lg text-muted">{c.body}</p>
         ) : null}
@@ -369,7 +436,7 @@ export async function ArtistsSection({
           </ul>
         </div>
       ) : (
-        <ul className="grid gap-4 sm:grid-cols-2 sm:gap-6 lg:grid-cols-4">
+        <ul className="grid gap-x-10 gap-y-16 sm:grid-cols-2 lg:grid-cols-4">
           {artists.map((artist) => (
             <li key={artist.id}>
               <ArtistCard
@@ -668,7 +735,11 @@ export function EditorialSection({
           <div className={c.imageSide === "left" ? "lg:order-2" : ""}>
             {text}
           </div>
-          <FramedImage image={image} sizes="(min-width: 1024px) 45vw, 92vw" />
+          <Lens
+            image={image}
+            sizes="(min-width: 1024px) 40vw, 80vw"
+            className="mx-auto w-full max-w-[30rem]"
+          />
         </div>
       ) : (
         <div className="max-w-4xl">{text}</div>
@@ -743,7 +814,7 @@ export function StatsSection({ section }: SectionProps<"stats">) {
           <div key={item.label} className="border-t-2 border-accent pt-6">
             <dt className="sr-only">{item.label}</dt>
             <dd>
-              <span className="block font-label text-7xl leading-none sm:text-8xl">
+              <span className="block font-display text-7xl leading-none text-accent sm:text-8xl">
                 {item.value}
               </span>
               <span className="mt-4 block max-w-[28ch] text-muted">
@@ -766,7 +837,7 @@ export function StepsSection({ section }: SectionProps<"steps">) {
       <ol className="grid gap-10 md:grid-cols-3 md:gap-8">
         {c.items.map((step, index) => (
           <li key={step.title} className="border-t-2 border-accent pt-6">
-            <p aria-hidden className="font-label text-5xl text-accent">
+            <p aria-hidden className="font-display text-6xl text-accent">
               {index + 1}
             </p>
             <h3 className="mt-4 text-xl font-semibold">{step.title}</h3>

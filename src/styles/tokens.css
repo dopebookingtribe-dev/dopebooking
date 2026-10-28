@@ -1,29 +1,30 @@
 /*
- * DopeBooking design tokens — "blacklight string art".
- * Deep indigo cloth with UV-reactive threads, like the string installations
- * hung over psytrance dancefloors. Pink is the one interface accent; marigold
- * and cyan appear as threads and states.
- * Contrast (WCAG 2.x, on --bg): text 15.6, muted 7.8, accent 6.4,
- * marigold 10.3, line-strong 4.1 (form borders). --line is decorative only.
+ * DopeBooking design tokens: "Kaleidoscope".
+ * A deep lagoon night lit by festival colour seen through a lens. Saffron is
+ * the one action colour; UV violet marks hover, focus companions and
+ * highlights; cyan only appears inside artwork.
+ * Contrast (WCAG 2.x, on --bg): text 16.3, muted 8.7, accent 10.1,
+ * violet 7.9, line-strong 3.4 (form borders). --line is decorative only.
  */
 :root {
   color-scheme: dark;
 
-  --bg: #15112b;
-  --surface-1: #1d1838;
-  --surface-2: #272148;
-  --line: #382f5e;
-  --line-strong: #7c72a8;
-  --text: #efebfa;
-  --text-muted: #aca5cb;
-  --accent: #ff5ca8;
-  --accent-ink: #15112b;
-  --uv: #ffb23f;
-  --thread-cyan: #5be0e6;
-  --danger: #ff6b6b;
-  --success: #4ade9b;
+  --bg: #06171a;
+  --surface-1: #0b2326;
+  --surface-2: #123134;
+  --line: #1d3b3b;
+  --line-strong: #4e706a;
+  --text: #eef6f1;
+  --text-muted: #9db8b1;
+  --accent: #ffb13b;
+  --accent-ink: #2a1600;
+  --uv: #b39bff;
+  --thread-cyan: #5ce1d6;
+  --danger: #ff7a70;
+  --success: #5be3a1;
 
-  --radius: 0.25rem;
-  --gutter: clamp(1rem, 4vw, 2.5rem);
-  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --radius: 1rem;
+  --gutter: clamp(1rem, 4vw, 3rem);
+  --ease-out: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
 }

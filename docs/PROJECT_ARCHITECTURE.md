@@ -354,35 +354,29 @@ Abbreviations: **R** read · **C** create · **U** update · **own** = only own/
 
 ## 8. Visual design direction
 
-**Concept: "Blacklight string art"** (redesign, October 2026; replaces the earlier "After dark, in print" look). The site borrows from the UV-reactive thread installations hung over psytrance dancefloors. A deep indigo "cloth" carries fluorescent threads. The hero has one string-art star that draws in once and then stays still. Everything else is quiet.
+**Concept: "Kaleidoscope"** (redesign, October 2026, chosen from three live mock-ups; replaces "Blacklight string art"). Festival photos seen through a lens. The signature is a live kaleidoscope (`src/components/site/kaleidoscope.tsx`) that mirrors a photo into a turning mandala and follows the pointer or a dragging finger: on the home hero (with a lens-opening reveal on load), in small round lenses on page headers, and behind each artist's page built from their own photo. Headlines use Tilt Warp, whose 3D rotation axes turn the letters toward the pointer (`tilt-heading.tsx`). Everything else stays calm.
 
 ### Palette (tokens in `src/styles/tokens.css`; WCAG AA checked by the axe tests)
 
-| Token                    | Value                 | Use                                                     |
-| ------------------------ | --------------------- | ------------------------------------------------------- |
-| `--bg`                   | `#15112B`             | Page background (indigo cloth)                          |
-| `--surface-1`            | `#1D1838`             | Panels                                                  |
-| `--surface-2`            | `#272148`             | Raised / hover                                          |
-| `--line`                 | `#382F5E`             | Decorative borders                                      |
-| `--line-strong`          | `#7C72A8`             | Form borders (4.1:1)                                    |
-| `--text`                 | `#EFEBFA`             | Primary text (blacklight white)                         |
-| `--text-muted`           | `#ACA5CB`             | Secondary text                                          |
-| `--accent`               | `#FF5CA8`             | UV pink: primary CTAs, focus rings, hover, step numbers |
-| `--uv`                   | `#FFB23F`             | Marigold: "needs attention" states, internal notes      |
-| `--thread-cyan`          | `#5BE0E6`             | String-art threads only                                 |
-| `--danger` / `--success` | `#FF6B6B` / `#4ADE9B` | Status only                                             |
+| Token                      | Value                 | Use                                       |
+| -------------------------- | --------------------- | ----------------------------------------- |
+| `--bg`                     | `#06171A`             | Page background (deep lagoon)             |
+| `--surface-1/2`            | `#0B2326` / `#123134` | Panels, raised                            |
+| `--line` / `--line-strong` | `#1D3B3B` / `#4E706A` | Decorative borders / form borders (3.4:1) |
+| `--text` / `--text-muted`  | `#EEF6F1` / `#9DB8B1` | Text                                      |
+| `--accent`                 | `#FFB13B`             | Saffron: main buttons, focus, numbers     |
+| `--uv`                     | `#B39BFF`             | UV violet: hover, secondary highlights    |
+| `--thread-cyan`            | `#5CE1D6`             | Artwork only                              |
 
 ### Typography
 
-- **Anybody** (variable width): extended 140% / weight 750 for every headline (`font-display`), condensed 78% for dates, places and references (`font-label`). The width axis carries the hierarchy.
-- **Instrument Sans** for body and UI, 16px minimum, 1.5 line height.
-- Sentence case everywhere. No all-caps labels, no eyebrow labels above headings, commas instead of middle dots.
+- **Tilt Warp** for headlines (`font-display`), with `XROT`/`YROT` driven by `--tilt-x`/`--tilt-y`. Card titles turn slightly on hover (`tilt-on-hover`).
+- **Onest** for body, UI and small facts (`font-label` = Onest medium with even figures). Sentence case, no all-caps labels.
 
-### Rules
+### Shapes and motion
 
-- Numbers only on real sequences (the three booking steps).
-- One motion moment: the hero threads draw in. Reduced motion shows them at once.
-- Buttons are pills; images and inputs use a small 4px radius.
+- Artists are round "lenses" with a ring that opens on hover; split heroes and story images use the same lens. Event dates sit in a saffron disc. Cards and panels use a 1rem radius; buttons are pills that lean slightly on hover.
+- One orchestrated moment: the hero lens opens on load. Pointer-driven motion only answers the visitor. An artist's lens morphs into their page (React `<ViewTransition>`). All motion stops for `prefers-reduced-motion`; the kaleidoscope pauses off-screen.
 
 ### Layout & imagery
 

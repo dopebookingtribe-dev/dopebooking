@@ -5,7 +5,7 @@ type Variant = "primary" | "secondary" | "ghost" | "text";
 type Size = "md" | "lg";
 
 const base =
-  "inline-flex items-center justify-center gap-2 rounded-full font-semibold transition-[color,background-color,border-color,box-shadow] duration-200 disabled:pointer-events-none disabled:opacity-50";
+  "inline-flex items-center justify-center gap-2 rounded-full font-semibold transition-[color,background-color,border-color,transform] duration-300 ease-(--ease-spring) disabled:pointer-events-none disabled:opacity-50";
 
 const sizes: Record<Size, string> = {
   md: "min-h-11 px-6 text-sm",
@@ -13,13 +13,13 @@ const sizes: Record<Size, string> = {
 };
 
 const variants: Record<Variant, string> = {
-  // The glow echoes the UV threads; it only appears on interaction.
+  // A small lean on hover, like a sticker being picked up.
   primary:
-    "bg-accent text-accent-ink hover:bg-text hover:shadow-[0_0_0_4px_color-mix(in_oklab,var(--accent)_30%,transparent)]",
+    "bg-accent text-accent-ink hover:-rotate-1 hover:scale-[1.04] active:scale-[0.98]",
   secondary:
-    "border border-line-strong bg-bg/50 text-text hover:border-accent hover:text-accent",
+    "border-[1.5px] border-line-strong bg-bg/50 text-text hover:border-uv hover:text-uv active:scale-[0.98]",
   ghost: "text-muted hover:text-text",
-  text: "min-h-11 px-0! rounded-none! underline decoration-line-strong decoration-1 underline-offset-[6px] hover:text-accent hover:decoration-accent",
+  text: "min-h-11 px-0! rounded-none! underline decoration-line-strong decoration-1 underline-offset-[6px] hover:text-uv hover:decoration-uv",
 };
 
 export function buttonClasses(

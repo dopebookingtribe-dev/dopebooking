@@ -1,20 +1,20 @@
 import type { Metadata, Viewport } from "next";
-import { Anybody, Instrument_Sans } from "next/font/google";
+import { Onest, Tilt_Warp } from "next/font/google";
 import { SiteFooter } from "@/components/site/site-footer";
 import { SiteHeader } from "@/components/site/site-header";
 import { getImagesByIds, getSiteSettings } from "@/modules/cms/queries";
 import "./globals.css";
 
-// Anybody's width axis does the talking: extended for headlines,
-// condensed for dates and labels. Instrument Sans keeps body text calm.
-const display = Anybody({
-  variable: "--font-anybody",
+// Tilt Warp: heavy, rounded letters whose XROT/YROT axes turn them in 3D,
+// like signage seen through a lens. Onest keeps reading text calm.
+const display = Tilt_Warp({
+  variable: "--font-tilt-warp",
   subsets: ["latin"],
-  axes: ["wdth"],
+  axes: ["XROT", "YROT"],
 });
 
-const sans = Instrument_Sans({
-  variable: "--font-instrument-sans",
+const sans = Onest({
+  variable: "--font-onest",
   subsets: ["latin"],
 });
 
@@ -41,7 +41,7 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export const viewport: Viewport = {
-  themeColor: "#15112b",
+  themeColor: "#06171a",
   colorScheme: "dark",
 };
 
