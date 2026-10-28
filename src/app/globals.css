@@ -90,6 +90,59 @@
   filter: drop-shadow(0 0 4px currentColor);
 }
 
+/* Hero letters: swing in through 3D on load, then follow the pointer.
+   --near (0..1) grows and warms the letters closest to it. */
+.hero-letter {
+  display: inline-block;
+  font-variation-settings:
+    "XROT" var(--tilt-x, 0),
+    "YROT" var(--tilt-y, 0);
+  transform: scale(calc(1 + var(--near, 0) * 0.16));
+  color: color-mix(
+    in oklab,
+    var(--accent) calc(var(--near, 0) * 100%),
+    currentColor
+  );
+  animation: letter-in 1s var(--ease-spring) backwards;
+  animation-delay: calc(var(--i) * 32ms + 350ms);
+}
+@keyframes letter-in {
+  from {
+    opacity: 0;
+    transform: perspective(700px) translateY(0.5em) rotateX(75deg)
+      rotateY(-35deg) scale(0.6);
+    filter: blur(8px);
+  }
+}
+
+/* The lens that follows the cursor over a kaleidoscope hero. The host
+   element receives --spot-x / --spot-y / --spot from the canvas. */
+.spot-veil {
+  mask-image: radial-gradient(
+    circle 200px at var(--spot-x, -999px) var(--spot-y, -999px),
+    rgb(0 0 0 / calc(1 - var(--spot, 0))) 0,
+    rgb(0 0 0 / calc(1 - var(--spot, 0) * 0.6)) 65%,
+    #000 100%
+  );
+}
+.spot-ring {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 400px;
+  height: 400px;
+  margin: -200px 0 0 -200px;
+  border-radius: 9999px;
+  pointer-events: none;
+  opacity: var(--spot, 0);
+  translate: var(--spot-x, -999px) var(--spot-y, -999px);
+  border: 1.5px solid color-mix(in oklab, var(--accent) 80%, transparent);
+  box-shadow:
+    0 0 0 10px color-mix(in oklab, var(--accent) 12%, transparent),
+    0 0 60px 4px color-mix(in oklab, var(--uv) 35%, transparent),
+    inset 0 0 50px color-mix(in oklab, var(--uv) 30%, transparent);
+}
+
 /* Card headings turn a little when their card is pointed at. */
 .group:hover .tilt-on-hover {
   --tilt-y: 18;

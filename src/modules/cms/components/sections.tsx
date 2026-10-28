@@ -266,11 +266,12 @@ export function HeroSection({ section, images, first }: SectionProps<"hero">) {
         <Kaleidoscope
           src={image.url}
           open={first}
+          spotlight
           className="absolute inset-0 -z-20 size-full"
         />
         <div
           aria-hidden
-          className="absolute inset-0 -z-10 hidden sm:block"
+          className="spot-veil absolute inset-0 -z-10 hidden sm:block"
           style={{
             background: `linear-gradient(90deg, var(--bg) 18%, color-mix(in oklab, var(--bg) ${c.overlay + 10}%, transparent) 46%, transparent 78%), linear-gradient(0deg, var(--bg) 4%, transparent 42%)`,
           }}
@@ -279,10 +280,12 @@ export function HeroSection({ section, images, first }: SectionProps<"hero">) {
           aria-hidden
           className="absolute inset-0 -z-10 bg-linear-to-t from-bg from-45% via-bg/70 via-60% to-transparent to-80% sm:hidden"
         />
+        <div aria-hidden className="spot-ring -z-10 hidden sm:block" />
         <Container className="pt-36 pb-16 sm:pb-24">
           <TiltHeading
             as={headingTag}
-            className="max-w-[12ch] text-display text-balance"
+            letters
+            className="max-w-[12ch] text-display"
           >
             {c.heading}
           </TiltHeading>
