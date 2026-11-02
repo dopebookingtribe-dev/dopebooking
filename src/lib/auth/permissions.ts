@@ -6,8 +6,9 @@ import { createClient } from "@/lib/supabase/server";
 import { getCurrentUser, requireUser, type CurrentUser } from "./dal";
 
 /**
- * Mirrors the role_permissions seed in the CMS migration. Used only when the
- * table can't be read, so a missing migration never locks the owner out.
+ * Mirrors the role_permissions seeds in the CMS and music migrations. Used
+ * only when the table can't be read, so a missing migration never locks the
+ * owner out.
  */
 const FALLBACK: Partial<Record<AppRole, AppPermission[]>> = {
   admin: [
@@ -18,8 +19,10 @@ const FALLBACK: Partial<Record<AppRole, AppPermission[]>> = {
     "demo.manage",
     "users.manage",
     "audit.view",
+    "music.manage",
+    "finance.manage",
   ],
-  staff: ["content.manage", "pages.edit"],
+  staff: ["content.manage", "pages.edit", "music.manage"],
 };
 
 /** Permissions granted to the user's roles. The database enforces the same. */

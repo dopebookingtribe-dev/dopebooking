@@ -53,6 +53,7 @@ export const BUILTIN_BLOCKS = {
   "gallery-index": "Photo galleries",
   "video-index": "Video library",
   "shop-catalog": "Shop catalogue with categories",
+  "music-store": "Music store: releases, charts, search and player",
   "request-form": "Quote request form",
   "sell-application": "Seller application form",
 } as const;

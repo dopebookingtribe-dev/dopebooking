@@ -56,6 +56,7 @@ Everything visitors see is edited in **Admin** (`/admin`):
 - **Media library**: upload photos once and use them in any section; click a photo to set what stays in view when cropped.
 - **Site settings**: menu and dropdowns, header button, footer columns, contact, social links, search defaults, demo labels.
 - **Artists, events, galleries, videos, products, categories**: the catalogue, featuring and order.
+- **Music**: review artists' releases, feature them, manage genres and link artist accounts. **Music finance**: commission, earnings, adjustments and payouts. Artists upload and sell from **Dashboard → My music**.
 - **Users and roles**, **Audit log**, **Demo content**: super admin only.
 
 Access is checked on the server and in the database. Permissions per role live in the `role_permissions` table, so more limited roles can be opened up later without code changes.

@@ -7,6 +7,7 @@ import { getStripe } from "@/lib/stripe";
 import { createAdminClient } from "@/lib/supabase/admin";
 import type { CartItem } from "@/modules/marketplace/schemas";
 import { SHOP_CURRENCY } from "@/modules/marketplace/schemas";
+import { priceMusicForCheckout } from "@/modules/music/server";
 import { reversalsForRefund, splitOrder, type SplitLine } from "./split";
 
 // Server-only order logic. Uses the service role: callers must have checked
@@ -82,10 +83,13 @@ export type CheckoutResult = { url: string } | { error: string };
 /**
  * Re-prices the cart from the database, checks every line can be sold and
  * paid out, records a pending order, and opens a Stripe Checkout Session.
+ * Music releases ride along: their artist share is credited to the music
+ * ledger after payment instead of a Stripe transfer.
  */
 export async function createCheckout(
   items: CartItem[],
   buyer: { id: string; email: string | null } | null,
+  musicReleaseIds: string[] = [],
 ): Promise<CheckoutResult> {
   const supabase = createAdminClient();
   const variantIds = items.map((item) => item.variantId);
@@ -179,8 +183,16 @@ export async function createCheckout(
       variantName: variant.name,
     });
   }
+  const music = await priceMusicForCheckout(
+    supabase,
+    musicReleaseIds,
+    buyer?.id ?? null,
+  );
+  problems.push(...music.problems);
   if (problems.length) return { error: [...new Set(problems)].join(" ") };
-  if (!lines.length) return { error: "Your cart is empty." };
+  if (!lines.length && !music.lines.length)
+    return { error: "Your cart is empty." };
+  const musicTotal = music.lines.reduce((sum, line) => sum + line.price, 0);
 
   const split = splitOrder(
     lines,
@@ -199,9 +211,9 @@ export async function createCheckout(
       buyer_id: buyer?.id ?? null,
       buyer_email: buyer?.email ?? null,
       currency: SHOP_CURRENCY,
-      items_total: split.itemsTotal,
+      items_total: split.itemsTotal + musicTotal,
       shipping_total: split.shippingTotal,
-      total: split.total,
+      total: split.total + musicTotal,
       access_token_hash: hashToken(token),
     })
     .select("id, reference")
@@ -209,28 +221,30 @@ export async function createCheckout(
   if (orderError || !order)
     return { error: "Checkout failed. Please try again." };
 
-  const { data: sellerOrders, error: soError } = await supabase
-    .from("seller_orders")
-    .insert(
-      split.shares.map((share) => ({
-        order_id: order.id,
-        seller_id: share.sellerId,
-        items_total: share.itemsTotal,
-        shipping_amount: share.shipping,
-        commission_rate_bps: share.commissionBps,
-        commission_amount: share.commission,
-        seller_amount: share.sellerAmount,
-        stripe_account_id: payoutBySeller.get(share.sellerId)!
-          .stripe_account_id,
-      })),
-    )
-    .select("id, seller_id");
+  const { data: sellerOrders, error: soError } = split.shares.length
+    ? await supabase
+        .from("seller_orders")
+        .insert(
+          split.shares.map((share) => ({
+            order_id: order.id,
+            seller_id: share.sellerId,
+            items_total: share.itemsTotal,
+            shipping_amount: share.shipping,
+            commission_rate_bps: share.commissionBps,
+            commission_amount: share.commission,
+            seller_amount: share.sellerAmount,
+            stripe_account_id: payoutBySeller.get(share.sellerId)!
+              .stripe_account_id,
+          })),
+        )
+        .select("id, seller_id")
+    : { data: [], error: null };
   if (soError || !sellerOrders)
     return { error: "Checkout failed. Please try again." };
   const soBySeller = new Map(sellerOrders.map((so) => [so.seller_id, so.id]));
 
-  const { error: itemsError } = await supabase.from("order_items").insert(
-    lines.map((line) => ({
+  const { error: itemsError } = await supabase.from("order_items").insert([
+    ...lines.map((line) => ({
       order_id: order.id,
       seller_order_id: soBySeller.get(line.sellerId)!,
       product_id: line.productId,
@@ -242,7 +256,24 @@ export async function createCheckout(
       quantity: line.quantity,
       line_total: line.unitPrice * line.quantity,
     })),
-  );
+    ...music.lines.map((line) => ({
+      order_id: order.id,
+      seller_order_id: null,
+      product_id: null,
+      variant_id: null,
+      product_title: line.title,
+      variant_name: line.artistName,
+      product_type: "digital" as const,
+      unit_price: line.price,
+      quantity: 1,
+      line_total: line.price,
+      music_release_id: line.releaseId,
+      artist_id: line.artistId,
+      commission_bps: line.commissionBps,
+      commission_amount: line.commission,
+      artist_amount: line.artistAmount,
+    })),
+  ]);
   if (itemsError) return { error: "Checkout failed. Please try again." };
 
   const lineItems: Stripe.Checkout.SessionCreateParams.LineItem[] = lines.map(
@@ -259,6 +290,16 @@ export async function createCheckout(
       },
     }),
   );
+  for (const line of music.lines) {
+    lineItems.push({
+      quantity: 1,
+      price_data: {
+        currency: SHOP_CURRENCY.toLowerCase(),
+        unit_amount: line.price,
+        product_data: { name: `${line.artistName} — ${line.title}` },
+      },
+    });
+  }
   for (const share of split.shares) {
     if (share.shipping > 0) {
       lineItems.push({
@@ -365,7 +406,15 @@ export async function fulfilPaidSession(session: Stripe.Checkout.Session) {
     .select("*")
     .eq("id", orderId)
     .single();
-  if (!order || order.status !== "pending_payment") return; // already handled
+  if (!order) return;
+  if (order.status !== "pending_payment") {
+    // Already handled. Music credits are idempotent, so a retried event
+    // completes them if the first run stopped half way.
+    if (["paid", "fulfilled", "partially_refunded"].includes(order.status)) {
+      await creditMusic(supabase, order.id);
+    }
+    return;
+  }
 
   const paymentIntentId =
     typeof session.payment_intent === "string"
@@ -414,6 +463,9 @@ export async function fulfilPaidSession(session: Stripe.Checkout.Session) {
   const attention: string[] = [];
   if (oversold)
     attention.push("Some items were oversold; check stock with the seller.");
+
+  // Only now, with Stripe's confirmation, do music sales earn anything.
+  await creditMusic(supabase, order.id);
 
   // Pay each seller their share from this charge.
   const { data: sellerOrders } = await supabase
@@ -494,6 +546,16 @@ export async function fulfilPaidSession(session: Stripe.Checkout.Session) {
   );
 }
 
+/** Credits paid music lines to artists and unlocks downloads (once). */
+async function creditMusic(supabase: Admin, orderId: string) {
+  const { error } = await supabase.rpc("credit_music_sales", {
+    p_order: orderId,
+  });
+  // Throwing makes Stripe retry the event, which lands in the
+  // already-handled branch and credits then.
+  if (error) throw new Error(`Music credit failed: ${error.message}`);
+}
+
 /** Expired or failed sessions: release the pending order. */
 export async function cancelPendingSession(session: Stripe.Checkout.Session) {
   const orderId = session.metadata?.order_id ?? session.client_reference_id;
@@ -533,6 +595,15 @@ export async function syncChargeRefund(charge: Stripe.Charge) {
             : order.status,
     })
     .eq("id", order.id);
+  await syncMusicRefunds(supabase, order.id);
+}
+
+/** Gives back the artists' share of refunded music, proportionally. */
+async function syncMusicRefunds(supabase: Admin, orderId: string) {
+  const { error } = await supabase.rpc("sync_music_refunds", {
+    p_order: orderId,
+  });
+  if (error) throw new Error(`Music refund sync failed: ${error.message}`);
 }
 
 // ---------------------------------------------------------------------------
@@ -612,6 +683,7 @@ export async function refundOrder(orderId: string, amount: number) {
       .update({ status: "refunded", transfer_status: "reversed" })
       .eq("order_id", order.id);
   }
+  await syncMusicRefunds(supabase, order.id);
   return { refunded: refund, failures };
 }
 

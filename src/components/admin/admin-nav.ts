@@ -71,6 +71,12 @@ export const ADMIN_GROUPS: { title: string; links: AdminLink[] }[] = [
         body: "Shop categories.",
         permission: "content.manage",
       },
+      {
+        href: "/admin/music",
+        label: "Music",
+        body: "Review releases, feature music, genres and artist teams.",
+        permission: "music.manage",
+      },
     ],
   },
   {
@@ -99,6 +105,12 @@ export const ADMIN_GROUPS: { title: string; links: AdminLink[] }[] = [
         label: "Orders",
         body: "Payments, transfers and refunds.",
         permission: "content.manage",
+      },
+      {
+        href: "/admin/music/finance",
+        label: "Music finance",
+        body: "Commission, artist earnings, adjustments and payouts.",
+        permission: "finance.manage",
       },
     ],
   },

@@ -114,3 +114,25 @@ Sign in as your admin account, then:
 - [ ] **Users and roles**: give a test account the Staff role; signed in as that account, Pages works but **Publish** is missing and Users and Audit are not available.
 - [ ] **Audit log** lists your changes.
 - [ ] **Demo content**: when real content is ready, remove the demo content and check the site (or turn the Demo labels off in Site settings).
+
+## Phase 11: music marketplace
+
+Run once: the two music migrations (`20261102000000_music_permissions.sql`, then `20261102000100_music.sql`). Then, signed in as admin:
+
+- [ ] **Admin → Music → Artists & teams**: link an artist's own account by email (they sign up first)
+- [ ] As that artist: **Dashboard → My music → New release** → title and type
+- [ ] Fill the details (genre, style, BPM, key, price), upload square artwork, drop in one or more WAV/FLAC files: each becomes a track with a 60-second preview you can play back
+- [ ] **Send for review** (both boxes ticked). The release shows **In review** and can't be edited
+- [ ] As admin: **Admin → Music** → open it → listen to the preview and a master → **Approve and publish**. The artist gets a notification
+- [ ] `/music`: the release appears (search, genre, tempo and sort work); its page plays previews in the bottom player while you browse; the artist profile shows a **Music** section
+- [ ] Try **Send back with changes** on another release: the artist sees your note and can resubmit
+- [ ] **Admin → Music finance**: check the default commission, hold days and minimum payout; set a different commission for one artist
+- [ ] Bundles: create a bundle from two releases; its page lists every track and the saving
+
+When Stripe test mode is set up (Phase 08):
+
+- [ ] Buy a release (signed in, and once as a guest): **Dashboard → Music library** (or the guest order link) shows download buttons per format; each click downloads the master
+- [ ] The artist's **Earnings** page shows the sale **On hold**; after the hold days (or set hold to 0 in finance settings for the test) it moves to **Available**
+- [ ] The artist adds bank details and requests a payout; in **Music finance** approve it, send the transfer, **Mark as paid** with the bank reference; the artist sees **Paid**
+- [ ] Refund the order in **Admin → Orders**: the artist's balance shows the refund and the buyer's downloads disappear
+- [ ] Try to buy the same release again while signed in: checkout says you already own it

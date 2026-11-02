@@ -749,3 +749,25 @@ Verified on a clean copy against the real database:
 **Verified.** Migration applied to Supabase; RLS and publish rules tested against all migrations in an in-memory Postgres (PGlite): 18 checks (anonymous, plain user, staff, admin, seller). Unit tests cover every default page, every new section type and link safety. Browser and accessibility tests pass on a production build.
 
 **Not verified yet.** The signed-in admin screens (page builder, media library, settings, users) were type-checked and built but not clicked through with a real admin session.
+
+## Phase 11 status: music marketplace (2026-11-03)
+
+**Catalogue.** Artists on the roster sell tracks, EPs, albums and bundles from `/dashboard/music`. Releases (`music_releases`) hold metadata, price and status; tracks (`music_tracks`) hold a public preview path; full-quality files (`music_track_files`) live in the private `music-masters` bucket; bundles list other releases by the same artist (`music_bundle_items`). Covers use `media_assets` like every other image. Genres and styles (`music_genres`) are admin-managed. The `formats` column on releases is kept in sync by trigger so visitors see formats without reading the private file table.
+
+**Workflow.** `draft → in_review → published` (or `rejected` with a note, or `archived`). Artists can't touch review fields, can't edit during review and can only change price, availability and texts while live (`guard_music_release`). `submit_music_release()` checks artwork, price, genre, files and previews and records the rights confirmation; `review_music_release()` needs `music.manage` and notifies the artist's team.
+
+**Previews.** The artist's browser decodes the master and renders a 60-second mono clip (`src/modules/music/preview-audio.ts`), uploaded to the public `music-previews` bucket. Masters are never public. One audio element (`PlayerProvider`, `PlayerBar` in the root layout) plays previews across pages.
+
+**Buying.** Music shares the shop's cart (a second local list of release ids), orders and Stripe Checkout. `createCheckout` re-prices music from the database and writes music lines with `seller_order_id = null` and a snapshot of the commission (artist override in `artist_private.music_commission_bps`, else `platform_settings.music.commission_bps`). Buyers can't pay twice for a release they own.
+
+**Earnings.** Only the Stripe webhook (`fulfilPaidSession`) calls `credit_music_sales()`, which grants downloads (`music_entitlements`) and writes one `sale` entry per line to the append-only `artist_ledger` (a unique index makes repeated webhooks harmless). Credits become available after `hold_days`. Refunds (`syncChargeRefund`, `refundOrder`) call `sync_music_refunds()`, which reverses the artist share proportionally once and revokes downloads on a full refund. `artist_balance()` derives pending, available, in-payout and paid-out figures from the ledger.
+
+**Payouts.** No new payment provider: artists add bank details and request a withdrawal (`request_withdrawal()` reserves the money with a negative entry); `finance.manage` approves, sends the bank transfer and marks it paid with a reference (`decide_withdrawal()`), or rejects it (the money returns). Manual adjustments go through `add_ledger_adjustment()`. Stripe Connect transfers to artists can replace the manual transfer later.
+
+**Downloads.** `/api/music/download` checks the purchase (account or guest order token), the file's release (or bundle), a daily limit, logs `music_downloads`, then redirects to a 5-minute signed link.
+
+**Permissions.** New: `music.manage` (admin, staff) for review, featuring, genres and artist teams; `finance.manage` (admin) for commission, payouts and adjustments. Artists see only their own releases, masters, ledger, payout details and withdrawals (RLS on every table and storage path).
+
+**Verified.** Migrations applied to Supabase. Database rules run in PGlite against all migrations: 41 + 24 scenario checks, and `supabase/tests/database/music.test.sql` (26 pgTAP assertions, run through a pgTAP stand-in). Unit tests cover the forms, IBAN check, file handling and checkout pricing. Production build, browser and accessibility tests pass; store cards, record animation, tracklist and player were checked in the browser with local sample data.
+
+**Not verified yet.** No Stripe keys yet, so a real purchase, webhook credit and refund have not run end to end in the app (the database side of each was tested). The signed-in screens (My music, uploads, review, finance) were type-checked and built but not clicked through with real accounts.

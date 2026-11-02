@@ -2,23 +2,24 @@
 
 import { useState, useTransition } from "react";
 import { Button } from "@/components/ui/button";
-import { useCart } from "@/modules/marketplace/cart-store";
+import { useCart, useMusicCart } from "@/modules/marketplace/cart-store";
 import { startCheckout } from "../actions";
 
 export function CheckoutButton({ testMode }: { testMode: boolean }) {
   const items = useCart();
+  const music = useMusicCart();
   const [error, setError] = useState<string>();
   const [pending, startTransition] = useTransition();
 
   return (
     <div className="flex flex-col gap-3">
       <Button
-        disabled={pending || !items.length}
+        disabled={pending || (!items.length && !music.length)}
         className="w-full"
         onClick={() =>
           startTransition(async () => {
             setError(undefined);
-            const result = await startCheckout(items);
+            const result = await startCheckout(items, music);
             if ("url" in result) window.location.assign(result.url);
             else setError(result.error);
           })

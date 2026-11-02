@@ -7,7 +7,7 @@ import { IMAGE_TYPES } from "./constants";
 export const BUCKET = "public-media";
 
 export type MediaOwnerKind =
-  "artist" | "event" | "gallery" | "video" | "product" | "seller";
+  "artist" | "event" | "gallery" | "video" | "product" | "seller" | "music";
 export type ImageResult = { ok: true } | { ok: false; message: string };
 
 type Client = SupabaseClient<Database>;
@@ -19,11 +19,13 @@ const OWNER_COLUMN = {
   video: "video_id",
   product: "product_id",
   seller: "seller_id",
+  music: "music_release_id",
 } as const;
 
 /** Storage folder for an owner, e.g. "galleries/<id>". */
 export function mediaFolder(kind: MediaOwnerKind, ownerId: string) {
-  const plural = kind === "gallery" ? "galleries" : `${kind}s`;
+  const plural =
+    kind === "gallery" ? "galleries" : kind === "music" ? "music" : `${kind}s`;
   return `${plural}/${ownerId}`;
 }
 
@@ -88,6 +90,13 @@ async function setLeadImage(
     case "product": {
       const query = supabase
         .from("products")
+        .update({ cover_asset_id: assetId })
+        .eq("id", ownerId);
+      return onlyIfEmpty ? query.is("cover_asset_id", null) : query;
+    }
+    case "music": {
+      const query = supabase
+        .from("music_releases")
         .update({ cover_asset_id: assetId })
         .eq("id", ownerId);
       return onlyIfEmpty ? query.is("cover_asset_id", null) : query;

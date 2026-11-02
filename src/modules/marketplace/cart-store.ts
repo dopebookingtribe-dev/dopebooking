@@ -105,3 +105,81 @@ export function setCartQuantity(variantId: string, quantity: number) {
 export function replaceCart(items: CartItem[]) {
   write(items);
 }
+
+// Music releases sit in their own list: one copy each, no quantities.
+
+const MUSIC_KEY = "dopebooking.music-cart.v1";
+export const MAX_MUSIC_LINES = 50;
+const NO_MUSIC: string[] = [];
+let musicCache: { raw: string | null; ids: string[] } = {
+  raw: null,
+  ids: NO_MUSIC,
+};
+
+function readMusic(): string[] {
+  let raw: string | null = null;
+  try {
+    raw = window.localStorage.getItem(MUSIC_KEY);
+  } catch {
+    return NO_MUSIC;
+  }
+  if (raw === musicCache.raw) return musicCache.ids;
+  let ids: string[] = NO_MUSIC;
+  try {
+    const parsed: unknown = raw ? JSON.parse(raw) : [];
+    if (Array.isArray(parsed)) {
+      ids = [
+        ...new Set(
+          parsed.filter(
+            (id): id is string =>
+              typeof id === "string" && /^[0-9a-f-]{36}$/i.test(id),
+          ),
+        ),
+      ].slice(0, MAX_MUSIC_LINES);
+    }
+  } catch {
+    ids = NO_MUSIC;
+  }
+  musicCache = { raw, ids };
+  return ids;
+}
+
+function writeMusic(ids: string[]) {
+  try {
+    window.localStorage.setItem(MUSIC_KEY, JSON.stringify(ids));
+  } catch {
+    // Private mode or storage full: the cart just won't persist.
+  }
+  listeners.forEach((listener) => listener());
+}
+
+function subscribeMusic(listener: () => void) {
+  listeners.add(listener);
+  const onStorage = (event: StorageEvent) => {
+    if (event.key === MUSIC_KEY) listener();
+  };
+  window.addEventListener("storage", onStorage);
+  return () => {
+    listeners.delete(listener);
+    window.removeEventListener("storage", onStorage);
+  };
+}
+
+export function useMusicCart() {
+  return useSyncExternalStore(subscribeMusic, readMusic, () => NO_MUSIC);
+}
+
+export function addMusicToCart(releaseId: string) {
+  const ids = readMusic();
+  if (!ids.includes(releaseId)) {
+    writeMusic([...ids, releaseId].slice(0, MAX_MUSIC_LINES));
+  }
+}
+
+export function removeMusicFromCart(releaseId: string) {
+  writeMusic(readMusic().filter((id) => id !== releaseId));
+}
+
+export function replaceMusicCart(ids: string[]) {
+  writeMusic(ids);
+}

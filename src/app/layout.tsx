@@ -3,6 +3,7 @@ import { Onest, Tilt_Warp } from "next/font/google";
 import { SiteFooter } from "@/components/site/site-footer";
 import { SiteHeader } from "@/components/site/site-header";
 import { getImagesByIds, getSiteSettings } from "@/modules/cms/queries";
+import { PlayerBar, PlayerProvider } from "@/modules/music/components/player";
 import "./globals.css";
 
 // Tilt Warp: heavy, rounded letters whose XROT/YROT axes turn them in 3D,
@@ -58,11 +59,14 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         >
           Skip to content
         </a>
-        <SiteHeader />
-        <main id="main" className="flex flex-1 flex-col">
-          {children}
-        </main>
-        <SiteFooter />
+        <PlayerProvider>
+          <SiteHeader />
+          <main id="main" className="flex flex-1 flex-col">
+            {children}
+          </main>
+          <SiteFooter />
+          <PlayerBar />
+        </PlayerProvider>
       </body>
     </html>
   );

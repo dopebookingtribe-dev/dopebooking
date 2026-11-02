@@ -14,11 +14,13 @@ const PAGES = [
   "/services/production",
   "/services/promotion",
   "/shop",
+  "/music",
   "/sell",
   "/cart",
   "/login",
   "/signup",
   "/legal/privacy",
+  "/legal/music-license",
 ];
 
 for (const path of PAGES) {

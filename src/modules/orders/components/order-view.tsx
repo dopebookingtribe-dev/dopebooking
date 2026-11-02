@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Meta } from "@/components/ui/meta";
 import { formatCents } from "@/modules/marketplace/schemas";
+import { MusicDownloads } from "@/modules/music/components/downloads";
 import { WorkflowBadge } from "@/modules/workflow/components/status-badge";
 import { ORDER_STATUS, PART_STATUS } from "../labels";
 import type { OrderView as OrderViewData } from "../queries";
@@ -21,7 +22,7 @@ export function OrderView({
   view: OrderViewData;
   showFinance?: boolean;
 }) {
-  const { order, parts } = view;
+  const { order, parts, music, library, downloadToken } = view;
   const money = (cents: number) => formatCents(cents, order.currency);
   const address = order.shipping_address as Record<
     string,
@@ -119,6 +120,39 @@ export function OrderView({
             ) : null}
           </section>
         ))}
+        {music.length ? (
+          <section
+            aria-label="Music"
+            className="rounded-(--radius) border border-line p-5"
+          >
+            <p>Music</p>
+            <ul className="mt-4 divide-y divide-line">
+              {music.map((item) => (
+                <li key={item.id} className="flex flex-col gap-1 py-3">
+                  <div className="flex justify-between gap-4 text-sm">
+                    <span>
+                      {item.product_title}
+                      <span className="text-muted"> · {item.variant_name}</span>
+                    </span>
+                    <span>{money(item.line_total)}</span>
+                  </div>
+                  {showFinance ? (
+                    <p className="font-label text-xs text-muted">
+                      Commission ({(item.commission_bps ?? 0) / 100}%){" "}
+                      {money(item.commission_amount ?? 0)} · artist{" "}
+                      {money(item.artist_amount ?? 0)}
+                    </p>
+                  ) : null}
+                </li>
+              ))}
+            </ul>
+            {library.length && !showFinance ? (
+              <div className="mt-4">
+                <MusicDownloads releases={library} token={downloadToken} />
+              </div>
+            ) : null}
+          </section>
+        ) : null}
         {["paid", "fulfilled"].includes(order.status) &&
         parts.some((p) => p.items.some((i) => i.downloads.length)) ? (
           <p className="text-sm text-muted">

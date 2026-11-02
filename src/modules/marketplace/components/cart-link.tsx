@@ -1,11 +1,13 @@
 "use client";
 
 import Link from "next/link";
-import { useCart } from "../cart-store";
+import { useCart, useMusicCart } from "../cart-store";
 
 export function CartLink({ className = "" }: { className?: string }) {
   const items = useCart();
-  const count = items.reduce((sum, item) => sum + item.quantity, 0);
+  const music = useMusicCart();
+  const count =
+    items.reduce((sum, item) => sum + item.quantity, 0) + music.length;
   return (
     <Link
       href="/cart"

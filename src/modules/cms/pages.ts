@@ -42,6 +42,7 @@ export const PAGES = {
     builtins: ["request-form"],
   },
   shop: { title: "Shop", path: "/shop", builtins: ["shop-catalog"] },
+  music: { title: "Music", path: "/music", builtins: ["music-store"] },
   sell: {
     title: "Sell with us",
     path: "/sell",
@@ -656,6 +657,23 @@ export const DEFAULT_PAGES: Record<PageKey, PageContent> = {
     "Merch, art and music from the psytrance scene.",
   ),
 
+  music: page(
+    [
+      section("hero", "hero", {
+        layout: "compact",
+        heading: "Music",
+        body: "Tracks, EPs and albums straight from DopeBooking artists. Lossless downloads, and the artist gets most of every sale.",
+        primary: link(),
+        secondary: link(),
+        image: "",
+        overlay: 55,
+      }),
+      builtin("store", "music-store"),
+    ],
+    "Music",
+    "Buy psytrance tracks, EPs and albums from DopeBooking artists in WAV, FLAC and MP3.",
+  ),
+
   sell: page(
     [
       section("hero", "hero", {
@@ -736,6 +754,7 @@ export const DEFAULT_SETTINGS: SiteSettings = {
         },
       ],
     },
+    { label: "Music", href: "/music", children: [] },
     { label: "Shop", href: "/shop", children: [] },
     { label: "About", href: "/about", children: [] },
   ],
@@ -757,6 +776,7 @@ export const DEFAULT_SETTINGS: SiteSettings = {
         heading: "Work with us",
         links: [
           { label: "Festival services", href: "/services" },
+          { label: "Music", href: "/music" },
           { label: "Shop", href: "/shop" },
           { label: "Sell with us", href: "/sell" },
           { label: "About", href: "/about" },
@@ -770,6 +790,7 @@ export const DEFAULT_SETTINGS: SiteSettings = {
           { label: "Terms", href: "/legal/terms" },
           { label: "Shop terms", href: "/legal/shop-terms" },
           { label: "Seller terms", href: "/legal/seller-terms" },
+          { label: "Music licence", href: "/legal/music-license" },
           { label: "Cookies", href: "/legal/cookies" },
         ],
       },

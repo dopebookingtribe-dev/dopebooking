@@ -18,7 +18,17 @@ export type AppPermission =
   | "settings.manage"
   | "demo.manage"
   | "users.manage"
-  | "audit.view";
+  | "audit.view"
+  | "music.manage"
+  | "finance.manage";
+export type MusicReleaseType = "track" | "ep" | "album" | "bundle";
+export type MusicReleaseStatus =
+  "draft" | "in_review" | "published" | "rejected" | "archived";
+export type MusicFileFormat = "wav" | "flac" | "mp3" | "aiff";
+export type LedgerEntryType =
+  "sale" | "refund" | "adjustment" | "withdrawal" | "withdrawal_release";
+export type WithdrawalStatus =
+  "requested" | "approved" | "paid" | "rejected" | "cancelled";
 export type ArtistMemberRole = "owner" | "manager";
 export type MediaType = "image";
 export type VideoProvider = "cloudflare_stream" | "mux" | "youtube" | "vimeo";
@@ -102,6 +112,7 @@ export type ArtistRow = {
 
 export type ArtistPrivateRow = {
   artist_id: string;
+  music_commission_bps: number | null;
   fee_min: number | null;
   fee_max: number | null;
   fee_currency: string;
@@ -128,6 +139,7 @@ export type MediaAssetRow = {
   video_id: string | null;
   product_id: string | null;
   seller_id: string | null;
+  music_release_id: string | null;
   library: "site" | null;
   is_demo: boolean;
   focal_x: number;
@@ -530,7 +542,12 @@ export type SellerOrderRow = {
 export type OrderItemRow = {
   id: string;
   order_id: string;
-  seller_order_id: string;
+  seller_order_id: string | null;
+  music_release_id: string | null;
+  artist_id: string | null;
+  commission_bps: number | null;
+  commission_amount: number | null;
+  artist_amount: number | null;
   product_id: string | null;
   variant_id: string | null;
   product_title: string;
@@ -539,6 +556,139 @@ export type OrderItemRow = {
   unit_price: number;
   quantity: number;
   line_total: number;
+};
+
+export type MusicGenreRow = {
+  id: string;
+  slug: string;
+  name: string;
+  parent_id: string | null;
+  sort_order: number;
+  visible: boolean;
+  created_at: string;
+};
+
+export type MusicReleaseRow = {
+  id: string;
+  artist_id: string;
+  slug: string;
+  title: string;
+  release_type: MusicReleaseType;
+  status: MusicReleaseStatus;
+  genre_id: string | null;
+  subgenre_id: string | null;
+  bpm: number | null;
+  musical_key: string | null;
+  release_date: string | null;
+  label: string | null;
+  catalog_number: string | null;
+  description: string | null;
+  credits: string | null;
+  price_amount: number | null;
+  currency: string;
+  formats: MusicFileFormat[];
+  cover_asset_id: string | null;
+  on_sale: boolean;
+  featured: boolean;
+  sort_order: number;
+  rights_confirmed_at: string | null;
+  rights_confirmed_by: string | null;
+  review_note: string | null;
+  submitted_at: string | null;
+  published_at: string | null;
+  is_demo: boolean;
+  created_by: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type MusicTrackRow = {
+  id: string;
+  release_id: string;
+  position: number;
+  title: string;
+  duration_seconds: number | null;
+  bpm: number | null;
+  musical_key: string | null;
+  isrc: string | null;
+  preview_path: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type MusicTrackFileRow = {
+  id: string;
+  track_id: string;
+  format: MusicFileFormat;
+  storage_path: string;
+  size_bytes: number;
+  created_at: string;
+};
+
+export type MusicEntitlementRow = {
+  id: string;
+  release_id: string;
+  order_id: string;
+  order_item_id: string;
+  buyer_id: string | null;
+  granted_at: string;
+  revoked_at: string | null;
+};
+
+export type ArtistLedgerRow = {
+  id: number;
+  artist_id: string;
+  entry_type: LedgerEntryType;
+  amount: number;
+  gross_amount: number;
+  commission_amount: number;
+  currency: string;
+  order_id: string | null;
+  order_item_id: string | null;
+  withdrawal_id: string | null;
+  available_at: string;
+  note: string | null;
+  created_by: string | null;
+  created_at: string;
+};
+
+export type ArtistWithdrawalRow = {
+  id: string;
+  reference: string;
+  artist_id: string;
+  amount: number;
+  currency: string;
+  status: WithdrawalStatus;
+  requested_by: string | null;
+  requested_at: string;
+  decided_by: string | null;
+  decided_at: string | null;
+  paid_at: string | null;
+  payout_reference: string | null;
+  admin_note: string | null;
+  updated_at: string;
+};
+
+export type ArtistPayoutDetailsRow = {
+  artist_id: string;
+  account_holder: string;
+  iban: string;
+  bic: string | null;
+  country: string | null;
+  updated_by: string | null;
+  updated_at: string;
+};
+
+export type ArtistBalance = {
+  gross_sales: number;
+  commission: number;
+  net_earnings: number;
+  refunded: number;
+  pending: number;
+  available: number;
+  in_withdrawal: number;
+  withdrawn: number;
+  adjustments: number;
 };
 
 export type ProductFileRow = {
@@ -733,7 +883,31 @@ export type Database = {
           >
         >
       >;
-      order_items: Table<OrderItemRow, Omit<OrderItemRow, "id">, never>;
+      order_items: Table<
+        OrderItemRow,
+        Omit<
+          OrderItemRow,
+          | "id"
+          | "seller_order_id"
+          | "music_release_id"
+          | "artist_id"
+          | "commission_bps"
+          | "commission_amount"
+          | "artist_amount"
+        > &
+          Partial<
+            Pick<
+              OrderItemRow,
+              | "seller_order_id"
+              | "music_release_id"
+              | "artist_id"
+              | "commission_bps"
+              | "commission_amount"
+              | "artist_amount"
+            >
+          >,
+        never
+      >;
       stripe_events: Table<
         {
           id: string;
@@ -804,6 +978,63 @@ export type Database = {
         never
       >;
       audit_log: Table<AuditLogRow, never, never>;
+      platform_settings: Table<
+        {
+          key: string;
+          value: unknown;
+          updated_by: string | null;
+          updated_at: string;
+        },
+        never,
+        { value?: unknown; updated_by?: string | null }
+      >;
+      music_genres: Table<
+        MusicGenreRow,
+        Pick<MusicGenreRow, "slug" | "name"> &
+          Partial<Omit<MusicGenreRow, "id" | "created_at">>
+      >;
+      music_releases: Table<
+        MusicReleaseRow,
+        Pick<MusicReleaseRow, "artist_id" | "slug" | "title"> &
+          Partial<Omit<MusicReleaseRow, "id" | "created_at" | "updated_at">>
+      >;
+      music_tracks: Table<
+        MusicTrackRow,
+        Pick<MusicTrackRow, "release_id" | "title"> &
+          Partial<Omit<MusicTrackRow, "id" | "created_at" | "updated_at">>
+      >;
+      music_track_files: Table<
+        MusicTrackFileRow,
+        Omit<MusicTrackFileRow, "id" | "created_at">
+      >;
+      music_bundle_items: Table<
+        { bundle_id: string; release_id: string; sort_order: number },
+        { bundle_id: string; release_id: string; sort_order?: number }
+      >;
+      music_entitlements: Table<MusicEntitlementRow, never, never>;
+      music_downloads: Table<
+        {
+          id: number;
+          entitlement_id: string;
+          track_file_id: string | null;
+          user_id: string | null;
+          created_at: string;
+        },
+        {
+          entitlement_id: string;
+          track_file_id?: string | null;
+          user_id?: string | null;
+        },
+        never
+      >;
+      artist_ledger: Table<ArtistLedgerRow, never, never>;
+      artist_withdrawals: Table<ArtistWithdrawalRow, never, never>;
+      artist_payout_details: Table<
+        ArtistPayoutDetailsRow,
+        Omit<ArtistPayoutDetailsRow, "updated_at" | "updated_by"> & {
+          updated_by?: string | null;
+        }
+      >;
       product_variants: Table<
         ProductVariantRow,
         Pick<ProductVariantRow, "product_id" | "name" | "price_amount"> &
@@ -837,6 +1068,41 @@ export type Database = {
       publish_site_page: { Args: { p_key: string }; Returns: string };
       publish_site_settings: { Args: Record<string, never>; Returns: string };
       delete_demo_content: { Args: Record<string, never>; Returns: string[] };
+      submit_music_release: {
+        Args: { p_release: string; p_rights_confirmed: boolean };
+        Returns: MusicReleaseStatus;
+      };
+      review_music_release: {
+        Args: {
+          p_release: string;
+          p_status: MusicReleaseStatus;
+          p_note?: string | null;
+        };
+        Returns: MusicReleaseStatus;
+      };
+      credit_music_sales: { Args: { p_order: string }; Returns: number };
+      sync_music_refunds: { Args: { p_order: string }; Returns: number };
+      artist_balance: { Args: { p_artist: string }; Returns: ArtistBalance[] };
+      request_withdrawal: {
+        Args: { p_artist: string; p_amount: number };
+        Returns: string;
+      };
+      cancel_withdrawal: { Args: { p_withdrawal: string }; Returns: undefined };
+      decide_withdrawal: {
+        Args: {
+          p_withdrawal: string;
+          p_status: WithdrawalStatus;
+          p_note?: string | null;
+          p_reference?: string | null;
+        };
+        Returns: WithdrawalStatus;
+      };
+      add_ledger_adjustment: {
+        Args: { p_artist: string; p_amount: number; p_note: string };
+        Returns: number;
+      };
+      music_top_selling: { Args: { p_limit?: number }; Returns: string[] };
+      music_commission_for: { Args: { p_artist: string }; Returns: number };
       is_artist_member: { Args: { target: string }; Returns: boolean };
       is_published_artist: { Args: { target: string }; Returns: boolean };
       is_published_event: { Args: { target: string }; Returns: boolean };
@@ -897,6 +1163,11 @@ export type Database = {
     Enums: {
       app_role: AppRole;
       app_permission: AppPermission;
+      music_release_type: MusicReleaseType;
+      music_release_status: MusicReleaseStatus;
+      music_file_format: MusicFileFormat;
+      ledger_entry_type: LedgerEntryType;
+      withdrawal_status: WithdrawalStatus;
       content_status: ContentStatus;
       artist_member_role: ArtistMemberRole;
       media_type: MediaType;

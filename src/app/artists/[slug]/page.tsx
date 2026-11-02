@@ -27,6 +27,8 @@ import {
   getPublishedArtists,
 } from "@/modules/artists/queries";
 import { LINK_PLATFORMS } from "@/modules/artists/schemas";
+import { ReleaseCard } from "@/modules/music/components/release-card";
+import { getPublishedReleases } from "@/modules/music/queries";
 
 type Props = PageProps<"/artists/[slug]">;
 
@@ -79,11 +81,15 @@ async function Profile({ params }: { params: Props["params"] }) {
     [artist.basedIn, countryName(artist.country)].filter(Boolean).join(", "),
     ...genreLabels(artist.genres),
   ].filter(Boolean);
-  const [shows, videos, settings] = await Promise.all([
+  const [shows, videos, settings, music] = await Promise.all([
     getUpcomingEventsForArtist(artist.id),
     getPublishedVideos({ artistId: artist.id }),
     getSiteSettings(),
+    getPublishedReleases(),
   ]);
+  const releases = music.releases.filter(
+    (release) => release.artist.id === artist.id,
+  );
   const gallery = artist.images.filter(
     (image) =>
       image.id !== artist.portrait?.id && image.id !== artist.cover?.id,
@@ -297,6 +303,32 @@ async function Profile({ params }: { params: Props["params"] }) {
           </div>
         </aside>
       </Container>
+
+      {releases.length ? (
+        <section
+          id="music"
+          aria-labelledby="music-heading"
+          className="scroll-mt-24 pb-20 sm:pb-28"
+        >
+          <Container>
+            <div className="flex flex-wrap items-end justify-between gap-4">
+              <h2 id="music-heading" className="font-display text-headline">
+                Music
+              </h2>
+              <ButtonLink href="/music" variant="text">
+                Music store
+              </ButtonLink>
+            </div>
+            <ul className="mt-10 grid grid-cols-2 gap-x-5 gap-y-12 sm:grid-cols-3 lg:grid-cols-4">
+              {releases.map((release) => (
+                <li key={release.id}>
+                  <ReleaseCard release={release} showArtist={false} />
+                </li>
+              ))}
+            </ul>
+          </Container>
+        </section>
+      ) : null}
 
       {gallery.length ? (
         <section aria-labelledby="gallery-heading" className="pb-20 sm:pb-28">

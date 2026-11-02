@@ -8,6 +8,7 @@ import type {
 import { hasServiceRole } from "@/lib/env.server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
+import { getLibrary, type LibraryRelease } from "@/modules/music/queries";
 import { tokenMatches } from "./server";
 
 const UUID = /^[0-9a-f-]{36}$/i;
@@ -22,6 +23,11 @@ export type OrderView = {
     sellerSlug: string;
     items: (OrderItemRow & { downloads: Download[] })[];
   })[];
+  /** Music lines (no seller part) and, once paid, what they unlock. */
+  music: OrderItemRow[];
+  library: LibraryRelease[];
+  /** Guest link token, needed for guests' music download links. */
+  downloadToken?: string;
 };
 
 type Client =
@@ -36,6 +42,7 @@ type Client =
 async function buildOrderView(
   client: Client,
   order: OrderRow,
+  downloadToken?: string,
 ): Promise<OrderView> {
   const [{ data: parts }, { data: items }] = await Promise.all([
     client
@@ -86,8 +93,15 @@ async function buildOrderView(
     }
   }
 
+  const music = (items ?? []).filter((item) => item.music_release_id);
+  // getLibrary only returns paid, unrevoked purchases.
+  const library = music.length ? await getLibrary({ orderId: order.id }) : [];
+
   return {
     order,
+    music,
+    library,
+    downloadToken,
     parts: (parts ?? []).map((part) => ({
       ...part,
       sellerName: sellerById.get(part.seller_id)?.display_name ?? "Seller",
@@ -142,7 +156,7 @@ export async function getOrderWithToken(id: string, token: string | undefined) {
     .eq("id", id)
     .maybeSingle();
   if (!order || !tokenMatches(token, order.access_token_hash)) return null;
-  return buildOrderView(admin, order);
+  return buildOrderView(admin, order, token);
 }
 
 // Sellers ----------------------------------------------------------------
