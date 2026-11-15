@@ -3,6 +3,7 @@ import { ViewTransition } from "react";
 import { DemoBadge } from "@/components/ui/demo-badge";
 import { Picture } from "@/components/ui/picture";
 import { countryName } from "@/lib/countries";
+import { CONTAINERS } from "@/modules/media/image-specs";
 import type { ArtistCard as ArtistCardData } from "../queries";
 import { GENRES, isGenre } from "../schemas";
 
@@ -29,7 +30,7 @@ export function ArtistLens({
       default="none"
     >
       <div
-        className={`relative aspect-square overflow-hidden rounded-full bg-surface-2 ${className}`}
+        className={`relative ${CONTAINERS.artistLens} overflow-hidden rounded-full bg-surface-2 ${className}`}
       >
         {artist.portrait ? (
           <Picture

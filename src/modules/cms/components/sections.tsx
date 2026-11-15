@@ -6,6 +6,7 @@ import { TiltHeading } from "@/components/site/tilt-heading";
 import { ButtonLink } from "@/components/ui/button";
 import { Container } from "@/components/ui/container";
 import { Picture } from "@/components/ui/picture";
+import { CONTAINERS, mobileSource } from "@/modules/media/image-specs";
 import {
   ArtistCard,
   ArtistRow,
@@ -184,7 +185,9 @@ function Lens({
 }) {
   return (
     <figure className={`group/lens relative ${className}`}>
-      <div className="relative aspect-square overflow-hidden rounded-full bg-surface-2 outline-2 outline-offset-[10px] outline-line transition-[outline-color,outline-offset] duration-500 ease-(--ease-out) group-hover/lens:outline-offset-[18px] group-hover/lens:outline-accent">
+      <div
+        className={`relative ${CONTAINERS.lens} overflow-hidden rounded-full bg-surface-2 outline-2 outline-offset-[10px] outline-line transition-[outline-color,outline-offset] duration-500 ease-(--ease-out) group-hover/lens:outline-offset-[18px] group-hover/lens:outline-accent`}
+      >
         <Picture
           image={image}
           sizes={sizes}
@@ -300,6 +303,7 @@ export function HeroSection({ section, images, first }: SectionProps<"hero">) {
 
   if (layout === "image" && image) {
     const overlay = c.overlay;
+    const mobileImage = c.mobileImage ? images[c.mobileImage] : undefined;
     return (
       <section
         id={section.id}
@@ -307,6 +311,7 @@ export function HeroSection({ section, images, first }: SectionProps<"hero">) {
       >
         <Picture
           image={image}
+          mobile={mobileSource(mobileImage, "portrait")}
           sizes="100vw"
           priority={first}
           className="-z-20"
@@ -634,7 +639,9 @@ export function ServicesSection({ section, images }: SectionProps<"services">) {
                   ) : null}
                 </div>
                 {image ? (
-                  <div className="relative hidden aspect-[3/2] overflow-hidden rounded-(--radius) bg-surface-2 md:block">
+                  <div
+                    className={`relative hidden ${CONTAINERS.serviceRow} overflow-hidden rounded-(--radius) bg-surface-2 md:block`}
+                  >
                     <Picture
                       image={image}
                       decorative
@@ -674,7 +681,9 @@ export function ServicesSection({ section, images }: SectionProps<"services">) {
           const image = item.image ? images[item.image] : undefined;
           const inner = (
             <>
-              <div className="relative aspect-[4/3] overflow-hidden rounded-(--radius) bg-surface-2">
+              <div
+                className={`relative ${CONTAINERS.serviceTile} overflow-hidden rounded-(--radius) bg-surface-2`}
+              >
                 {image ? (
                   <Picture
                     image={image}
@@ -856,13 +865,20 @@ export function CtaSection({ section, images }: SectionProps<"cta">) {
   const c = section.content;
   const image = c.image ? images[c.image] : undefined;
   if (c.layout === "image" && image) {
+    const mobileImage = c.mobileImage ? images[c.mobileImage] : undefined;
     return (
       <section
         id={section.id}
         aria-label={c.heading}
         className="relative isolate overflow-hidden"
       >
-        <Picture image={image} sizes="100vw" decorative className="-z-20" />
+        <Picture
+          image={image}
+          mobile={mobileSource(mobileImage, "belowMd")}
+          sizes="100vw"
+          decorative
+          className="-z-20"
+        />
         <div
           aria-hidden
           className="absolute inset-0 -z-10 bg-linear-to-r from-bg via-bg/80 to-bg/30"
@@ -913,7 +929,9 @@ export function PortfolioSection({
           const image = item.image ? images[item.image] : undefined;
           const inner = (
             <>
-              <div className="relative aspect-[4/5] overflow-hidden rounded-(--radius) bg-surface-2">
+              <div
+                className={`relative ${CONTAINERS.portfolio} overflow-hidden rounded-(--radius) bg-surface-2`}
+              >
                 {image ? (
                   <Picture
                     image={image}

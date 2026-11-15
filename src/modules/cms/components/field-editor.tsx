@@ -1,8 +1,15 @@
 "use client";
 
 import { useId, type ReactNode } from "react";
+import { ImageGuide } from "@/modules/media/components/image-guide";
+import { checkImage, fitBadge } from "@/modules/media/image-check";
+import {
+  GUIDELINES_PATH,
+  IMAGE_SPECS,
+  type ImageSpecId,
+} from "@/modules/media/image-specs";
 import type { LibraryImage } from "../admin-queries";
-import type { FieldSpec } from "../fields";
+import type { FieldSpec, GuideRef } from "../fields";
 
 export type EditorContext = {
   library: LibraryImage[];
@@ -12,9 +19,13 @@ export type EditorContext = {
     multiple: boolean;
     selected: string[];
     onPick: (ids: string[]) => void;
+    /** The placement being filled, for size checks in the picker. */
+    spec?: ImageSpecId;
   }) => void;
   /** Validation messages keyed by dot path, e.g. "items.0.title". */
   errors: Record<string, string>;
+  /** The whole section, for fields whose guide follows a section setting. */
+  root?: Record<string, unknown>;
 };
 
 type Obj = Record<string, unknown>;
@@ -108,6 +119,36 @@ function Thumb({ image }: { image: LibraryImage | undefined }) {
 
 const smallButton =
   "inline-flex min-h-9 items-center rounded-full border border-line-strong px-3 text-xs text-muted hover:border-text hover:text-text disabled:opacity-40";
+
+function resolveGuide(
+  guide: GuideRef | undefined,
+  value: Obj,
+  root: Obj | undefined,
+): ImageSpecId | undefined {
+  if (!guide) return undefined;
+  if (typeof guide === "string") return guide;
+  const source = guide.section ? (root ?? value) : value;
+  return guide.map[String(getPath(source, guide.field) ?? "")];
+}
+
+/** Small "fits / too small" note under a chosen library photo. */
+function FitNote({
+  spec,
+  image,
+}: {
+  spec: ImageSpecId;
+  image: LibraryImage | undefined;
+}) {
+  if (!image) return null;
+  const badge = fitBadge(IMAGE_SPECS[spec], image.width, image.height);
+  return (
+    <span
+      className={`font-label text-[11px] ${badge.level === "warn" ? "text-accent" : "text-muted"}`}
+    >
+      {badge.level === "warn" ? `! ${badge.label}` : `✓ ${badge.label}`}
+    </span>
+  );
+}
 
 /** One field of a section or of the site settings. */
 export function FieldEditor({
@@ -262,6 +303,7 @@ export function FieldEditor({
     case "image": {
       const selected = String(current ?? "");
       const image = ctx.library.find((item) => item.id === selected);
+      const guide = resolveGuide(spec.guide, value, ctx.root);
       return (
         <Shell
           id={id}
@@ -281,6 +323,7 @@ export function FieldEditor({
                     multiple: false,
                     selected: selected ? [selected] : [],
                     onPick: (ids) => set(ids[0] ?? ""),
+                    spec: guide,
                   })
                 }
               >
@@ -302,12 +345,40 @@ export function FieldEditor({
               This photo is no longer in the media library. Choose another.
             </p>
           ) : null}
+          {guide ? (
+            <ImageGuide
+              compact
+              spec={IMAGE_SPECS[guide]}
+              guidelinesHref={`${GUIDELINES_PATH}#${IMAGE_SPECS[guide].fallbackFor ?? guide}`}
+              preview={
+                image
+                  ? {
+                      url: image.url,
+                      focus: { x: image.focalX, y: image.focalY },
+                      width: image.width,
+                      height: image.height,
+                    }
+                  : undefined
+              }
+              findings={
+                image
+                  ? checkImage(IMAGE_SPECS[guide], {
+                      width: image.width,
+                      height: image.height,
+                      bytes: 0,
+                      type: "",
+                    })
+                  : undefined
+              }
+            />
+          ) : null}
         </Shell>
       );
     }
 
     case "images": {
       const ids = (current as string[] | undefined) ?? [];
+      const guide = resolveGuide(spec.guide, value, ctx.root);
       const move = (from: number, to: number) => {
         const next = [...ids];
         const [item] = next.splice(from, 1);
@@ -329,6 +400,12 @@ export function FieldEditor({
                   <Thumb
                     image={ctx.library.find((item) => item.id === imageId)}
                   />
+                  {guide ? (
+                    <FitNote
+                      spec={guide}
+                      image={ctx.library.find((item) => item.id === imageId)}
+                    />
+                  ) : null}
                   <div className="flex gap-1">
                     <button
                       type="button"
@@ -371,12 +448,20 @@ export function FieldEditor({
                   multiple: true,
                   selected: ids,
                   onPick: (picked) => set(picked.slice(0, spec.max)),
+                  spec: guide,
                 })
               }
             >
               Choose photos
             </button>
           </div>
+          {guide ? (
+            <ImageGuide
+              compact
+              spec={IMAGE_SPECS[guide]}
+              guidelinesHref={`${GUIDELINES_PATH}#${guide}`}
+            />
+          ) : null}
         </Shell>
       );
     }

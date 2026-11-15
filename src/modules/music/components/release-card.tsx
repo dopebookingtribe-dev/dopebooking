@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Picture } from "@/components/ui/picture";
+import { CONTAINERS } from "@/modules/media/image-specs";
 import { formatCents } from "@/modules/marketplace/schemas";
 import { releaseHref, type ReleaseCard as Card } from "../queries";
 import { RELEASE_TYPES } from "../schemas";
@@ -25,7 +26,7 @@ export function ReleaseCard({
         />
         <Link
           href={href}
-          className="relative block aspect-square overflow-hidden rounded-(--radius) bg-surface-2 shadow-xl shadow-black/40"
+          className={`relative block ${CONTAINERS.releaseCover} overflow-hidden rounded-(--radius) bg-surface-2 shadow-xl shadow-black/40`}
         >
           {release.cover ? (
             <Picture

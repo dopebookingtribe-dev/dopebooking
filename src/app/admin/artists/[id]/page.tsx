@@ -22,6 +22,7 @@ import { DeleteArtistForm } from "@/modules/artists/components/admin/delete-arti
 import { StatusBadge } from "@/components/admin/admin-ui";
 import { ImageGrid } from "@/modules/media/components/image-grid";
 import { ImageUploader } from "@/modules/media/components/image-uploader";
+import { GUIDELINES_PATH } from "@/modules/media/image-specs";
 import { mediaFolder } from "@/modules/media/server";
 
 export const metadata: Metadata = { title: "Edit artist" };
@@ -87,7 +88,7 @@ async function Editor({
 
         <Section
           title="Photos"
-          description="The portrait leads the directory card (4:5 works best). The cover is the wide photo at the top of the profile."
+          description="The portrait is shown round on cards and the profile, and as a tile in event lineups. The cover feeds the moving kaleidoscope at the top of the profile. Other photos fill the profile's photo mosaic."
         >
           <div className="flex flex-col gap-8">
             <ImageGrid
@@ -105,6 +106,21 @@ async function Editor({
             <ImageUploader
               folder={mediaFolder("artist", artist.id)}
               register={registerArtistImage.bind(null, artist.id)}
+              multiple
+              guidelinesHref={GUIDELINES_PATH}
+              roles={[
+                {
+                  spec: "artist-portrait",
+                  label: "Portrait",
+                  assign: setArtistPortrait.bind(null, artist.id),
+                },
+                {
+                  spec: "artist-cover",
+                  label: "Cover",
+                  assign: setArtistCover.bind(null, artist.id),
+                },
+                { spec: "artist-photo", label: "Profile photos" },
+              ]}
             />
           </div>
         </Section>

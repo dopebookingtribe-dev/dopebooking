@@ -136,3 +136,14 @@ When Stripe test mode is set up (Phase 08):
 - [ ] The artist adds bank details and requests a payout; in **Music finance** approve it, send the transfer, **Mark as paid** with the bank reference; the artist sees **Paid**
 - [ ] Refund the order in **Admin → Orders**: the artist's balance shows the refund and the buyer's downloads disappear
 - [ ] Try to buy the same release again while signed in: checkout says you already own it
+
+## Image size guidelines
+
+Run once: `20261115000000_event_mobile_cover.sql` (adds the optional phone cover for events; until then everything else works and the phone-cover option stays hidden). Then, signed in as admin:
+
+- [ ] **Admin → Media & Image Guidelines**: every placement is listed by site section with desktop, tablet and mobile sizes, shape, files and max size. Search for “4:5” and filter by **Events**; open a visual guide; **Copy brief for a designer** pastes a text summary.
+- [ ] **Admin → Pages → Services**: the hero photo field shows its size guide with your current photo cropped for desktop, tablet and mobile; a second field, **Photo for phones**, appears for the full-screen layout. Choose a portrait photo there, publish, and check `/services` on a phone (or the browser's phone view): the phone photo shows; on desktop the main one does.
+- [ ] In the photo picker opened from a field, each library photo shows **Fits**, **Too small** or **Heavy crop** for that spot. Upload a new photo from the picker: it is checked first and selected automatically.
+- [ ] **Admin → Artists → artist → Photos**: pick **Portrait**, **Cover** or **Profile photos**, choose a file, and read the checks before uploading (a small or wrongly shaped photo shows a warning and the button says **Upload anyway**). Uploading as Portrait or Cover sets it straight away.
+- [ ] **Admin → Events → event → Cover image**: upload a **Phone cover** (portrait) and check the event on a phone: the showcase card and page header use it; **Not the phone cover** switches back.
+- [ ] Galleries, video posters, seller logos, product photos and release artwork show the same guide and checks.

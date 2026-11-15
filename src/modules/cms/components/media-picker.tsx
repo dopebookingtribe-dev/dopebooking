@@ -3,6 +3,14 @@
 import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { ImageUploader } from "@/modules/media/components/image-uploader";
+import { fitBadge } from "@/modules/media/image-check";
+import {
+  GUIDELINES_PATH,
+  IMAGE_SPECS,
+  ratioLabel,
+  sizeLabel,
+  type ImageSpecId,
+} from "@/modules/media/image-specs";
 import { registerLibraryImage } from "../actions";
 import type { LibraryImage } from "../admin-queries";
 
@@ -10,6 +18,8 @@ export type PickRequest = {
   multiple: boolean;
   selected: string[];
   onPick: (ids: string[]) => void;
+  /** The placement being filled: size badges and upload checks follow it. */
+  spec?: ImageSpecId;
 };
 
 /** Modal grid of library photos, with an upload form for new ones. */
@@ -26,6 +36,10 @@ export function MediaPicker({
   const [selected, setSelected] = useState<string[]>([]);
   const [query, setQuery] = useState("");
   const [uploading, setUploading] = useState(false);
+  // A fresh upload for a single photo field, used as soon as the refreshed
+  // library includes it.
+  const [waitingFor, setWaitingFor] = useState<string | null>(null);
+  const spec = request?.spec ? IMAGE_SPECS[request.spec] : null;
 
   useEffect(() => {
     const dialog = dialogRef.current;
@@ -34,10 +48,18 @@ export function MediaPicker({
       setSelected(request.selected);
       setQuery("");
       setUploading(false);
+      setWaitingFor(null);
       dialog.showModal();
     }
     if (!request && dialog.open) dialog.close();
   }, [request]);
+
+  useEffect(() => {
+    if (!waitingFor || !request) return;
+    if (!library.some((image) => image.id === waitingFor)) return;
+    request.onPick([waitingFor]);
+    onClose();
+  }, [waitingFor, library, request, onClose]);
 
   const toggle = (id: string) => {
     if (!request) return;
@@ -68,7 +90,19 @@ export function MediaPicker({
     >
       <div className="flex h-full flex-col">
         <div className="flex flex-wrap items-center justify-between gap-3 border-b border-line px-5 py-4">
-          <h2 className="font-display text-2xl">Media library</h2>
+          <div>
+            <h2 className="font-display text-2xl">Media library</h2>
+            {spec ? (
+              <p className="mt-1 text-sm text-muted">
+                For {spec.title.toLowerCase()}:{" "}
+                <span className="text-accent">
+                  {sizeLabel(spec.size)}
+                  {spec.anyRatio ? "" : ` (${ratioLabel(...spec.size)})`}
+                </span>
+                , at least {sizeLabel(spec.min)}.
+              </p>
+            ) : null}
+          </div>
           <div className="flex flex-wrap items-center gap-2">
             <input
               type="search"
@@ -92,14 +126,30 @@ export function MediaPicker({
 
         <div className="min-h-0 flex-1 overflow-y-auto p-5">
           {uploading ? (
-            <div className="max-w-2xl">
+            <div className="max-w-3xl">
               <ImageUploader
                 folder="library/site"
-                multiple
+                multiple={request?.multiple ?? true}
                 register={registerLibraryImage}
+                roles={request?.spec ? [{ spec: request.spec }] : []}
+                guidelinesHref={GUIDELINES_PATH}
+                onUploaded={(ids) => {
+                  if (!ids.length || !request) return;
+                  setUploading(false);
+                  if (request.multiple) {
+                    setSelected((value) => [
+                      ...value,
+                      ...ids.filter((id) => !value.includes(id)),
+                    ]);
+                  } else {
+                    setWaitingFor(ids[0]);
+                  }
+                }}
               />
               <p className="mt-4 text-sm text-muted">
-                New photos appear in the library after uploading.
+                {request?.multiple
+                  ? "New photos are added to your selection after uploading."
+                  : "The new photo is used here as soon as it has uploaded."}
               </p>
             </div>
           ) : shown.length ? (
@@ -139,6 +189,32 @@ export function MediaPicker({
                     <p className="mt-1 truncate text-xs text-muted">
                       {image.alt}
                     </p>
+                    <p className="flex flex-wrap gap-x-2 font-label text-[11px] text-muted">
+                      <span>
+                        {image.width} × {image.height}
+                      </span>
+                      {spec
+                        ? (() => {
+                            const badge = fitBadge(
+                              spec,
+                              image.width,
+                              image.height,
+                            );
+                            return (
+                              <span
+                                className={
+                                  badge.level === "warn"
+                                    ? "text-accent"
+                                    : "text-success"
+                                }
+                              >
+                                {badge.level === "warn" ? "!" : "✓"}{" "}
+                                {badge.label}
+                              </span>
+                            );
+                          })()
+                        : null}
+                    </p>
                   </li>
                 );
               })}
@@ -151,6 +227,15 @@ export function MediaPicker({
             </p>
           )}
         </div>
+
+        {waitingFor ? (
+          <p
+            role="status"
+            className="border-t border-line px-5 py-3 text-sm text-muted"
+          >
+            Adding the new photo…
+          </p>
+        ) : null}
 
         {request?.multiple && !uploading ? (
           <div className="flex items-center justify-between gap-3 border-t border-line px-5 py-4">

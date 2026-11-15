@@ -102,7 +102,7 @@ async function Editor({
         </EditSection>
         <EditSection
           title="Photos"
-          description="The cover appears in the shop grid. Square or 4:5 photos work best."
+          description="The cover leads in the shop grid and on the product page. Portrait 4:5 photos fit best; extra photos are shown square."
         >
           <div className="flex flex-col gap-8">
             <ImageGrid
@@ -117,6 +117,7 @@ async function Editor({
               register={registerProductImage.bind(null, product.id)}
               multiple
               defaultAlt={product.title}
+              roles={[{ spec: "product-photo" }]}
             />
           </div>
         </EditSection>

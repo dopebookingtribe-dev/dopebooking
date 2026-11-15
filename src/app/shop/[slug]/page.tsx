@@ -5,6 +5,7 @@ import { Suspense } from "react";
 import { Container } from "@/components/ui/container";
 import { DemoBadge } from "@/components/ui/demo-badge";
 import { Picture } from "@/components/ui/picture";
+import { CONTAINERS } from "@/modules/media/image-specs";
 import { getSiteSettings } from "@/modules/cms/queries";
 import { Meta } from "@/components/ui/meta";
 import { AddToCart } from "@/modules/marketplace/components/add-to-cart";
@@ -89,7 +90,7 @@ async function Product({ params }: { params: Props["params"] }) {
             product.images.map((image, index) => (
               <div
                 key={image.id}
-                className={`relative overflow-hidden rounded-(--radius) bg-surface-2 ${index === 0 ? "aspect-[4/5] sm:col-span-2" : "aspect-square"}`}
+                className={`relative overflow-hidden rounded-(--radius) bg-surface-2 ${index === 0 ? `${CONTAINERS.productLead} sm:col-span-2` : CONTAINERS.productThumb}`}
               >
                 <Picture
                   image={image}

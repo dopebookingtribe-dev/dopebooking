@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { Suspense } from "react";
-import { ADMIN_GROUPS } from "@/components/admin/admin-nav";
+import { ADMIN_GROUPS, canSee } from "@/components/admin/admin-nav";
 import { Container } from "@/components/ui/container";
 import { requireRole, STAFF_ROLES } from "@/lib/auth/dal";
 import { getPermissions } from "@/lib/auth/permissions";
@@ -30,9 +30,7 @@ async function AdminHome() {
       </p>
       <div className="mt-12 flex flex-col gap-12">
         {ADMIN_GROUPS.map((group) => {
-          const links = group.links.filter((link) =>
-            permissions.has(link.permission),
-          );
+          const links = group.links.filter((link) => canSee(link, permissions));
           if (!links.length) return null;
           return (
             <section key={group.title} aria-labelledby={`group-${group.title}`}>

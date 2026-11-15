@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { DemoBadge } from "@/components/ui/demo-badge";
 import { Picture } from "@/components/ui/picture";
+import { CONTAINERS } from "@/modules/media/image-specs";
 import type { GalleryCard as GalleryCardData } from "../queries";
 
 export function GalleryCard({
@@ -17,7 +18,7 @@ export function GalleryCard({
       href={`/gallery/${gallery.slug}`}
       className="group relative block overflow-hidden rounded-(--radius) bg-surface-2"
     >
-      <div className="relative aspect-[3/2]">
+      <div className={`relative ${CONTAINERS.galleryCard}`}>
         {gallery.cover ? (
           <Picture
             image={gallery.cover}

@@ -2,7 +2,7 @@
 -- Run with: npx supabase test db
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(9);
+select plan(11);
 
 insert into public.artists (id, slug, stage_name, status) values
   ('10000000-0000-0000-0000-000000000001', 'live-act', 'Live Act', 'published'),
@@ -49,7 +49,23 @@ select throws_ok(
   $$insert into public.events (slug, title, starts_at) values ('x', 'X', now())$$,
   '42501', null, 'anon cannot create events'
 );
+select lives_ok(
+  $$select mobile_cover_asset_id from public.events$$,
+  'anon can read the phone cover of public events'
+);
 reset role;
+
+insert into public.media_assets (id, event_id, storage_path, alt_text) values
+  ('50000000-0000-0000-0000-000000000001', '20000000-0000-0000-0000-000000000001', 'events/a/phone.jpg', 'Phone cover');
+update public.events
+  set mobile_cover_asset_id = '50000000-0000-0000-0000-000000000001'
+  where id = '20000000-0000-0000-0000-000000000001';
+delete from public.media_assets where id = '50000000-0000-0000-0000-000000000001';
+select is(
+  (select mobile_cover_asset_id from public.events where id = '20000000-0000-0000-0000-000000000001'),
+  null,
+  'deleting the phone cover photo clears it from the event'
+);
 
 select * from finish();
 rollback;

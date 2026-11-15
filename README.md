@@ -54,6 +54,7 @@ Everything visitors see is edited in **Admin** (`/admin`):
 
 - **Pages**: every public page is a list of sections (hero, artists, events, gallery, services, packages, steps, FAQ, call to action…). Edit text and photos, reorder, hide, add or delete sections, preview the draft, then publish.
 - **Media library**: upload photos once and use them in any section; click a photo to set what stays in view when cropped.
+- **Media & Image Guidelines**: the size to design for every image on the site (desktop, tablet and mobile), with safe areas and crops. Every upload field shows the same guide and checks a photo before it uploads. The sizes live in `src/modules/media/image-specs.ts`, which the front end also reads its image frames from.
 - **Site settings**: menu and dropdowns, header button, footer columns, contact, social links, search defaults, demo labels.
 - **Artists, events, galleries, videos, products, categories**: the catalogue, featuring and order.
 - **Music**: review artists' releases, feature them, manage genres and link artist accounts. **Music finance**: commission, earnings, adjustments and payouts. Artists upload and sell from **Dashboard → My music**.

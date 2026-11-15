@@ -1,6 +1,8 @@
 import "server-only";
 import { cacheLife, cacheTag } from "next/cache";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Image } from "@/lib/media";
+import type { Database } from "@/lib/supabase/database.types";
 import { createPublicClient } from "@/lib/supabase/public";
 import { fetchImagesById } from "@/modules/media/queries";
 
@@ -20,6 +22,8 @@ export type EventCard = {
   featured: boolean;
   isDemo: boolean;
   cover: Image | null;
+  /** Portrait cover for phones; falls back to `cover` when null. */
+  mobileCover: Image | null;
   updatedAt: string;
 };
 
@@ -61,7 +65,12 @@ type CardRow = {
   updated_at: string;
 };
 
-function toCard(row: CardRow, covers: Map<string, Image>): EventCard {
+function toCard(
+  row: CardRow,
+  covers: Map<string, Image>,
+  mobileCoverIds: Map<string, string> = new Map(),
+): EventCard {
+  const mobileId = mobileCoverIds.get(row.id);
   return {
     id: row.id,
     slug: row.slug,
@@ -76,8 +85,31 @@ function toCard(row: CardRow, covers: Map<string, Image>): EventCard {
     featured: row.featured,
     isDemo: row.is_demo,
     cover: row.cover_asset_id ? (covers.get(row.cover_asset_id) ?? null) : null,
+    mobileCover: mobileId ? (covers.get(mobileId) ?? null) : null,
     updatedAt: row.updated_at,
   };
+}
+
+/**
+ * Phone covers by event id. Read on their own so event pages keep working
+ * on a database without migration 20261115000000 (the column is missing
+ * there, and events simply have no phone cover).
+ */
+async function fetchMobileCoverIds(
+  supabase: SupabaseClient<Database>,
+  eventIds: string[],
+): Promise<Map<string, string>> {
+  const ids = new Map<string, string>();
+  if (!eventIds.length) return ids;
+  const { data, error } = await supabase
+    .from("events")
+    .select("id, mobile_cover_asset_id")
+    .in("id", eventIds);
+  if (error) return ids;
+  for (const row of data) {
+    if (row.mobile_cover_asset_id) ids.set(row.id, row.mobile_cover_asset_id);
+  }
+  return ids;
 }
 
 /**
@@ -101,12 +133,16 @@ export async function getPublishedEvents(): Promise<{
     .order("starts_at");
   if (error) throw new Error(`Failed to load events: ${error.message}`);
 
-  const covers = await fetchImagesById(
+  const mobileCoverIds = await fetchMobileCoverIds(
     supabase,
-    data.map((row) => row.cover_asset_id),
+    data.map((row) => row.id),
   );
+  const covers = await fetchImagesById(supabase, [
+    ...data.map((row) => row.cover_asset_id),
+    ...mobileCoverIds.values(),
+  ]);
   const now = new Date().toISOString();
-  const cards = data.map((row) => toCard(row, covers));
+  const cards = data.map((row) => toCard(row, covers, mobileCoverIds));
   return {
     upcoming: cards.filter((event) => (event.endsAt ?? event.startsAt) >= now),
     past: cards
@@ -155,14 +191,16 @@ export async function getPublishedEvent(
     throw new Error(`Failed to load lineup: ${artistsError.message}`);
   }
 
+  const mobileCoverIds = await fetchMobileCoverIds(supabase, [event.id]);
   const images = await fetchImagesById(supabase, [
     event.cover_asset_id,
+    ...mobileCoverIds.values(),
     ...artists.map((artist) => artist.portrait_asset_id),
   ]);
   const byId = new Map(artists.map((artist) => [artist.id, artist]));
 
   return {
-    ...toCard(event, images),
+    ...toCard(event, images, mobileCoverIds),
     isPast: (event.ends_at ?? event.starts_at) < new Date().toISOString(),
     description: event.description,
     ticketUrl: event.ticket_url,

@@ -140,7 +140,7 @@ async function Editor({
 
         <EditSection
           title="Artwork"
-          description="Square, at least 1400 × 1400 px. Your own or licensed artwork only."
+          description="Square artwork, never cropped. Your own or licensed artwork only."
         >
           <div className="flex flex-col gap-6">
             {cover ? (
@@ -161,6 +161,7 @@ async function Editor({
                 folder={mediaFolder("music", release.id)}
                 register={registerReleaseCover.bind(null, release.id)}
                 defaultAlt={`${release.title} artwork`}
+                roles={[{ spec: "music-cover" }]}
               />
             ) : null}
           </div>

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { DemoBadge } from "@/components/ui/demo-badge";
 import { Picture } from "@/components/ui/picture";
+import { CONTAINERS } from "@/modules/media/image-specs";
 import type { ShopCard } from "../queries";
 import { formatCents } from "../schemas";
 
@@ -17,7 +18,9 @@ export function ProductCard({
 }) {
   return (
     <Link href={`/shop/${product.slug}`} className="group block">
-      <div className="relative aspect-[4/5] overflow-hidden rounded-(--radius) bg-surface-2">
+      <div
+        className={`relative ${CONTAINERS.productCard} overflow-hidden rounded-(--radius) bg-surface-2`}
+      >
         {product.cover ? (
           <Picture
             image={product.cover}

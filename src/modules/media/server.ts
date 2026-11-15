@@ -8,7 +8,9 @@ export const BUCKET = "public-media";
 
 export type MediaOwnerKind =
   "artist" | "event" | "gallery" | "video" | "product" | "seller" | "music";
-export type ImageResult = { ok: true } | { ok: false; message: string };
+/** `id` is the new media asset, so the uploader can give it a role. */
+export type ImageResult =
+  { ok: true; id?: string } | { ok: false; message: string };
 
 type Client = SupabaseClient<Database>;
 
@@ -168,7 +170,7 @@ export async function registerOwnedImage(
   if (error) return { ok: false, message: "Could not save the photo." };
 
   await setLeadImage(supabase, kind, ownerId, asset.id, true);
-  return { ok: true };
+  return { ok: true, id: asset.id };
 }
 
 export async function makeLeadImage(

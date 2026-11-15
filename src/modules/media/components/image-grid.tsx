@@ -2,6 +2,7 @@ import Image from "next/image";
 import { buttonClasses } from "@/components/ui/button";
 import { ConfirmSubmit } from "@/components/ui/confirm-submit";
 import type { Image as ImageData } from "@/lib/media";
+import { ratioLabel } from "../image-specs";
 
 /**
  * Admin grid of an owner's photos. `makeLead` and `remove` are server
@@ -25,6 +26,8 @@ export function ImageGrid({
     id: string | null;
     label: string;
     set: (assetId: string) => Promise<void>;
+    /** Removes the role (the site falls back to the lead image). */
+    clear?: () => Promise<void>;
   };
 }) {
   if (!images.length) {
@@ -59,6 +62,10 @@ export function ImageGrid({
               </span>
             </div>
             <p className="line-clamp-2 text-xs text-muted">{image.alt}</p>
+            <p className="font-label text-[11px] text-muted">
+              {image.width} × {image.height} px ·{" "}
+              {ratioLabel(image.width, image.height)}
+            </p>
             <div className="flex flex-wrap gap-2">
               {!isLead ? (
                 <form action={makeLead.bind(null, image.id)}>
@@ -83,6 +90,16 @@ export function ImageGrid({
                     )}
                   >
                     Make {second.label.toLowerCase()}
+                  </button>
+                </form>
+              ) : null}
+              {second?.clear && second.id === image.id ? (
+                <form action={second.clear}>
+                  <button
+                    type="submit"
+                    className={buttonClasses("ghost", "min-h-9 px-3 text-xs")}
+                  >
+                    Not the {second.label.toLowerCase()}
                   </button>
                 </form>
               ) : null}

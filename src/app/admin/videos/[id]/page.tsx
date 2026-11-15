@@ -10,6 +10,7 @@ import {
 import { Container } from "@/components/ui/container";
 import { ImageGrid } from "@/modules/media/components/image-grid";
 import { ImageUploader } from "@/modules/media/components/image-uploader";
+import { GUIDELINES_PATH } from "@/modules/media/image-specs";
 import { mediaFolder } from "@/modules/media/server";
 import {
   deleteVideoImage,
@@ -102,6 +103,14 @@ async function Editor({
             <ImageUploader
               folder={mediaFolder("video", video.id)}
               register={registerVideoPoster.bind(null, video.id)}
+              guidelinesHref={GUIDELINES_PATH}
+              roles={[
+                {
+                  spec: "video-poster",
+                  label: "Poster",
+                  assign: setVideoPoster.bind(null, video.id),
+                },
+              ]}
             />
           </div>
         </EditSection>

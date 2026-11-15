@@ -101,6 +101,8 @@ export function collectImageIds(page: PageContent): string[] {
     switch (section.type) {
       case "hero":
       case "cta":
+        ids.push(section.content.image, section.content.mobileImage ?? "");
+        break;
       case "editorial":
         ids.push(section.content.image);
         break;

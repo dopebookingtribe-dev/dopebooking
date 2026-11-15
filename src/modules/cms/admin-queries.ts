@@ -1,6 +1,8 @@
 import "server-only";
 import { publicObjectUrl } from "@/lib/media";
 import { createClient } from "@/lib/supabase/server";
+import type { ImageSpecId } from "@/modules/media/image-specs";
+import { HERO_GUIDES } from "./fields";
 import {
   DEFAULT_PAGES,
   DEFAULT_SETTINGS,
@@ -8,6 +10,7 @@ import {
   PAGES,
   type PageKey,
 } from "./pages";
+import { getPublishedPage, getSiteSettings } from "./queries";
 import {
   parsePageContent,
   parseSettings,
@@ -173,4 +176,69 @@ export async function getBuilderOptions() {
     })),
     categories: categories.data ?? [],
   };
+}
+
+export type ImageUsage = Partial<
+  Record<ImageSpecId, { label: string; href: string }[]>
+>;
+
+/**
+ * Which published pages use each page-builder image placement, for the
+ * Media & Image Guidelines page. Hidden sections don't count.
+ */
+export async function getImageUsage(): Promise<ImageUsage> {
+  const [pages, settings] = await Promise.all([
+    Promise.all(
+      PAGE_KEYS.map(async (key) => [key, await getPublishedPage(key)] as const),
+    ),
+    getSiteSettings(),
+  ]);
+  const usage: ImageUsage = {};
+  const add = (id: ImageSpecId, label: string, href: string) => {
+    const list = (usage[id] ??= []);
+    if (!list.some((item) => item.label === label)) list.push({ label, href });
+  };
+
+  for (const [key, page] of pages) {
+    const label = PAGES[key].title;
+    const href = `/admin/pages/${key}`;
+    for (const section of page.sections) {
+      if (!section.visible) continue;
+      switch (section.type) {
+        case "hero": {
+          const layout = section.content.layout;
+          if (layout in HERO_GUIDES) {
+            add(HERO_GUIDES[layout as keyof typeof HERO_GUIDES], label, href);
+          }
+          break;
+        }
+        case "cta":
+          if (section.content.layout === "image") add("cta-photo", label, href);
+          break;
+        case "services":
+          add(
+            section.content.layout === "rows"
+              ? "services-row"
+              : "services-tile",
+            label,
+            href,
+          );
+          break;
+        case "editorial":
+          add("editorial-photo", label, href);
+          break;
+        case "portfolio":
+          add("portfolio-photo", label, href);
+          break;
+        case "gallery":
+          add("gallery-section", label, href);
+          break;
+      }
+    }
+    if (page.seo.image) add("share-image", label, href);
+  }
+  if (settings.seo.image) {
+    add("share-image", "Default (Site settings)", "/admin/settings");
+  }
+  return usage;
 }

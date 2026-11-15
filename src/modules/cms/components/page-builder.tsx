@@ -335,7 +335,10 @@ export function PageBuilder(props: Props) {
                             ),
                           )
                         }
-                        ctx={ctx(`sections.${index}.content.`)}
+                        ctx={{
+                          ...ctx(`sections.${index}.content.`),
+                          root: section.content as Record<string, unknown>,
+                        }}
                         errorPath=""
                       />
                     ))

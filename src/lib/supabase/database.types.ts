@@ -172,6 +172,8 @@ export type EventRow = {
   status: ContentStatus;
   featured: boolean;
   cover_asset_id: string | null;
+  /** Portrait cover for phones (migration 20261115000000). */
+  mobile_cover_asset_id: string | null;
   is_demo: boolean;
   seo_title: string | null;
   seo_description: string | null;

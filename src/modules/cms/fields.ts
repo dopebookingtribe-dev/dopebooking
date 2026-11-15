@@ -1,3 +1,4 @@
+import type { ImageSpecId } from "@/modules/media/image-specs";
 import { BUILTIN_BLOCKS, SOCIAL_PLATFORMS, type SectionType } from "./schema";
 
 /*
@@ -14,14 +15,35 @@ type Base = {
   when?: { field: string; is: string[] };
 };
 
+/**
+ * Which image size guide (media/image-specs.ts) a photo field shows. It can
+ * follow another field: `section: true` reads it from the section rather
+ * than from the same list item.
+ */
+export type GuideRef =
+  | ImageSpecId
+  | {
+      field: string;
+      map: Partial<Record<string, ImageSpecId>>;
+      section?: boolean;
+    };
+
+/** Size guide for each hero layout that uses a photo. */
+export const HERO_GUIDES = {
+  image: "hero-photo",
+  kaleidoscope: "hero-kaleidoscope",
+  split: "hero-split",
+  compact: "hero-compact",
+} as const satisfies Partial<Record<string, ImageSpecId>>;
+
 export type FieldSpec =
   | (Base & { kind: "text"; long?: boolean; max: number })
   | (Base & { kind: "link" })
   | (Base & { kind: "select"; options: Record<string, string> })
   | (Base & { kind: "number"; min: number; max: number })
   | (Base & { kind: "toggle" })
-  | (Base & { kind: "image" })
-  | (Base & { kind: "images"; max: number })
+  | (Base & { kind: "image"; guide?: GuideRef })
+  | (Base & { kind: "images"; max: number; guide?: GuideRef })
   | (Base & { kind: "artists" })
   | (Base & { kind: "category" })
   | (Base & { kind: "strings"; max: number })
@@ -159,7 +181,24 @@ export const SECTION_FIELDS: Record<SectionType, FieldSpec[]> = {
     { kind: "text", name: "body", label: "Text", long: true, max: 400 },
     { kind: "link", name: "primary", label: "Main button" },
     { kind: "link", name: "secondary", label: "Second button" },
-    { kind: "image", name: "image", label: "Photo" },
+    {
+      kind: "image",
+      name: "image",
+      label: "Photo",
+      when: {
+        field: "layout",
+        is: ["kaleidoscope", "image", "split", "compact"],
+      },
+      guide: { field: "layout", map: HERO_GUIDES },
+    },
+    {
+      kind: "image",
+      name: "mobileImage",
+      label: "Photo for phones (optional)",
+      hint: "Shown on phones and tablets held upright. Without it they show the photo above, cropped to the centre.",
+      when: { field: "layout", is: ["image"] },
+      guide: "hero-photo-mobile",
+    },
     {
       kind: "number",
       name: "overlay",
@@ -223,7 +262,13 @@ export const SECTION_FIELDS: Record<SectionType, FieldSpec[]> = {
     heading(),
     intro,
     sectionLink,
-    { kind: "images", name: "images", label: "Photos", max: 24 },
+    {
+      kind: "images",
+      name: "images",
+      label: "Photos",
+      max: 24,
+      guide: "gallery-section",
+    },
     {
       kind: "select",
       name: "layout",
@@ -293,7 +338,16 @@ export const SECTION_FIELDS: Record<SectionType, FieldSpec[]> = {
           max: 500,
           hint: "A site path like /services/catering, or empty.",
         },
-        { kind: "image", name: "image", label: "Photo" },
+        {
+          kind: "image",
+          name: "image",
+          label: "Photo",
+          guide: {
+            field: "layout",
+            section: true,
+            map: { tiles: "services-tile", rows: "services-row" },
+          },
+        },
       ],
     },
   ],
@@ -307,7 +361,7 @@ export const SECTION_FIELDS: Record<SectionType, FieldSpec[]> = {
       max: 3000,
       hint: "Leave an empty line between paragraphs.",
     },
-    { kind: "image", name: "image", label: "Photo" },
+    { kind: "image", name: "image", label: "Photo", guide: "editorial-photo" },
     {
       kind: "select",
       name: "imageSide",
@@ -415,6 +469,15 @@ export const SECTION_FIELDS: Record<SectionType, FieldSpec[]> = {
       name: "image",
       label: "Photo",
       when: { field: "layout", is: ["image"] },
+      guide: "cta-photo",
+    },
+    {
+      kind: "image",
+      name: "mobileImage",
+      label: "Photo for phones (optional)",
+      hint: "Shown on screens narrower than 768 px. Without it, phones show the photo above, cropped to the centre.",
+      when: { field: "layout", is: ["image"] },
+      guide: "cta-photo-mobile",
     },
   ],
   portfolio: [
@@ -432,7 +495,12 @@ export const SECTION_FIELDS: Record<SectionType, FieldSpec[]> = {
         { kind: "text", name: "name", label: "Name", max: 80 },
         { kind: "text", name: "role", label: "Role or type", max: 80 },
         { kind: "text", name: "body", label: "Text", long: true, max: 400 },
-        { kind: "image", name: "image", label: "Photo" },
+        {
+          kind: "image",
+          name: "image",
+          label: "Photo",
+          guide: "portfolio-photo",
+        },
         { kind: "text", name: "href", label: "Link (optional)", max: 500 },
       ],
     },
@@ -486,7 +554,13 @@ export const SEO_FIELDS: FieldSpec[] = [
     long: true,
     max: 200,
   },
-  { kind: "image", name: "image", label: "Share image" },
+  {
+    kind: "image",
+    name: "image",
+    label: "Share image",
+    hint: "Empty uses the default share image from Site settings.",
+    guide: "share-image",
+  },
 ];
 
 const navLinkFields: FieldSpec[] = [
@@ -616,7 +690,12 @@ export const SETTINGS_FIELDS: { title: string; fields: FieldSpec[] }[] = [
         long: true,
         max: 200,
       },
-      { kind: "image", name: "seo.image", label: "Default share image" },
+      {
+        kind: "image",
+        name: "seo.image",
+        label: "Default share image",
+        guide: "share-image",
+      },
     ],
   },
   {

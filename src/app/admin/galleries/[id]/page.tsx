@@ -18,6 +18,7 @@ import { getGalleryForAdmin } from "@/modules/galleries/admin-queries";
 import { GalleryDetailsForm } from "@/modules/galleries/components/admin/gallery-details-form";
 import { ImageGrid } from "@/modules/media/components/image-grid";
 import { ImageUploader } from "@/modules/media/components/image-uploader";
+import { GUIDELINES_PATH } from "@/modules/media/image-specs";
 import { mediaFolder } from "@/modules/media/server";
 
 export const metadata: Metadata = { title: "Edit gallery" };
@@ -75,7 +76,7 @@ async function Editor({
         </EditSection>
         <EditSection
           title={`Photos (${images.length})`}
-          description="Select many photos at once. They share one description unless you type another."
+          description="Select many photos at once. They share one description unless you type another. Photos are shown whole; the cover is cropped to 3:2 on gallery cards."
         >
           <div className="flex flex-col gap-8">
             <ImageUploader
@@ -83,6 +84,8 @@ async function Editor({
               register={registerGalleryImage.bind(null, gallery.id)}
               multiple
               defaultAlt={`Photo from ${gallery.title}`}
+              guidelinesHref={GUIDELINES_PATH}
+              roles={[{ spec: "gallery-photo" }]}
             />
             <ImageGrid
               images={images}

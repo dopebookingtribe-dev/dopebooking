@@ -152,6 +152,31 @@ export async function setEventCover(eventId: string, assetId: string) {
   }
 }
 
+/**
+ * Sets the portrait cover phones show instead of the main cover, or clears
+ * it with `null`. Needs migration 20261115000000.
+ */
+export async function setEventMobileCover(
+  eventId: string,
+  assetId: string | null,
+) {
+  const { supabase } = await staffClient(path(eventId));
+  if (assetId) {
+    const { data: asset } = await supabase
+      .from("media_assets")
+      .select("id")
+      .eq("id", assetId)
+      .eq("event_id", eventId)
+      .maybeSingle();
+    if (!asset) return;
+  }
+  const { error } = await supabase
+    .from("events")
+    .update({ mobile_cover_asset_id: assetId })
+    .eq("id", eventId);
+  if (!error) updateTag(EVENTS_TAG);
+}
+
 export async function deleteEventImage(eventId: string, assetId: string) {
   const { supabase } = await staffClient(path(eventId));
   if (await deleteOwnedImage(supabase, "event", eventId, assetId)) {

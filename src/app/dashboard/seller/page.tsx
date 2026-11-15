@@ -189,7 +189,7 @@ async function Shop({
 
         <EditSection
           title="Logo"
-          description="Square images work best. Uploading replaces the current logo."
+          description="Shown in a small circle on your storefront. Uploading replaces the current logo."
         >
           <div className="flex flex-col gap-6">
             {logo ? (
@@ -207,6 +207,7 @@ async function Shop({
               folder={mediaFolder("seller", seller.id)}
               register={registerSellerLogo}
               defaultAlt={`${seller.display_name} logo`}
+              roles={[{ spec: "seller-logo" }]}
             />
           </div>
         </EditSection>

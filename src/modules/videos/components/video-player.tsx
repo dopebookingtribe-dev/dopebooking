@@ -8,6 +8,7 @@ import {
   VIDEO_PROVIDERS,
   type VideoSource,
 } from "@/lib/video";
+import { CONTAINERS } from "@/modules/media/image-specs";
 
 /**
  * Click-to-play facade: shows a poster and loads the provider's player only
@@ -28,7 +29,9 @@ export function VideoPlayer({
   const posterUrl = poster?.url ?? providerThumbnail(source);
 
   return (
-    <div className="relative aspect-video overflow-hidden rounded-(--radius) bg-surface-2">
+    <div
+      className={`relative ${CONTAINERS.video} overflow-hidden rounded-(--radius) bg-surface-2`}
+    >
       {playing ? (
         <iframe
           src={embedUrl(source)}

@@ -1,7 +1,11 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Suspense } from "react";
-import { ADMIN_GROUPS, type AdminLink } from "@/components/admin/admin-nav";
+import {
+  ADMIN_GROUPS,
+  canSee,
+  type AdminLink,
+} from "@/components/admin/admin-nav";
 import { Container } from "@/components/ui/container";
 import { currentPermissions } from "@/lib/auth/permissions";
 
@@ -38,7 +42,7 @@ function NavList({ links }: { links: AdminLink[] }) {
 async function PermittedNav() {
   const permissions = await currentPermissions();
   const links = ADMIN_GROUPS.flatMap((group) => group.links).filter((link) =>
-    permissions.has(link.permission),
+    canSee(link, permissions),
   );
   return <NavList links={links} />;
 }

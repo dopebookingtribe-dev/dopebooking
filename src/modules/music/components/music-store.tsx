@@ -3,6 +3,7 @@ import { ButtonLink } from "@/components/ui/button";
 import { Container } from "@/components/ui/container";
 import { Meta } from "@/components/ui/meta";
 import { Picture } from "@/components/ui/picture";
+import { CONTAINERS } from "@/modules/media/image-specs";
 import { ArtistLens } from "@/modules/artists/components/artist-card";
 import { FilterLink } from "@/modules/artists/components/artist-directory";
 import { getPublishedArtists } from "@/modules/artists/queries";
@@ -417,7 +418,7 @@ function Featured({ releases }: { releases: Card[] }) {
           />
           <Link
             href={releaseHref(lead)}
-            className="relative block aspect-square overflow-hidden rounded-(--radius) bg-surface-2 shadow-2xl shadow-black/50"
+            className={`relative block ${CONTAINERS.releaseCover} overflow-hidden rounded-(--radius) bg-surface-2 shadow-2xl shadow-black/50`}
           >
             {lead.cover ? (
               <Picture

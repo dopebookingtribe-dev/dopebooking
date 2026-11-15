@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { countryName } from "@/lib/countries";
 import { formatEventRange } from "@/lib/datetime";
+import { CONTAINERS } from "@/modules/media/image-specs";
 import type { EventCard } from "../queries";
 
 export function eventPlace(
@@ -29,7 +30,9 @@ export function EventRow({ event }: { event: EventCard }) {
         </h3>
         {place ? <p className="mt-1 text-sm text-muted">{place}</p> : null}
       </div>
-      <div className="relative hidden aspect-[3/2] overflow-hidden rounded-(--radius) bg-surface-2 sm:block">
+      <div
+        className={`relative hidden ${CONTAINERS.eventRow} overflow-hidden rounded-(--radius) bg-surface-2 sm:block`}
+      >
         {event.cover ? (
           <Image
             src={event.cover.url}

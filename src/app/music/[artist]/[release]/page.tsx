@@ -7,6 +7,7 @@ import { ButtonLink } from "@/components/ui/button";
 import { Container } from "@/components/ui/container";
 import { Meta } from "@/components/ui/meta";
 import { Picture } from "@/components/ui/picture";
+import { CONTAINERS } from "@/modules/media/image-specs";
 import { formatCents } from "@/modules/marketplace/schemas";
 import { BuyButtons } from "@/modules/music/components/buy-buttons";
 import { ReleaseCard } from "@/modules/music/components/release-card";
@@ -203,7 +204,9 @@ async function Release({ params }: { params: Props["params"] }) {
               aria-hidden
               className="sleeve-disc absolute inset-[3%] translate-x-[18%] rotate-12 rounded-full shadow-2xl shadow-black/60"
             />
-            <div className="relative aspect-square overflow-hidden rounded-(--radius) bg-surface-2 shadow-2xl shadow-black/60">
+            <div
+              className={`relative ${CONTAINERS.releaseCover} overflow-hidden rounded-(--radius) bg-surface-2 shadow-2xl shadow-black/60`}
+            >
               {release.cover ? (
                 <Picture
                   image={release.cover}

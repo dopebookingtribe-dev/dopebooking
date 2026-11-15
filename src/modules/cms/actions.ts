@@ -244,7 +244,7 @@ const libraryImageSchema = z.object({
 
 export async function registerLibraryImage(
   input: z.input<typeof libraryImageSchema>,
-): Promise<{ ok: true } | { ok: false; message: string }> {
+): Promise<{ ok: true; id: string } | { ok: false; message: string }> {
   const { user } = await requirePermission("pages.edit", "/admin/media");
   const parsed = libraryImageSchema.safeParse(input);
   if (!parsed.success) {
@@ -268,17 +268,21 @@ export async function registerLibraryImage(
   ) {
     return { ok: false, message: "Upload not found or not an image." };
   }
-  const { error } = await supabase.from("media_assets").insert({
-    library: "site",
-    storage_bucket: BUCKET,
-    storage_path: path,
-    credit: credit || null,
-    created_by: user.id,
-    ...image,
-  });
+  const { data: asset, error } = await supabase
+    .from("media_assets")
+    .insert({
+      library: "site",
+      storage_bucket: BUCKET,
+      storage_path: path,
+      credit: credit || null,
+      created_by: user.id,
+      ...image,
+    })
+    .select("id")
+    .single();
   if (error) return { ok: false, message: "Could not save the photo." };
   updateTag(MEDIA_TAG);
-  return { ok: true };
+  return { ok: true, id: asset.id };
 }
 
 const imageDetailsSchema = z.object({

@@ -6,6 +6,7 @@ import { StringArt } from "@/components/site/string-art";
 import { ButtonLink } from "@/components/ui/button";
 import { DemoBadge } from "@/components/ui/demo-badge";
 import { Picture } from "@/components/ui/picture";
+import { CONTAINERS, mobileSource } from "@/modules/media/image-specs";
 import { Container } from "@/components/ui/container";
 import { Meta } from "@/components/ui/meta";
 import { countryName } from "@/lib/countries";
@@ -119,6 +120,7 @@ async function EventDetail({ params }: { params: Props["params"] }) {
           <>
             <Picture
               image={event.cover}
+              mobile={mobileSource(event.mobileCover, "portrait")}
               priority
               sizes="100vw"
               className="-z-20"
@@ -195,7 +197,7 @@ async function EventDetail({ params }: { params: Props["params"] }) {
                       href={`/artists/${act.slug}`}
                       className="group relative block overflow-hidden rounded-(--radius) bg-surface-2"
                     >
-                      <div className="relative aspect-[4/5]">
+                      <div className={`relative ${CONTAINERS.lineupTile}`}>
                         {act.portrait ? (
                           <Picture
                             image={act.portrait}

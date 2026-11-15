@@ -67,6 +67,9 @@ const sectionContent = {
     primary: linkSchema,
     secondary: linkSchema,
     image: mediaId,
+    /** Portrait photo for phones (full-screen layout). Optional: older
+     * pages don't have it and fall back to `image`. */
+    mobileImage: mediaId.optional(),
     overlay: z.coerce.number().int().min(0).max(90),
   }),
   artists: z.object({
@@ -168,6 +171,8 @@ const sectionContent = {
     primary: linkSchema,
     secondary: linkSchema,
     image: mediaId,
+    /** Photo for phones; optional, falls back to `image`. */
+    mobileImage: mediaId.optional(),
   }),
   portfolio: z.object({
     heading: text(120),

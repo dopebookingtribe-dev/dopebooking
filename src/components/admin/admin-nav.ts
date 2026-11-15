@@ -4,8 +4,13 @@ export type AdminLink = {
   href: string;
   label: string;
   body: string;
-  permission: AppPermission;
+  /** Shown to staff holding this permission (or any of these). */
+  permission: AppPermission | AppPermission[];
 };
+
+export function canSee(link: AdminLink, permissions: Set<AppPermission>) {
+  return [link.permission].flat().some((p) => permissions.has(p));
+}
 
 /** Admin areas, grouped. Each page also checks its permission on the server. */
 export const ADMIN_GROUPS: { title: string; links: AdminLink[] }[] = [
@@ -23,6 +28,12 @@ export const ADMIN_GROUPS: { title: string; links: AdminLink[] }[] = [
         label: "Media library",
         body: "Photos for heroes, galleries and sharing.",
         permission: "pages.edit",
+      },
+      {
+        href: "/admin/media/guidelines",
+        label: "Media & Image Guidelines",
+        body: "The size to design for every image on the site, desktop and mobile.",
+        permission: ["pages.edit", "content.manage", "music.manage"],
       },
       {
         href: "/admin/settings",

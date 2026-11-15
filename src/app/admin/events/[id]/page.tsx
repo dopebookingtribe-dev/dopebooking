@@ -15,6 +15,7 @@ import {
   registerEventImage,
   saveLineup,
   setEventCover,
+  setEventMobileCover,
   updateEventDetails,
 } from "@/modules/events/actions";
 import { getEventForAdmin } from "@/modules/events/admin-queries";
@@ -22,6 +23,7 @@ import { EventDetailsForm } from "@/modules/events/components/admin/event-detail
 import { LineupForm } from "@/modules/events/components/admin/lineup-form";
 import { ImageGrid } from "@/modules/media/components/image-grid";
 import { ImageUploader } from "@/modules/media/components/image-uploader";
+import { GUIDELINES_PATH } from "@/modules/media/image-specs";
 import { mediaFolder } from "@/modules/media/server";
 
 export const metadata: Metadata = { title: "Edit event" };
@@ -47,6 +49,8 @@ async function Editor({
   const data = await getEventForAdmin(id);
   if (!data) notFound();
   const { event, lineup, images, artistOptions } = data;
+  // The column only exists once migration 20261115000000 is applied.
+  const phoneCovers = "mobile_cover_asset_id" in event;
 
   return (
     <>
@@ -91,7 +95,11 @@ async function Editor({
         </EditSection>
         <EditSection
           title="Cover image"
-          description="Wide (16:9 or 3:2) photos work best. The first upload becomes the cover."
+          description={
+            phoneCovers
+              ? "The main cover is used on every screen and cropped to many shapes. An optional portrait phone cover replaces it on phones. The first upload becomes the main cover."
+              : "Used on every screen and cropped to many shapes. The first upload becomes the cover."
+          }
         >
           <div className="flex flex-col gap-8">
             <ImageGrid
@@ -100,10 +108,46 @@ async function Editor({
               leadLabel="Cover"
               makeLead={setEventCover.bind(null, event.id)}
               remove={deleteEventImage.bind(null, event.id)}
+              second={
+                phoneCovers
+                  ? {
+                      id: event.mobile_cover_asset_id,
+                      label: "Phone cover",
+                      set: setEventMobileCover.bind(null, event.id),
+                      clear: setEventMobileCover.bind(null, event.id, null),
+                    }
+                  : undefined
+              }
             />
+            {phoneCovers ? null : (
+              <p className="text-sm text-muted">
+                Separate phone covers switch on once the database migration{" "}
+                <code className="font-label">
+                  20261115000000_event_mobile_cover.sql
+                </code>{" "}
+                is applied.
+              </p>
+            )}
             <ImageUploader
               folder={mediaFolder("event", event.id)}
               register={registerEventImage.bind(null, event.id)}
+              guidelinesHref={GUIDELINES_PATH}
+              roles={[
+                {
+                  spec: "event-cover",
+                  label: "Main cover",
+                  assign: setEventCover.bind(null, event.id),
+                },
+                ...(phoneCovers
+                  ? [
+                      {
+                        spec: "event-cover-mobile" as const,
+                        label: "Phone cover",
+                        assign: setEventMobileCover.bind(null, event.id),
+                      },
+                    ]
+                  : []),
+              ]}
             />
           </div>
         </EditSection>

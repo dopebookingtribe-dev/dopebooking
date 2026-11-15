@@ -1,5 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
+import { CONTAINERS } from "@/modules/media/image-specs";
 import type { VideoCard as VideoCardData } from "../queries";
 
 export function VideoCard({
@@ -11,7 +12,9 @@ export function VideoCard({
 }) {
   return (
     <Link href={`/videos/${video.slug}`} className="group block">
-      <div className="relative aspect-video overflow-hidden rounded-(--radius) bg-surface-2">
+      <div
+        className={`relative ${CONTAINERS.video} overflow-hidden rounded-(--radius) bg-surface-2`}
+      >
         {video.poster ? (
           <Image
             src={video.poster.url}

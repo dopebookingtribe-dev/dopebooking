@@ -2,6 +2,7 @@ import Link from "next/link";
 import { DemoBadge } from "@/components/ui/demo-badge";
 import { Picture } from "@/components/ui/picture";
 import { formatEventRange } from "@/lib/datetime";
+import { CONTAINERS, mobileSource } from "@/modules/media/image-specs";
 import type { EventCard } from "../queries";
 import { eventPlace } from "./event-row";
 
@@ -33,11 +34,13 @@ export function EventFeature({
       className="group relative block overflow-hidden rounded-(--radius) bg-surface-2"
     >
       <div
-        className={`relative ${compact ? "aspect-[4/3]" : "aspect-[4/5] sm:aspect-[16/9] lg:aspect-[21/9]"}`}
+        className={`relative ${compact ? CONTAINERS.eventCompact : CONTAINERS.eventShowcase}`}
       >
         {event.cover ? (
           <Picture
             image={event.cover}
+            // Phones get the portrait cover in the tall 4:5 showcase frame.
+            mobile={compact ? null : mobileSource(event.mobileCover, "belowSm")}
             decorative
             priority={priority}
             sizes={compact ? "(min-width: 1024px) 40vw, 92vw" : "100vw"}
