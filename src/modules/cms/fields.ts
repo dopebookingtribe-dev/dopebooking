@@ -155,12 +155,28 @@ export const SECTION_INFO: Record<
     description: "Email, phone and a button.",
     addable: true,
   },
+  art: {
+    label: "Art Gallery",
+    description:
+      "Exhibitions, artists, artworks, photo sets or the collaboration map from the Art Gallery.",
+    addable: true,
+  },
   builtin: {
     label: "Built-in block",
     description: "A working part of this page, like a form or directory.",
     addable: false,
   },
 };
+
+export const ART_SHOWS = {
+  wall: "Hero wall: featured artworks hung like a salon wall",
+  exhibitions: "Exhibitions: now on view, upcoming and recent",
+  artists: "Meet the artists",
+  works: "Selected artworks",
+  highlights: "Gallery highlights: curated photo sets",
+  collaborations: "Collaboration map: who made what together",
+  festivals: "Festivals we have shown at",
+} as const;
 
 export const SECTION_FIELDS: Record<SectionType, FieldSpec[]> = {
   hero: [
@@ -535,6 +551,52 @@ export const SECTION_FIELDS: Record<SectionType, FieldSpec[]> = {
     { kind: "link", name: "primary", label: "Button" },
   ],
   builtin: [],
+  art: [
+    {
+      kind: "select",
+      name: "show",
+      label: "What to show",
+      options: ART_SHOWS,
+      hint: "Content comes from Admin → Art Gallery. Featured items come first, in the order set there.",
+    },
+    {
+      kind: "text",
+      name: "heading",
+      label: "Heading",
+      max: 140,
+      hint: "On the hero wall this is the page headline.",
+    },
+    {
+      kind: "text",
+      name: "body",
+      label: "Intro text",
+      long: true,
+      max: 600,
+    },
+    {
+      kind: "link",
+      name: "link",
+      label: "Link or main button",
+      hint: "Leave empty for no link.",
+    },
+    {
+      kind: "link",
+      name: "secondary",
+      label: "Second button",
+      when: { field: "show", is: ["wall"] },
+    },
+    {
+      kind: "number",
+      name: "limit",
+      label: "How many",
+      min: 1,
+      max: 24,
+      when: {
+        field: "show",
+        is: ["wall", "exhibitions", "artists", "works", "highlights"],
+      },
+    },
+  ],
 };
 
 export const BUILTIN_INFO = BUILTIN_BLOCKS;

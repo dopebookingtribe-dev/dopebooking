@@ -48,6 +48,22 @@ export const PAGES = {
     path: "/sell",
     builtins: ["sell-application"],
   },
+  "art-gallery": { title: "Art Gallery", path: "/art-gallery", builtins: [] },
+  "art-exhibitions": {
+    title: "Art Gallery: exhibitions",
+    path: "/art-gallery/exhibitions",
+    builtins: ["art-exhibition-index"],
+  },
+  "art-artists": {
+    title: "Art Gallery: artists",
+    path: "/art-gallery/artists",
+    builtins: ["art-artist-index"],
+  },
+  "art-collaborate": {
+    title: "Art Gallery: collaborate",
+    path: "/art-gallery/collaborate",
+    builtins: ["art-inquiry-form"],
+  },
 } as const satisfies Record<
   string,
   { title: string; path: string; builtins: BuiltinBlock[] }
@@ -177,6 +193,15 @@ export function emptySectionContent(type: SectionType): Section["content"] {
       };
     case "builtin":
       return { block: "artist-directory" };
+    case "art":
+      return {
+        show: "exhibitions",
+        heading: "Exhibitions",
+        body: "",
+        link: link("All exhibitions", "/art-gallery/exhibitions"),
+        secondary: link(),
+        limit: 4,
+      };
   }
 }
 
@@ -707,6 +732,241 @@ export const DEFAULT_PAGES: Record<PageKey, PageContent> = {
     "Sell with us",
     "Open a shop on DopeBooking.",
   ),
+
+  "art-gallery": page(
+    [
+      section("wall", "art", {
+        show: "wall",
+        heading: "Art that lives inside the festival.",
+        body: "The DopeBooking Art Gallery brings painters, sculptors, installation, digital and live artists together to build exhibitions that become part of the festival itself: open day and night, often made on site, shared with the dancefloor.",
+        link: link("Explore exhibitions", "/art-gallery/exhibitions"),
+        secondary: link("Collaborate with us", "/art-gallery/collaborate"),
+        limit: 7,
+      }),
+      section("about", "editorial", {
+        heading: "A gallery that moves with the music",
+        body: "Festival culture has always been visual: the stage, the decor, the painted banners and the people who dress for the night. Our galleries give that energy a curated home, a space where visitors slow down between sets and meet the artists behind the work.\n\nEach exhibition is collaborative. Artists of different disciplines share one space, respond to one theme, and often create pieces together during the festival. When the music stops, the exhibition stays here as an archive of what was made.",
+        image: "",
+        imageSide: "right",
+        link: link("Meet the artists", "/art-gallery/artists"),
+      }),
+      section("exhibitions", "art", {
+        show: "exhibitions",
+        heading: "Exhibitions",
+        body: "Galleries curated for festivals and cultural gatherings: on view now, coming up next, and the archive.",
+        link: link("All exhibitions", "/art-gallery/exhibitions"),
+        secondary: link(),
+        limit: 4,
+      }),
+      section("artists", "art", {
+        show: "artists",
+        heading: "Meet the artists",
+        body: "One profile per artist, linked to every exhibition and every work they have been part of.",
+        link: link("All artists", "/art-gallery/artists"),
+        secondary: link(),
+        limit: 8,
+      }),
+      section("made-together", "art", {
+        show: "collaborations",
+        heading: "Made together",
+        body: "Our galleries are built by many hands. Each line joins two artists who exhibited side by side or created a work together.",
+        link: link(),
+        secondary: link(),
+        limit: 24,
+      }),
+      section("highlights", "art", {
+        show: "highlights",
+        heading: "Gallery highlights",
+        body: "Installations, close-ups, festival moments and the work behind them.",
+        link: link(),
+        secondary: link(),
+        limit: 18,
+      }),
+      section("process", "steps", {
+        heading: "How a festival gallery comes together",
+        items: [
+          {
+            title: "Concept",
+            body: "We shape a theme with the festival: the space, the audience and the music around it.",
+          },
+          {
+            title: "Artists",
+            body: "We invite a mix of disciplines and pair artists who create well together.",
+          },
+          {
+            title: "Build, open, archive",
+            body: "Artists install, paint live and host the space. Afterwards the exhibition keeps a permanent page here.",
+          },
+        ],
+      }),
+      section("festivals", "art", {
+        show: "festivals",
+        heading: "Where we have exhibited",
+        body: "",
+        link: link(),
+        secondary: link(),
+        limit: 24,
+      }),
+      section("collaborate", "cta", {
+        layout: "string-art",
+        heading: "Bring a gallery to your festival",
+        body: "Tell us about your event, the space and the kind of art you imagine. We reply with a concept, a selection of artists and a quote.",
+        primary: link("Start a collaboration", "/art-gallery/collaborate"),
+        secondary: link(
+          "Past exhibitions",
+          "/art-gallery/exhibitions?view=archive",
+        ),
+        image: "",
+      }),
+    ],
+    "Art Gallery",
+    "Collaborative art galleries at music festivals: exhibitions, artists, installations and live painting by the DopeBooking Art Gallery.",
+  ),
+
+  "art-exhibitions": page(
+    [
+      section("hero", "hero", {
+        layout: "compact",
+        heading: "Exhibitions",
+        body: "Collaborative art galleries at festivals and cultural gatherings. Each one is a digital archive of what was made there.",
+        primary: link(),
+        secondary: link(),
+        image: "",
+        overlay: 55,
+      }),
+      builtin("index", "art-exhibition-index"),
+      section("collaborate", "cta", {
+        layout: "string-art",
+        heading: "Planning a festival?",
+        body: "We bring complete, collaborative art experiences to events of every size.",
+        primary: link("Collaborate with us", "/art-gallery/collaborate"),
+        secondary: link("Meet the artists", "/art-gallery/artists"),
+        image: "",
+      }),
+    ],
+    "Art exhibitions",
+    "Past, current and upcoming art galleries curated by DopeBooking at music festivals.",
+  ),
+
+  "art-artists": page(
+    [
+      section("hero", "hero", {
+        layout: "compact",
+        heading: "Artists",
+        body: "Painters, sculptors, installation, digital and live artists who create our festival galleries.",
+        primary: link(),
+        secondary: link(),
+        image: "",
+        overlay: 55,
+      }),
+      builtin("index", "art-artist-index"),
+      section("made-together", "art", {
+        show: "collaborations",
+        heading: "Made together",
+        body: "Each line joins two artists who exhibited side by side or created a work together.",
+        link: link(),
+        secondary: link(),
+        limit: 24,
+      }),
+    ],
+    "Visual artists",
+    "Visual artists of the DopeBooking Art Gallery: painting, sculpture, installation, visionary, digital and live art.",
+  ),
+
+  "art-collaborate": page(
+    [
+      section("hero", "hero", {
+        layout: "compact",
+        heading: "Collaborate with us",
+        body: "For festival organisers, curators, galleries and creative partners: we bring complete, collaborative art experiences to your event.",
+        primary: link("Send an inquiry", "#inquiry"),
+        secondary: link("See exhibitions", "/art-gallery/exhibitions"),
+        image: "",
+        overlay: 55,
+      }),
+      section("offer", "services", {
+        heading: "What we can bring",
+        body: "Every gallery is designed for its festival. These are the pieces we combine.",
+        layout: "rows",
+        items: [
+          {
+            title: "Curated group exhibitions",
+            body: "A themed gallery space with artists across disciplines, planned, built and hosted by our team.",
+            href: "",
+            image: "",
+          },
+          {
+            title: "Installations and site art",
+            body: "Large-scale sculpture, light and projection that turn paths, domes and chill-out areas into artworks.",
+            href: "",
+            image: "",
+          },
+          {
+            title: "Live painting",
+            body: "Artists painting through the music, on canvases that grow from the first set to the last.",
+            href: "",
+            image: "",
+          },
+          {
+            title: "Talks, workshops and documentation",
+            body: "Artist talks and hands-on workshops, plus photography of every work for the festival and the archive.",
+            href: "",
+            image: "",
+          },
+        ],
+      }),
+      section("process", "steps", {
+        heading: "How a collaboration works",
+        items: [
+          {
+            title: "Tell us about the event",
+            body: "Dates, place, audience, the space you have and what you imagine. Rough ideas are fine.",
+          },
+          {
+            title: "Concept and artists",
+            body: "We reply with a concept, a proposed selection of artists and a quote.",
+          },
+          {
+            title: "Create it together",
+            body: "We plan production, travel and install with your team, and open the gallery with the festival.",
+          },
+        ],
+      }),
+      builtin("inquiry", "art-inquiry-form"),
+      section("faq", "faq", {
+        heading: "Questions",
+        items: [
+          {
+            question: "What does a festival gallery include?",
+            answer:
+              "It depends on your space and budget: from a curated tent with a handful of artists to installations across the site, live painting during the music, and talks or workshops. We propose a concept after the first conversation.",
+          },
+          {
+            question: "How far ahead should we get in touch?",
+            answer:
+              "Ideally four to six months before the event, so artists can create new work for it. Shorter timelines are possible with existing works.",
+          },
+          {
+            question: "Can artworks be sold during the festival?",
+            answer:
+              "If the festival allows it, yes. Tell us in the form and we plan pricing, payment and transport with the artists.",
+          },
+          {
+            question: "Can our own local artists take part?",
+            answer:
+              "Gladly. A gallery can mix artists from our Art Gallery with artists from your festival's own community.",
+          },
+          {
+            question: "Can we invite one specific artist?",
+            answer:
+              "Yes. Use the button on their profile or name them in the form, and we check their availability.",
+          },
+        ],
+      }),
+    ],
+    "Collaborate with the Art Gallery",
+    "Bring a curated, collaborative art gallery to your festival: exhibitions, installations, live painting and workshops.",
+  ),
 };
 
 export const DEFAULT_SETTINGS: SiteSettings = {
@@ -717,6 +977,32 @@ export const DEFAULT_SETTINGS: SiteSettings = {
   nav: [
     { label: "Artists", href: "/artists", children: [] },
     { label: "Events", href: "/events", children: [] },
+    {
+      label: "Art Gallery",
+      href: "/art-gallery",
+      children: [
+        {
+          label: "The gallery",
+          href: "/art-gallery",
+          description: "Concept, highlights and collaborations",
+        },
+        {
+          label: "Exhibitions",
+          href: "/art-gallery/exhibitions",
+          description: "Now on view, upcoming and archive",
+        },
+        {
+          label: "Visual artists",
+          href: "/art-gallery/artists",
+          description: "Painters, sculptors, installation and digital",
+        },
+        {
+          label: "Collaborate",
+          href: "/art-gallery/collaborate",
+          description: "Bring a gallery to your festival",
+        },
+      ],
+    },
     {
       label: "Media",
       href: "/gallery",
@@ -768,6 +1054,7 @@ export const DEFAULT_SETTINGS: SiteSettings = {
         links: [
           { label: "Artists", href: "/artists" },
           { label: "Events", href: "/events" },
+          { label: "Art Gallery", href: "/art-gallery" },
           { label: "Photos", href: "/gallery" },
           { label: "Videos", href: "/videos" },
         ],

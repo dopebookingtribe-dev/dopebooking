@@ -13,6 +13,7 @@ export const SERVICE_LABELS: Record<ServiceType, string> = {
   photography: "Photography",
   videography: "Videography",
   aftermovie: "Aftermovie",
+  art_gallery: "Art gallery collaboration",
 };
 
 /** Public offers; production groups the three media services. */
@@ -259,6 +260,73 @@ export const DETAIL_FIELDS: Record<ServiceType, DetailField[]> = {
       },
     },
     { name: "drone", label: "Drone footage?", kind: "yesno" },
+  ],
+  art_gallery: [
+    {
+      name: "inquirer",
+      label: "You are",
+      kind: "select",
+      options: {
+        festival: "A festival or event organiser",
+        curator: "A curator or gallery",
+        venue: "A venue or space",
+        brand: "A brand or sponsor",
+        other: "Something else",
+      },
+    },
+    {
+      name: "scope",
+      label: "What would you like to create?",
+      kind: "multi",
+      required: true,
+      options: {
+        exhibition: "A curated group exhibition",
+        installation: "Large-scale installations",
+        live_painting: "Live painting",
+        projection: "Projection & light art",
+        decor: "Stage & site art direction",
+        workshops: "Workshops & artist talks",
+        artists_only: "Artist selection only",
+      },
+    },
+    {
+      name: "space",
+      label: "Exhibition space",
+      kind: "select",
+      options: {
+        tent: "Tent or dome",
+        outdoor: "Open air",
+        building: "Existing building or gallery",
+        open: "Not decided yet",
+      },
+    },
+    {
+      name: "area_m2",
+      label: "Approximate area (m²)",
+      kind: "number",
+      min: 1,
+      max: 100_000,
+    },
+    {
+      name: "artists_wanted",
+      label: "How many artists?",
+      kind: "number",
+      min: 1,
+      max: 200,
+    },
+    {
+      name: "preferred_artists",
+      label: "Artists you'd love to work with",
+      kind: "text",
+      max: 300,
+      hint: "Names from our Art Gallery, or describe the styles you have in mind.",
+    },
+    { name: "event_url", label: "Event or festival website", kind: "url" },
+    {
+      name: "art_sales",
+      label: "Can artworks be sold on site?",
+      kind: "yesno",
+    },
   ],
 };
 

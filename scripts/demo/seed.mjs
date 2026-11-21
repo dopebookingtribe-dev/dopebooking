@@ -10,6 +10,7 @@
 
 import { createClient } from "@supabase/supabase-js";
 import * as art from "./art.mjs";
+import { seedArtGallery } from "./art-gallery.mjs";
 import { DEFAULT_PAGES, PAGES } from "../../src/modules/cms/pages.ts";
 import { parsePageContent } from "../../src/modules/cms/schema.ts";
 
@@ -81,6 +82,51 @@ async function cleanup() {
     "delete library",
   );
   console.log(`Removed earlier demo content (${paths.length} files).`);
+  await cleanupArtGallery();
+}
+
+/** Art Gallery demo rows and files (skipped until its migration is applied). */
+async function cleanupArtGallery() {
+  const probe = await db.from("art_artists").select("id").limit(1);
+  if (probe.error) return;
+  const ids = async (table) =>
+    (
+      must(await db.from(table).select("id").eq("is_demo", true), table) ?? []
+    ).map((row) => row.id);
+  const [artists, exhibitions, works] = await Promise.all([
+    ids("art_artists"),
+    ids("art_exhibitions"),
+    ids("art_artworks"),
+  ]);
+  const media = must(
+    await db
+      .from("media_assets")
+      .select("storage_path, art_artist_id, art_exhibition_id, art_artwork_id")
+      .or(
+        "art_artist_id.not.is.null,art_exhibition_id.not.is.null,art_artwork_id.not.is.null",
+      ),
+    "art media",
+  ).filter(
+    (row) =>
+      artists.includes(row.art_artist_id) ||
+      exhibitions.includes(row.art_exhibition_id) ||
+      works.includes(row.art_artwork_id),
+  );
+  const paths = media.map((row) => row.storage_path);
+  for (let i = 0; i < paths.length; i += 100) {
+    await db.storage.from(BUCKET).remove(paths.slice(i, i + 100));
+  }
+  for (const table of [
+    "art_artworks",
+    "art_exhibitions",
+    "art_artists",
+    "art_festivals",
+  ]) {
+    must(await db.from(table).delete().eq("is_demo", true), `delete ${table}`);
+  }
+  console.log(
+    `Removed earlier Art Gallery demo content (${paths.length} files).`,
+  );
 }
 
 // ---------------------------------------------------------------------------
@@ -929,9 +975,37 @@ async function seedPages() {
     );
   }
 
+  await add(
+    "art-about",
+    () =>
+      art.installationRoom({ seed: 860, palette: "dawn", w: 1600, h: 1600 }),
+    "Illustration: a gallery dome lit for the night, visitors among the works",
+  );
+  for (const [name, palette] of [
+    ["art-exhibitions-lens", "twilight"],
+    ["art-artists-lens", "ultraviolet"],
+    ["art-collaborate-lens", "dawn"],
+  ]) {
+    await add(
+      name,
+      () =>
+        art.visionaryPainting({
+          seed: 861 + name.length,
+          palette,
+          w: 1200,
+          h: 1200,
+        }),
+      "Illustration: visionary painting, used as a kaleidoscope",
+    );
+  }
+
   const pages = structuredClone(DEFAULT_PAGES);
   const section = (key, id) =>
     pages[key].sections.find((s) => s.id === id).content;
+  section("art-gallery", "about").image = L["art-about"];
+  section("art-exhibitions", "hero").image = L["art-exhibitions-lens"];
+  section("art-artists", "hero").image = L["art-artists-lens"];
+  section("art-collaborate", "hero").image = L["art-collaborate-lens"];
 
   Object.assign(section("home", "hero"), {
     layout: "image",
@@ -1005,5 +1079,6 @@ const artistIds = await seedArtists();
 const eventIds = await seedEvents(artistIds);
 await seedGalleries(eventIds);
 await seedShop();
+await seedArtGallery({ db, must, upload, CREDIT });
 await seedPages();
 console.log("Demo content ready.");

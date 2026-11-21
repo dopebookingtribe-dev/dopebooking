@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Onest, Tilt_Warp } from "next/font/google";
+import { Instrument_Serif, Onest, Tilt_Warp } from "next/font/google";
 import { SiteFooter } from "@/components/site/site-footer";
 import { SiteHeader } from "@/components/site/site-header";
 import { getImagesByIds, getSiteSettings } from "@/modules/cms/queries";
@@ -17,6 +17,16 @@ const display = Tilt_Warp({
 const sans = Onest({
   variable: "--font-onest",
   subsets: ["latin"],
+});
+
+// Instrument Serif: artwork titles and artist statements in the Art Gallery,
+// like a museum wall label. Not preloaded: only pages that use it load it.
+const serif = Instrument_Serif({
+  variable: "--font-instrument-serif",
+  subsets: ["latin"],
+  weight: "400",
+  style: ["normal", "italic"],
+  preload: false,
 });
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -50,7 +60,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html
       lang="en"
-      className={`${display.variable} ${sans.variable} h-full antialiased`}
+      className={`${display.variable} ${sans.variable} ${serif.variable} h-full antialiased`}
     >
       <body className="flex min-h-full flex-col">
         <a

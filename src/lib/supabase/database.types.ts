@@ -44,7 +44,12 @@ export type BookingStatus =
   | "expired";
 export type EmailStatus = "pending" | "sending" | "sent" | "failed";
 export type ServiceType =
-  "promotion" | "catering" | "photography" | "videography" | "aftermovie";
+  | "promotion"
+  | "catering"
+  | "photography"
+  | "videography"
+  | "aftermovie"
+  | "art_gallery";
 export type SellerStatus = "pending" | "approved" | "rejected" | "suspended";
 export type ProductType = "physical" | "digital";
 export type OrderStatus =
@@ -140,6 +145,10 @@ export type MediaAssetRow = {
   product_id: string | null;
   seller_id: string | null;
   music_release_id: string | null;
+  art_artist_id: string | null;
+  art_exhibition_id: string | null;
+  art_artwork_id: string | null;
+  art_collection: ArtCollection | null;
   library: "site" | null;
   is_demo: boolean;
   focal_x: number;
@@ -219,6 +228,8 @@ export type VideoRow = {
   provider_ref: string;
   event_id: string | null;
   artist_id: string | null;
+  art_artist_id: string | null;
+  art_exhibition_id: string | null;
   status: ContentStatus;
   featured: boolean;
   poster_asset_id: string | null;
@@ -702,6 +713,174 @@ export type ProductFileRow = {
   created_at: string;
 };
 
+// ---------------------------------------------------------------------------
+// Art Gallery (migration 20261121000100)
+// ---------------------------------------------------------------------------
+
+export type ArtCollection =
+  "installation" | "closeup" | "atmosphere" | "process" | "logo";
+export type ArtArtistKind = "individual" | "collective";
+export type ArtLinkPlatform =
+  | "website"
+  | "instagram"
+  | "facebook"
+  | "youtube"
+  | "vimeo"
+  | "tiktok"
+  | "behance"
+  | "artstation"
+  | "x"
+  | "linkedin"
+  | "other";
+export type ArtPartnerKind = "partner" | "sponsor" | "supporter" | "media";
+
+export type ArtArtistRow = {
+  id: string;
+  slug: string;
+  name: string;
+  stage_name: string | null;
+  kind: ArtArtistKind;
+  tagline: string | null;
+  disciplines: string[];
+  specialization: string | null;
+  country: string | null;
+  based_in: string | null;
+  bio: string | null;
+  statement: string | null;
+  techniques: string | null;
+  website_url: string | null;
+  inquiries_enabled: boolean;
+  music_artist_id: string | null;
+  portrait_asset_id: string | null;
+  cover_asset_id: string | null;
+  status: ContentStatus;
+  featured: boolean;
+  sort_order: number;
+  is_demo: boolean;
+  seo_title: string | null;
+  seo_description: string | null;
+  published_at: string | null;
+  created_by: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type ArtArtistLinkRow = {
+  id: string;
+  art_artist_id: string;
+  platform: ArtLinkPlatform;
+  url: string;
+  sort_order: number;
+};
+
+export type ArtCollectiveMemberRow = {
+  collective_id: string;
+  member_id: string;
+  note: string | null;
+  sort_order: number;
+};
+
+export type ArtFestivalRow = {
+  id: string;
+  slug: string;
+  name: string;
+  city: string | null;
+  country: string | null;
+  website_url: string | null;
+  description: string | null;
+  sort_order: number;
+  is_demo: boolean;
+  created_at: string;
+  updated_at: string;
+};
+
+export type ArtExhibitionRow = {
+  id: string;
+  slug: string;
+  title: string;
+  subtitle: string | null;
+  festival_id: string | null;
+  event_id: string | null;
+  venue_name: string | null;
+  city: string | null;
+  country: string | null;
+  /** Calendar date (YYYY-MM-DD); null means dates to be announced. */
+  starts_on: string | null;
+  ends_on: string | null;
+  date_note: string | null;
+  summary: string | null;
+  overview: string | null;
+  concept: string | null;
+  accent_color: string | null;
+  external_url: string | null;
+  cover_asset_id: string | null;
+  mobile_cover_asset_id: string | null;
+  status: ContentStatus;
+  featured: boolean;
+  sort_order: number;
+  is_demo: boolean;
+  seo_title: string | null;
+  seo_description: string | null;
+  published_at: string | null;
+  created_by: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type ArtExhibitionArtistRow = {
+  exhibition_id: string;
+  art_artist_id: string;
+  roles: string[];
+  note: string | null;
+  sort_order: number;
+};
+
+export type ArtArtworkRow = {
+  id: string;
+  slug: string;
+  title: string;
+  year: number | null;
+  discipline: string | null;
+  medium: string | null;
+  width_cm: number | null;
+  height_cm: number | null;
+  depth_cm: number | null;
+  dimensions_note: string | null;
+  description: string | null;
+  image_asset_id: string | null;
+  status: ContentStatus;
+  featured: boolean;
+  sort_order: number;
+  is_demo: boolean;
+  published_at: string | null;
+  created_by: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type ArtArtworkCreditRow = {
+  artwork_id: string;
+  art_artist_id: string;
+  credit: string | null;
+  sort_order: number;
+};
+
+export type ArtExhibitionArtworkRow = {
+  exhibition_id: string;
+  artwork_id: string;
+  sort_order: number;
+};
+
+export type ArtExhibitionPartnerRow = {
+  id: string;
+  exhibition_id: string;
+  name: string;
+  kind: ArtPartnerKind;
+  url: string | null;
+  logo_asset_id: string | null;
+  sort_order: number;
+};
+
 type HistoryRow<Status, Fk extends string> = {
   id: number;
   from_status: Status | null;
@@ -1056,6 +1235,51 @@ export type Database = {
           >
         >
       >;
+      art_artists: Table<
+        ArtArtistRow,
+        ContentInsert<ArtArtistRow, "slug" | "name">
+      >;
+      art_artist_links: Table<
+        ArtArtistLinkRow,
+        Omit<ArtArtistLinkRow, "id" | "sort_order"> & { sort_order?: number }
+      >;
+      art_collective_members: Table<
+        ArtCollectiveMemberRow,
+        Pick<ArtCollectiveMemberRow, "collective_id" | "member_id"> &
+          Partial<ArtCollectiveMemberRow>
+      >;
+      art_festivals: Table<
+        ArtFestivalRow,
+        ContentInsert<ArtFestivalRow, "slug" | "name">
+      >;
+      art_exhibitions: Table<
+        ArtExhibitionRow,
+        ContentInsert<ArtExhibitionRow, "slug" | "title">
+      >;
+      art_exhibition_artists: Table<
+        ArtExhibitionArtistRow,
+        Pick<ArtExhibitionArtistRow, "exhibition_id" | "art_artist_id"> &
+          Partial<ArtExhibitionArtistRow>
+      >;
+      art_artworks: Table<
+        ArtArtworkRow,
+        ContentInsert<ArtArtworkRow, "slug" | "title">
+      >;
+      art_artwork_credits: Table<
+        ArtArtworkCreditRow,
+        Pick<ArtArtworkCreditRow, "artwork_id" | "art_artist_id"> &
+          Partial<ArtArtworkCreditRow>
+      >;
+      art_exhibition_artworks: Table<
+        ArtExhibitionArtworkRow,
+        Pick<ArtExhibitionArtworkRow, "exhibition_id" | "artwork_id"> &
+          Partial<ArtExhibitionArtworkRow>
+      >;
+      art_exhibition_partners: Table<
+        ArtExhibitionPartnerRow,
+        Pick<ArtExhibitionPartnerRow, "exhibition_id" | "name"> &
+          Partial<Omit<ArtExhibitionPartnerRow, "id" | "exhibition_id">>
+      >;
     };
     Views: Record<string, never>;
     Functions: {
@@ -1110,6 +1334,12 @@ export type Database = {
       is_published_event: { Args: { target: string }; Returns: boolean };
       is_published_gallery: { Args: { target: string }; Returns: boolean };
       is_published_video: { Args: { target: string }; Returns: boolean };
+      is_published_art_artist: { Args: { target: string }; Returns: boolean };
+      is_published_art_exhibition: {
+        Args: { target: string };
+        Returns: boolean;
+      };
+      is_published_art_artwork: { Args: { target: string }; Returns: boolean };
       transition_booking: {
         Args: {
           p_booking: string;

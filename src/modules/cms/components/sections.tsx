@@ -50,6 +50,7 @@ export function sectionLabel(type: SectionType) {
     faq: "Questions and answers",
     contact: "Contact",
     builtin: "Built-in block",
+    art: "Art Gallery",
   }[type];
 }
 

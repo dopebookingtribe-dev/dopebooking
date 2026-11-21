@@ -48,6 +48,15 @@
   font-variant-numeric: tabular-nums;
 }
 
+/* Art Gallery: artwork titles, statements and wall labels. */
+@utility font-serif-art {
+  font-family:
+    var(--font-instrument-serif), "Iowan Old Style", "Palatino Linotype",
+    Georgia, serif;
+  font-weight: 400;
+  letter-spacing: 0;
+}
+
 @layer base {
   html {
     -webkit-text-size-adjust: 100%;
@@ -310,5 +319,95 @@
   }
   .sleeve-disc {
     transition: none;
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   Art Gallery
+   --------------------------------------------------------------------------- */
+
+/* Cards and works rise gently into place as they scroll in (no JS). */
+@supports (animation-timeline: view()) {
+  .art-reveal {
+    animation: art-reveal linear both;
+    animation-timeline: view();
+    animation-range: entry 0% entry 35%;
+  }
+}
+@keyframes art-reveal {
+  from {
+    opacity: 0;
+    translate: 0 28px;
+  }
+}
+
+/* Hero wall: frames are hung one after another on load. */
+.art-hang {
+  animation: art-hang 0.9s var(--ease-out) backwards;
+  animation-delay: calc(var(--i, 0) * 90ms + 250ms);
+}
+@keyframes art-hang {
+  from {
+    opacity: 0;
+    transform: translateY(-18px) rotate(-1.2deg);
+  }
+}
+
+/* "Now on view": a quiet pulse around the dot. */
+.art-pulse {
+  position: relative;
+}
+.art-pulse::after {
+  content: "";
+  position: absolute;
+  inset: -4px;
+  border-radius: 9999px;
+  border: 1px solid currentColor;
+  animation: art-pulse 2.4s var(--ease-out) infinite;
+}
+@keyframes art-pulse {
+  from {
+    opacity: 0.9;
+    transform: scale(0.6);
+  }
+  to {
+    opacity: 0;
+    transform: scale(1.8);
+  }
+}
+
+/* Collaboration map: threads draw themselves when the map scrolls in. */
+.art-thread {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  transition: opacity 0.3s;
+}
+.art-drawn .art-thread {
+  animation: art-draw 1.6s var(--ease-out) forwards;
+}
+@keyframes art-draw {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+/* Viewer: each work fades in as you step through. */
+.art-fade {
+  animation: art-fade 0.45s var(--ease-out);
+}
+@keyframes art-fade {
+  from {
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .art-reveal,
+  .art-hang,
+  .art-pulse::after {
+    animation: none;
+  }
+  .art-thread {
+    stroke-dashoffset: 0;
   }
 }

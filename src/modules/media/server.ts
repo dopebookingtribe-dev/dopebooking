@@ -1,13 +1,22 @@
 import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { z } from "zod";
-import type { Database } from "@/lib/supabase/database.types";
+import type { ArtCollection, Database } from "@/lib/supabase/database.types";
 import { IMAGE_TYPES } from "./constants";
 
 export const BUCKET = "public-media";
 
 export type MediaOwnerKind =
-  "artist" | "event" | "gallery" | "video" | "product" | "seller" | "music";
+  | "artist"
+  | "event"
+  | "gallery"
+  | "video"
+  | "product"
+  | "seller"
+  | "music"
+  | "art-artist"
+  | "art-exhibition"
+  | "art-artwork";
 /** `id` is the new media asset, so the uploader can give it a role. */
 export type ImageResult =
   { ok: true; id?: string } | { ok: false; message: string };
@@ -22,9 +31,12 @@ const OWNER_COLUMN = {
   product: "product_id",
   seller: "seller_id",
   music: "music_release_id",
+  "art-artist": "art_artist_id",
+  "art-exhibition": "art_exhibition_id",
+  "art-artwork": "art_artwork_id",
 } as const;
 
-/** Storage folder for an owner, e.g. "galleries/<id>". */
+/** Storage folder for an owner, e.g. "galleries/<id>", "art-artworks/<id>". */
 export function mediaFolder(kind: MediaOwnerKind, ownerId: string) {
   const plural =
     kind === "gallery" ? "galleries" : kind === "music" ? "music" : `${kind}s`;
@@ -110,6 +122,27 @@ async function setLeadImage(
         .eq("id", ownerId);
       return onlyIfEmpty ? query.is("logo_asset_id", null) : query;
     }
+    case "art-artist": {
+      const query = supabase
+        .from("art_artists")
+        .update({ portrait_asset_id: assetId })
+        .eq("id", ownerId);
+      return onlyIfEmpty ? query.is("portrait_asset_id", null) : query;
+    }
+    case "art-exhibition": {
+      const query = supabase
+        .from("art_exhibitions")
+        .update({ cover_asset_id: assetId })
+        .eq("id", ownerId);
+      return onlyIfEmpty ? query.is("cover_asset_id", null) : query;
+    }
+    case "art-artwork": {
+      const query = supabase
+        .from("art_artworks")
+        .update({ image_asset_id: assetId })
+        .eq("id", ownerId);
+      return onlyIfEmpty ? query.is("image_asset_id", null) : query;
+    }
   }
 }
 
@@ -124,6 +157,8 @@ export async function registerOwnedImage(
   kind: MediaOwnerKind,
   ownerId: string,
   input: RegisterImageInput,
+  /** `lead: false` keeps the photo from becoming the first lead image. */
+  options: { lead?: boolean; extra?: { art_collection?: ArtCollection } } = {},
 ): Promise<ImageResult> {
   const parsed = registerImageSchema.safeParse(input);
   if (!parsed.success) {
@@ -164,12 +199,15 @@ export async function registerOwnedImage(
       sort_order: count ?? 0,
       created_by: userId,
       ...image,
+      ...options.extra,
     })
     .select("id")
     .single();
   if (error) return { ok: false, message: "Could not save the photo." };
 
-  await setLeadImage(supabase, kind, ownerId, asset.id, true);
+  if (options.lead !== false) {
+    await setLeadImage(supabase, kind, ownerId, asset.id, true);
+  }
   return { ok: true, id: asset.id };
 }
 

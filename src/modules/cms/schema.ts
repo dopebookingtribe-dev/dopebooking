@@ -56,6 +56,10 @@ export const BUILTIN_BLOCKS = {
   "music-store": "Music store: releases, charts, search and player",
   "request-form": "Quote request form",
   "sell-application": "Seller application form",
+  "art-exhibition-index":
+    "Art Gallery: exhibitions (now on view, upcoming, archive)",
+  "art-artist-index": "Art Gallery: artist directory with discipline filter",
+  "art-inquiry-form": "Art Gallery: collaboration inquiry form",
 } as const;
 export type BuiltinBlock = keyof typeof BUILTIN_BLOCKS;
 
@@ -209,6 +213,23 @@ const sectionContent = {
   }),
   builtin: z.object({
     block: z.enum(Object.keys(BUILTIN_BLOCKS) as [BuiltinBlock]),
+  }),
+  /** Art Gallery content from the database, with editable framing text. */
+  art: z.object({
+    show: z.enum([
+      "wall",
+      "exhibitions",
+      "artists",
+      "works",
+      "highlights",
+      "collaborations",
+      "festivals",
+    ]),
+    heading: text(140),
+    body: text(600),
+    link: linkSchema,
+    secondary: linkSchema,
+    limit: limit(24),
   }),
 } as const;
 

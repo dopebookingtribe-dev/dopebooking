@@ -13,13 +13,15 @@ import { DETAIL_FIELDS, SERVICE_LABELS, type DetailField } from "../schemas";
 function DetailInput({
   field,
   state,
+  initial,
 }: {
   field: DetailField;
   state: FormState;
+  initial?: string;
 }) {
   const name = `d.${field.name}`;
   const error = fieldError(state, name);
-  const value = fieldValue(state, name, null);
+  const value = fieldValue(state, name, initial ?? null);
 
   switch (field.kind) {
     case "text":
@@ -117,10 +119,17 @@ export function ServiceRequestForm({
   types,
   countries,
   action,
+  initial = {},
+  eventLegend = "The event",
+  submitLabel = "Send request",
 }: {
   types: readonly ServiceType[];
   countries: { code: string; name: string }[];
   action: (prev: FormState, formData: FormData) => Promise<FormState>;
+  /** Pre-filled answers, e.g. `d.preferred_artists` from an artist page. */
+  initial?: Record<string, string>;
+  eventLegend?: string;
+  submitLabel?: string;
 }) {
   const [state, formAction, pending] = useActionState(action, initialFormState);
   const [type, setType] = useState<ServiceType>(
@@ -161,7 +170,7 @@ export function ServiceRequestForm({
       )}
 
       <fieldset className="flex flex-col gap-6">
-        <legend className="mb-2 font-display text-3xl">The event</legend>
+        <legend className="mb-2 font-display text-3xl">{eventLegend}</legend>
         <div className="grid gap-6 sm:grid-cols-2">
           <Field
             name="event_name"
@@ -248,7 +257,12 @@ export function ServiceRequestForm({
           </legend>
           <div className="grid gap-6 sm:grid-cols-2">
             {DETAIL_FIELDS[option].map((field) => (
-              <DetailInput key={field.name} field={field} state={state} />
+              <DetailInput
+                key={field.name}
+                field={field}
+                state={state}
+                initial={initial[`d.${field.name}`]}
+              />
             ))}
           </div>
         </fieldset>
@@ -306,7 +320,7 @@ export function ServiceRequestForm({
           </p>
         ) : null}
         <Button type="submit" disabled={pending} className="self-start">
-          {pending ? "Sending…" : "Send request"}
+          {pending ? "Sending…" : submitLabel}
         </Button>
         <p className="text-sm text-muted">
           Free and without obligation. We reply with a quote.

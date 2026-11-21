@@ -58,7 +58,9 @@ test("mobile menu covers the screen and closes with Escape", async ({
   const box = await panel.boundingBox();
   const viewport = page.viewportSize();
   expect(box?.height).toBeGreaterThan((viewport?.height ?? 0) * 0.8);
-  await expect(panel.getByRole("link", { name: "Artists" })).toBeVisible();
+  await expect(
+    panel.getByRole("link", { name: "Artists", exact: true }),
+  ).toBeVisible();
 
   await page.keyboard.press("Escape");
   await expect(panel).toBeHidden();
@@ -252,4 +254,64 @@ test("unknown preview pages are not found for visitors", async ({
     maxRedirects: 0,
   });
   expect([307, 404]).toContain(response.status());
+});
+
+test.describe("Art Gallery", () => {
+  for (const [path, heading] of [
+    ["/art-gallery", /Art that lives inside the festival/],
+    ["/art-gallery/exhibitions", "Exhibitions"],
+    ["/art-gallery/artists", "Artists"],
+    ["/art-gallery/collaborate", "Collaborate with us"],
+  ] as const) {
+    test(`${path} renders`, async ({ page }) => {
+      await page.goto(path);
+      await expect(
+        page.getByRole("heading", { level: 1, name: heading }),
+      ).toBeVisible();
+    });
+  }
+
+  test("is in the main navigation", async ({ page }) => {
+    await page.goto("/");
+    const footer = page.getByRole("contentinfo");
+    await expect(
+      footer.getByRole("link", { name: "Art Gallery" }),
+    ).toHaveAttribute("href", "/art-gallery");
+  });
+
+  test("collaboration inquiries need an account", async ({ page }) => {
+    await page.goto("/art-gallery/collaborate");
+    await expect(
+      page.getByRole("link", { name: "Create account" }),
+    ).toHaveAttribute("href", /\/signup\?next=%2Fart-gallery%2Fcollaborate/);
+  });
+
+  test("unknown art pages are not found", async ({ page }) => {
+    for (const path of [
+      "/art-gallery/artists/nobody-here",
+      "/art-gallery/exhibitions/never-happened",
+      "/art-gallery/works/not-a-work",
+    ]) {
+      await page.goto(path);
+      await expect(
+        page.getByText("This page took a different stage."),
+        path,
+      ).toBeVisible();
+    }
+  });
+
+  test("admin is guarded", async ({ page }) => {
+    for (const path of [
+      "/admin/art",
+      "/admin/art/artists",
+      "/admin/art/exhibitions",
+      "/admin/art/artworks",
+      "/admin/art/festivals",
+      "/admin/art/inquiries",
+      "/preview/art-gallery",
+    ]) {
+      await page.goto(path);
+      await expect(page, path).toHaveURL(/\/login\?next=/);
+    }
+  });
 });

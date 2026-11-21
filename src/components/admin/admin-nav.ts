@@ -83,6 +83,12 @@ export const ADMIN_GROUPS: { title: string; links: AdminLink[] }[] = [
         permission: "content.manage",
       },
       {
+        href: "/admin/art",
+        label: "Art Gallery",
+        body: "Visual artists, exhibitions, artworks, festivals and collaboration inquiries.",
+        permission: "content.manage",
+      },
+      {
         href: "/admin/music",
         label: "Music",
         body: "Review releases, feature music, genres and artist teams.",

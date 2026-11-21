@@ -54,6 +54,9 @@ export const CONTAINERS = {
   serviceRow: "aspect-[3/2]",
   portfolio: "aspect-[4/5]",
   lens: "aspect-square",
+  artArch: "aspect-[3/4]",
+  artExhibitionFeature: "aspect-[4/5] sm:aspect-[16/9]",
+  artExhibitionCard: "aspect-[4/5]",
 } as const;
 
 export type ContainerKey = keyof typeof CONTAINERS;
@@ -223,6 +226,10 @@ export const GROUPS = {
     title: "Music",
     body: "Release artwork in the music store. Uploaded by artists in their dashboard.",
   },
+  art: {
+    title: "Art Gallery",
+    body: "Visual artists, exhibitions, artworks and partner logos on /art-gallery. Artworks are never cropped; photography around them is.",
+  },
   sharing: {
     title: "Search and social sharing",
     body: "The preview image when a page is shared in chats and social apps.",
@@ -254,6 +261,13 @@ const ids = [
   "product-photo",
   "seller-logo",
   "music-cover",
+  "art-portrait",
+  "art-cover",
+  "art-exhibition-cover",
+  "art-exhibition-cover-mobile",
+  "art-exhibition-photo",
+  "art-artwork",
+  "art-partner-logo",
   "share-image",
 ] as const;
 
@@ -1249,6 +1263,330 @@ const specs: Omit<ImageSpec, "id">[] = [
       "src/modules/music/components/release-card.tsx",
       "src/app/music/[artist]/[release]/page.tsx",
     ],
+  },
+
+  // ----- Art Gallery ----------------------------------------------------------
+  {
+    group: "art",
+    title: "Art Gallery: artist portrait",
+    where:
+      "The arch-shaped portrait on artist cards, in exhibition line-ups and in the profile header; a small round face in the collaboration map.",
+    upload: {
+      label: "Admin → Art Gallery → Artists → artist → Images → Portrait",
+      href: "/admin/art/artists",
+    },
+    size: [1200, 1600],
+    min: [900, 1200],
+    fit: "crop",
+    frames: [
+      {
+        label: "Profile header (arch)",
+        device: "desktop",
+        ratio: "artArch",
+        shown: [384, 512],
+      },
+      {
+        label: "Artist card (arch)",
+        device: "desktop",
+        ratio: "artArch",
+        shown: [272, 363],
+        zoom: 1.06,
+      },
+      {
+        label: "Collaboration map",
+        device: "desktop",
+        ratio: 1,
+        shown: 56,
+        shape: "circle",
+      },
+      {
+        label: "Profile header (arch)",
+        device: "tablet",
+        ratio: "artArch",
+        shown: [320, 427],
+      },
+      {
+        label: "Artist card (arch)",
+        device: "tablet",
+        ratio: "artArch",
+        shown: [219, 292],
+        zoom: 1.06,
+      },
+      {
+        label: "Profile header (arch)",
+        device: "mobile",
+        ratio: "artArch",
+        shown: [280, 373],
+      },
+      {
+        label: "Artist card (arch)",
+        device: "mobile",
+        ratio: "artArch",
+        shown: [171, 228],
+        zoom: 1.06,
+      },
+    ],
+    crop: "Shown in a 3:4 arch: the top corners are rounded away, so keep the top of the head below the upper fifth. It zooms in a little on hover. The collaboration map crops a small circle from the centre.",
+    tips: [
+      "A portrait with the artist at work (brush, studio, installation) says more than a headshot.",
+    ],
+    code: [
+      "src/modules/art/components/artist-arch.tsx",
+      "src/app/art-gallery/artists/[slug]/page.tsx",
+      "src/modules/art/components/constellation.tsx",
+    ],
+  },
+  {
+    group: "art",
+    title: "Art Gallery: artist cover",
+    where:
+      "The wide band behind the name at the top of an artist's profile. Optional: without it the artist's first artwork is used.",
+    upload: {
+      label: "Admin → Art Gallery → Artists → artist → Images → Cover",
+      href: "/admin/art/artists",
+    },
+    size: [2400, 1200],
+    min: [1600, 800],
+    fit: "crop",
+    frames: [
+      {
+        label: "Profile band",
+        device: "desktop",
+        ratio: [2.2, 2.8],
+        shown: [1440, 576],
+      },
+      {
+        label: "Profile band",
+        device: "tablet",
+        ratio: [1.6, 1.9],
+        shown: [768, 416],
+      },
+      {
+        label: "Profile band",
+        device: "mobile",
+        ratio: [1.0, 1.2],
+        shown: [390, 352],
+      },
+    ],
+    crop: "Fills a band across the page and is cropped to it; phones keep only the centre. It sits behind a dark veil and the portrait arch overlaps its lower left, so the cover sets a mood rather than showing detail.",
+    tips: ["A studio, a mural wall or an installation in context works well."],
+    code: ["src/app/art-gallery/artists/[slug]/page.tsx"],
+  },
+  {
+    group: "art",
+    title: "Art Gallery: exhibition cover",
+    where:
+      "Full-screen header of an exhibition page, the large exhibition cards on the Art Gallery pages and the exhibition's share preview.",
+    upload: {
+      label: "Admin → Art Gallery → Exhibitions → exhibition → Images → Cover",
+      href: "/admin/art/exhibitions",
+    },
+    size: [2400, 1350],
+    min: [1600, 900],
+    fit: "crop",
+    frames: [
+      {
+        label: "Exhibition header",
+        device: "desktop",
+        ratio: [1.6, 2.4],
+        shown: [1440, 760],
+      },
+      {
+        label: "Feature card",
+        device: "desktop",
+        ratio: "artExhibitionFeature",
+        shown: [1184, 666],
+      },
+      {
+        label: "Exhibition card",
+        device: "desktop",
+        ratio: "artExhibitionCard",
+        shown: [357, 446],
+      },
+      {
+        label: "Exhibition header",
+        device: "tablet",
+        ratio: [1.2, 1.6],
+        shown: [768, 600],
+      },
+      {
+        label: "Feature card",
+        device: "tablet",
+        ratio: "artExhibitionFeature",
+        shown: [706, 397],
+      },
+      {
+        label: "Exhibition card",
+        device: "tablet",
+        ratio: "artExhibitionCard",
+        shown: [321, 401],
+      },
+      {
+        label: "Exhibition header, if no phone cover",
+        device: "mobile",
+        ratio: [0.55, 0.75],
+        shown: [390, 640],
+        fallback: true,
+      },
+      {
+        label: "Exhibition card, if no phone cover",
+        device: "mobile",
+        ratio: "artExhibitionCard",
+        shown: [342, 428],
+        fallback: true,
+      },
+    ],
+    crop: "Fills the header and the cards, which crop it from wide to an upright 4:5 around the focus point. The lower left is darkened for the title. Keep the centre strong.",
+    text: { x: 0, y: 55, w: 62, h: 45, label: "Title, festival and dates" },
+    mobile: "art-exhibition-cover-mobile",
+    code: [
+      "src/app/art-gallery/exhibitions/[slug]/page.tsx",
+      "src/modules/art/components/exhibition-card.tsx",
+    ],
+  },
+  {
+    group: "art",
+    title: "Art Gallery: exhibition cover for phones",
+    where:
+      "Replaces the exhibition cover on screens narrower than 640 px: the page header and the cards. Optional: without it phones crop the main cover.",
+    upload: {
+      label:
+        "Admin → Art Gallery → Exhibitions → exhibition → Images → Phone cover",
+      href: "/admin/art/exhibitions",
+    },
+    size: [1440, 1800],
+    min: [1080, 1350],
+    fit: "crop",
+    frames: [
+      {
+        label: "Exhibition header",
+        device: "mobile",
+        ratio: [0.55, 0.8],
+        shown: [390, 640],
+        when: "belowSm",
+      },
+      {
+        label: "Exhibition card",
+        device: "mobile",
+        ratio: "artExhibitionCard",
+        shown: [342, 428],
+        when: "belowSm",
+      },
+    ],
+    crop: "Upright: cards show it whole at 4:5, the full-screen header trims the sides on tall phones. The bottom half is darkened for the title.",
+    text: { x: 0, y: 55, w: 100, h: 45, label: "Title, festival and dates" },
+    fallbackFor: "art-exhibition-cover",
+    code: [
+      "src/app/art-gallery/exhibitions/[slug]/page.tsx",
+      "src/modules/art/components/exhibition-card.tsx",
+    ],
+  },
+  {
+    group: "art",
+    title: "Art Gallery: exhibition photography",
+    where:
+      "Photos of an exhibition, sorted into curated sets (installations, close-ups, atmosphere, behind the scenes): the exhibition page, Gallery highlights and the full-screen viewer.",
+    upload: {
+      label: "Admin → Art Gallery → Exhibitions → exhibition → Images",
+      href: "/admin/art/exhibitions",
+    },
+    size: [2400, 1600],
+    min: [1600, 1067],
+    fit: "full",
+    anyRatio: true,
+    frames: [
+      {
+        label: "Photo set",
+        device: "desktop",
+        ratio: "natural",
+        shown: 384,
+      },
+      { label: "Photo set", device: "tablet", ratio: "natural", shown: 345 },
+      { label: "Photo set", device: "mobile", ratio: "natural", shown: 173 },
+    ],
+    crop: "Never cropped: each photo keeps its own shape in a column layout and in the viewer.",
+    tips: [
+      "Landscape and portrait can be mixed.",
+      "Choose the set when you upload; you can move a photo to another set later.",
+    ],
+    code: ["src/modules/art/components/photo-collections.tsx"],
+  },
+  {
+    group: "art",
+    title: "Art Gallery: artwork image",
+    where:
+      "An artwork in collections, the artist's portfolio, the hero wall, its own page and the full-screen viewer. Extra images show details and views.",
+    upload: {
+      label: "Admin → Art Gallery → Artworks → artwork → Images",
+      href: "/admin/art/artworks",
+    },
+    size: [2400, 2400],
+    min: [1600, 1600],
+    fit: "full",
+    anyRatio: true,
+    frames: [
+      {
+        label: "Artwork page",
+        device: "desktop",
+        ratio: "natural",
+        shown: 713,
+      },
+      {
+        label: "Collection",
+        device: "desktop",
+        ratio: "natural",
+        shown: 373,
+      },
+      {
+        label: "Artwork page",
+        device: "tablet",
+        ratio: "natural",
+        shown: 706,
+      },
+      { label: "Collection", device: "tablet", ratio: "natural", shown: 337 },
+      {
+        label: "Artwork page",
+        device: "mobile",
+        ratio: "natural",
+        shown: 358,
+      },
+      { label: "Collection", device: "mobile", ratio: "natural", shown: 171 },
+    ],
+    crop: "Never cropped. The work is shown whole at its own shape everywhere, with its wall label beside or below it.",
+    tips: [
+      "Flat work: photograph straight on in even light and crop to the edge of the canvas.",
+      "Installations and sculpture: a wide view with a person for scale, plus detail shots as extra images.",
+      "Up to 2400 px on the long side is plenty; JPG at quality 85 stays well under the size limit.",
+    ],
+    code: [
+      "src/modules/art/components/artwork-grid.tsx",
+      "src/app/art-gallery/works/[slug]/page.tsx",
+    ],
+  },
+  {
+    group: "art",
+    title: "Art Gallery: partner logo",
+    where:
+      "Partners, sponsors and supporters at the end of an exhibition page.",
+    upload: {
+      label: "Admin → Art Gallery → Exhibitions → exhibition → Partners",
+      href: "/admin/art/exhibitions",
+    },
+    size: [800, 400],
+    min: [400, 200],
+    fit: "full",
+    anyRatio: true,
+    frames: [
+      { label: "Partner row", device: "desktop", ratio: "natural", shown: 160 },
+      { label: "Partner row", device: "tablet", ratio: "natural", shown: 140 },
+      { label: "Partner row", device: "mobile", ratio: "natural", shown: 120 },
+    ],
+    crop: "Shown whole, up to 56 px tall, on the dark page background.",
+    tips: [
+      "Use a light or white version of the logo on a transparent PNG or WebP background.",
+      "Trim empty space around the logo before uploading.",
+    ],
+    code: ["src/app/art-gallery/exhibitions/[slug]/page.tsx"],
   },
 
   // ----- Sharing --------------------------------------------------------------

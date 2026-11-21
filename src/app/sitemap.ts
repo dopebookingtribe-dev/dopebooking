@@ -1,4 +1,5 @@
 import type { MetadataRoute } from "next";
+import { getArtCatalog } from "@/modules/art/queries";
 import { getPublishedArtists } from "@/modules/artists/queries";
 import { getPublishedEvents } from "@/modules/events/queries";
 import { getPublishedGalleries } from "@/modules/galleries/queries";
@@ -16,6 +17,10 @@ const STATIC_PATHS = [
   "/shop",
   "/music",
   "/sell",
+  "/art-gallery",
+  "/art-gallery/exhibitions",
+  "/art-gallery/artists",
+  "/art-gallery/collaborate",
   "/legal/imprint",
   "/legal/privacy",
   "/legal/terms",
@@ -28,7 +33,7 @@ const STATIC_PATHS = [
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const base = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
-  const [artists, events, galleries, videos, products, music] =
+  const [artists, events, galleries, videos, products, music, art] =
     await Promise.all([
       getPublishedArtists(),
       getPublishedEvents(),
@@ -36,6 +41,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       getPublishedVideos(),
       getShopProducts(),
       getPublishedReleases(),
+      getArtCatalog(),
     ]);
   const url = (path: string) => new URL(path, base).toString();
 
@@ -53,5 +59,17 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     ...videos.map((video) => ({ url: url(`/videos/${video.slug}`) })),
     ...products.map((product) => ({ url: url(`/shop/${product.slug}`) })),
     ...music.releases.map((release) => ({ url: url(releaseHref(release)) })),
+    ...art.exhibitions.map((e) => ({
+      url: url(`/art-gallery/exhibitions/${e.slug}`),
+      lastModified: e.updatedAt,
+    })),
+    ...art.artists.map((a) => ({
+      url: url(`/art-gallery/artists/${a.slug}`),
+      lastModified: a.updatedAt,
+    })),
+    ...art.works.map((w) => ({
+      url: url(`/art-gallery/works/${w.slug}`),
+      lastModified: w.updatedAt,
+    })),
   ];
 }

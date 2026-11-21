@@ -556,3 +556,256 @@ export async function stickerSheet({
   </svg>`;
   return render(svg, w, h);
 }
+
+// ---------------------------------------------------------------------------
+// Art Gallery: paintings, installations, sculpture, portraits of painters
+// ---------------------------------------------------------------------------
+
+/** Visionary painting: a flat canvas of petal rings, waves and dots. */
+export async function visionaryPainting({
+  seed,
+  palette = "ultraviolet",
+  w = 1800,
+  h = 2400,
+}) {
+  const r = rng(seed);
+  const p = PALETTES[palette];
+  const id = `vp${seed}`;
+  const cx = w * (0.4 + r() * 0.2);
+  const cy = h * (0.38 + r() * 0.2);
+  let petals = "";
+  const rings = 5 + Math.floor(r() * 3);
+  for (let k = rings; k > 0; k--) {
+    const radius = (Math.min(w, h) * 0.46 * k) / rings;
+    const count = 8 + k * 4;
+    const color = p.threads[k % 3];
+    for (let i = 0; i < count; i++) {
+      const a = (i / count) * Math.PI * 2 + k * 0.2;
+      const x1 = cx + Math.cos(a) * radius * 0.55;
+      const y1 = cy + Math.sin(a) * radius * 0.55;
+      const x2 = cx + Math.cos(a) * radius;
+      const y2 = cy + Math.sin(a) * radius;
+      const s = (Math.PI * 2) / count / 2;
+      const c1x = cx + Math.cos(a - s) * radius * 0.95;
+      const c1y = cy + Math.sin(a - s) * radius * 0.95;
+      const c2x = cx + Math.cos(a + s) * radius * 0.95;
+      const c2y = cy + Math.sin(a + s) * radius * 0.95;
+      petals += `<path d="M${f(x1)} ${f(y1)} Q${f(c1x)} ${f(c1y)} ${f(x2)} ${f(y2)} Q${f(c2x)} ${f(c2y)} ${f(x1)} ${f(y1)}Z" fill="${color}" fill-opacity="${f(0.08 + k * 0.03)}" stroke="${color}" stroke-opacity="0.7" stroke-width="2"/>`;
+    }
+  }
+  let waves = "";
+  for (let i = 0; i < 9; i++) {
+    const y = h * (0.05 + i * 0.11) + r() * 40;
+    waves += `<path d="M0 ${f(y)} C${f(w * 0.3)} ${f(y - 120 - r() * 120)} ${f(w * 0.6)} ${f(y + 140 + r() * 80)} ${w} ${f(y - 40)}" fill="none" stroke="${p.threads[i % 3]}" stroke-opacity="0.25" stroke-width="${f(6 + r() * 16)}"/>`;
+  }
+  const dots = Array.from({ length: 240 }, () => {
+    const a = r() * Math.PI * 2;
+    const d = r() * Math.min(w, h) * 0.6;
+    return `<circle cx="${f(cx + Math.cos(a) * d)}" cy="${f(cy + Math.sin(a) * d)}" r="${f(2 + r() * 6)}" fill="${p.threads[Math.floor(r() * 3)]}" opacity="${f(0.4 + r() * 0.6)}"/>`;
+  }).join("");
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}">
+    ${defs(p, id)}
+    <rect width="${w}" height="${h}" fill="url(#sky${id})"/>
+    ${waves}
+    <circle cx="${f(cx)}" cy="${f(cy)}" r="${f(Math.min(w, h) * 0.4)}" fill="${p.glow}" opacity="0.35" filter="url(#blur${id})"/>
+    <g filter="url(#glow${id})">${petals}</g>
+    <circle cx="${f(cx)}" cy="${f(cy)}" r="${f(Math.min(w, h) * 0.05)}" fill="${p.threads[1]}" filter="url(#glow${id})"/>
+    ${dots}
+  </svg>`;
+  return render(svg, w, h, 82);
+}
+
+/** Abstract canvas: layered translucent fields and arcs. */
+export async function abstractCanvas({
+  seed,
+  palette = "dawn",
+  w = 2400,
+  h = 1800,
+}) {
+  const r = rng(seed);
+  const p = PALETTES[palette];
+  const id = `ac${seed}`;
+  const colors = [...p.threads, p.glow, p.sky[2]];
+  const fields = Array.from({ length: 7 }, (_, i) => {
+    const x = r() * w;
+    const y = r() * h;
+    const rx = w * (0.15 + r() * 0.3);
+    const ry = h * (0.1 + r() * 0.3);
+    return `<ellipse cx="${f(x)}" cy="${f(y)}" rx="${f(rx)}" ry="${f(ry)}" fill="${colors[i % colors.length]}" opacity="${f(0.25 + r() * 0.35)}" transform="rotate(${f(r() * 180)} ${f(x)} ${f(y)})" filter="url(#soft${id})"/>`;
+  }).join("");
+  const arcs = Array.from({ length: 14 }, (_, i) => {
+    const x = r() * w;
+    const y = r() * h;
+    const rad = 80 + r() * 520;
+    return `<path d="M${f(x - rad)} ${f(y)} A${f(rad)} ${f(rad)} 0 0 1 ${f(x + rad)} ${f(y)}" fill="none" stroke="${colors[i % colors.length]}" stroke-width="${f(4 + r() * 22)}" stroke-linecap="round" opacity="0.85"/>`;
+  }).join("");
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}">
+    ${defs(p, id)}
+    <rect width="${w}" height="${h}" fill="${p.sky[0]}"/>
+    ${fields}
+    <g filter="url(#glow${id})">${arcs}</g>
+  </svg>`;
+  return render(svg, w, h, 82);
+}
+
+function figures(r, w, base, count, color = "#05030c") {
+  return Array.from({ length: count }, () => {
+    const x = r() * w;
+    const s = 0.8 + r() * 0.4;
+    const hh = 120 * s;
+    return `<g fill="${color}"><circle cx="${f(x)}" cy="${f(base - hh)}" r="${f(13 * s)}"/><path d="M${f(x - 22 * s)} ${f(base)} L${f(x - 16 * s)} ${f(base - hh + 18 * s)} L${f(x + 16 * s)} ${f(base - hh + 18 * s)} L${f(x + 22 * s)} ${f(base)} Z"/></g>`;
+  }).join("");
+}
+
+/** Gallery dome or tent with hanging textiles, string art and visitors. */
+export async function installationRoom({
+  seed,
+  palette = "ultraviolet",
+  w = 2400,
+  h = 1600,
+}) {
+  const r = rng(seed);
+  const p = PALETTES[palette];
+  const id = `ir${seed}`;
+  const floor = h * 0.8;
+  const strips = Array.from({ length: 16 }, (_, i) => {
+    const x = (w / 16) * i + r() * 40;
+    const len = h * (0.25 + r() * 0.35);
+    return `<path d="M${f(x)} 0 Q${f(x + 30 - r() * 60)} ${f(len / 2)} ${f(x + 10)} ${f(len)} L${f(x + 50)} ${f(len - 20)} Q${f(x + 70)} ${f(len / 2)} ${f(x + 60)} 0Z" fill="${p.threads[i % 3]}" opacity="0.55"/>`;
+  }).join("");
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}">
+    ${defs(p, id)}
+    <rect width="${w}" height="${h}" fill="#08061a"/>
+    <path d="M0 ${floor} Q${w / 2} ${-h * 0.35} ${w} ${floor}" fill="${p.sky[1]}" opacity="0.55"/>
+    <ellipse cx="${w / 2}" cy="${h * 0.42}" rx="${w * 0.36}" ry="${h * 0.32}" fill="${p.glow}" opacity="0.28" filter="url(#blur${id})"/>
+    <g filter="url(#glow${id})">${strips}</g>
+    <g filter="url(#glow${id})">${stringArt(w * 0.5, h * 0.44, h * 0.26, 9, 26, p.threads, 1, 2.2, r())}</g>
+    <rect x="0" y="${floor}" width="${w}" height="${h - floor}" fill="#04030a"/>
+    <ellipse cx="${w / 2}" cy="${floor + 30}" rx="${w * 0.4}" ry="40" fill="${p.glow}" opacity="0.25" filter="url(#soft${id})"/>
+    ${figures(r, w, floor + 60, 9)}
+  </svg>`;
+  return render(svg, w, h);
+}
+
+/** Sculpture on a plinth under a spotlight. */
+export async function sculpturePiece({
+  seed,
+  palette = "twilight",
+  w = 1800,
+  h = 2400,
+}) {
+  const r = rng(seed);
+  const p = PALETTES[palette];
+  const id = `sc${seed}`;
+  const cx = w / 2;
+  const top = h * 0.62;
+  const loops = Array.from({ length: 6 }, (_, i) => {
+    const rx = w * (0.12 + r() * 0.14);
+    const ry = h * (0.05 + r() * 0.12);
+    return `<ellipse cx="${f(cx + (r() - 0.5) * 80)}" cy="${f(top - h * 0.18 - i * 30)}" rx="${f(rx)}" ry="${f(ry)}" fill="none" stroke="${p.threads[i % 3]}" stroke-width="${f(10 + r() * 14)}" transform="rotate(${f(r() * 180)} ${f(cx)} ${f(top - h * 0.2)})"/>`;
+  }).join("");
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}">
+    ${defs(p, id)}
+    <rect width="${w}" height="${h}" fill="#0b0c18"/>
+    <path d="M${cx - w * 0.12} 0 L${cx + w * 0.12} 0 L${cx + w * 0.42} ${h} L${cx - w * 0.42} ${h}Z" fill="#fff" opacity="0.05"/>
+    <ellipse cx="${cx}" cy="${top - h * 0.2}" rx="${w * 0.32}" ry="${h * 0.2}" fill="${p.glow}" opacity="0.25" filter="url(#blur${id})"/>
+    <g filter="url(#glow${id})">${loops}</g>
+    <rect x="${cx - w * 0.16}" y="${top}" width="${w * 0.32}" height="${h * 0.3}" fill="#1a1b2c"/>
+    <rect x="${cx - w * 0.16}" y="${top}" width="${w * 0.32}" height="10" fill="#2a2c44"/>
+    <rect x="0" y="${top + h * 0.3}" width="${w}" height="${h}" fill="#07070f"/>
+  </svg>`;
+  return render(svg, w, h);
+}
+
+/** A painter at a large canvas during a night set. */
+export async function livePaintingScene({
+  seed,
+  palette = "night",
+  w = 2400,
+  h = 1600,
+}) {
+  const r = rng(seed);
+  const p = PALETTES[palette];
+  const id = `lp${seed}`;
+  const base = h * 0.86;
+  const cvx = w * 0.42;
+  const cvw = w * 0.32;
+  const cvh = h * 0.5;
+  const cvy = base - cvh - h * 0.08;
+  const strokes = Array.from({ length: 26 }, (_, i) => {
+    const x = cvx + r() * cvw;
+    const y = cvy + r() * cvh;
+    return `<path d="M${f(x)} ${f(y)} q${f(40 + r() * 140)} ${f(-60 + r() * 120)} ${f(80 + r() * 160)} ${f(-20 + r() * 40)}" stroke="${p.threads[i % 3]}" stroke-width="${f(8 + r() * 18)}" stroke-linecap="round" fill="none" opacity="0.9"/>`;
+  }).join("");
+  const px = cvx - w * 0.06;
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}">
+    ${defs(p, id)}
+    <rect width="${w}" height="${h}" fill="url(#sky${id})"/>
+    ${stars(r, w, h * 0.5, 120)}
+    ${lasers(r, w * 0.85, h * 0.5, 9, p.threads, w, h, id)}
+    ${haze(r, w, h, p, id, 4)}
+    <rect x="${cvx - 12}" y="${cvy - 12}" width="${cvw + 24}" height="${cvh + 24}" fill="#2a2016"/>
+    <rect x="${cvx}" y="${cvy}" width="${cvw}" height="${cvh}" fill="#0d0b16"/>
+    <g filter="url(#glow${id})">${strokes}</g>
+    <line x1="${cvx + cvw * 0.3}" y1="${cvy + cvh}" x2="${cvx + cvw * 0.2}" y2="${base}" stroke="#2a2016" stroke-width="14"/>
+    <line x1="${cvx + cvw * 0.7}" y1="${cvy + cvh}" x2="${cvx + cvw * 0.8}" y2="${base}" stroke="#2a2016" stroke-width="14"/>
+    <g fill="#05030c">
+      <circle cx="${f(px)}" cy="${f(base - h * 0.42)}" r="${f(h * 0.035)}"/>
+      <path d="M${f(px - h * 0.06)} ${f(base)} L${f(px - h * 0.05)} ${f(base - h * 0.36)} L${f(px + h * 0.05)} ${f(base - h * 0.36)} L${f(px + h * 0.07)} ${f(base)}Z"/>
+      <polyline points="${f(px + h * 0.04)},${f(base - h * 0.34)} ${f(px + h * 0.1)},${f(base - h * 0.4)} ${f(cvx + 20)},${f(cvy + cvh * 0.35)}" fill="none" stroke="#05030c" stroke-width="${f(h * 0.022)}" stroke-linecap="round"/>
+    </g>
+    <rect x="0" y="${base}" width="${w}" height="${h - base}" fill="#030208"/>
+    ${figures(r, w, base + 70, 14)}
+  </svg>`;
+  return render(svg, w, h);
+}
+
+/** Portrait of a visual artist: a silhouette before their own work. */
+export async function painterPortrait({
+  seed,
+  palette = "dawn",
+  w = 1200,
+  h = 1600,
+  hair = "short",
+}) {
+  const r = rng(seed);
+  const p = PALETTES[palette];
+  const id = `pp${seed}`;
+  const cx = w / 2 + (r() - 0.5) * w * 0.06;
+  const headY = h * 0.42;
+  const hr = w * 0.11;
+  const shoulderY = headY + hr * 2;
+  const body = `M${cx - w * 0.34} ${h} C${cx - w * 0.33} ${shoulderY + hr * 1.6} ${cx - w * 0.3} ${shoulderY} ${cx - w * 0.17} ${shoulderY - hr * 0.3} L${cx - hr * 0.42} ${headY + hr * 0.85} L${cx + hr * 0.42} ${headY + hr * 0.85} L${cx + w * 0.17} ${shoulderY - hr * 0.3} C${cx + w * 0.3} ${shoulderY} ${cx + w * 0.33} ${shoulderY + hr * 1.6} ${cx + w * 0.34} ${h} Z`;
+  const hairShape =
+    hair === "long"
+      ? `<path d="M${cx - hr * 1.12} ${headY} Q${cx - hr * 1.3} ${shoulderY + hr} ${cx - hr * 1.5} ${shoulderY + hr * 1.5} L${cx + hr * 1.5} ${shoulderY + hr * 1.5} Q${cx + hr * 1.3} ${shoulderY + hr} ${cx + hr * 1.12} ${headY} Z"/>`
+      : hair === "bun"
+        ? `<circle cx="${cx}" cy="${headY - hr * 1.15}" r="${hr * 0.55}"/>`
+        : hair === "curls"
+          ? Array.from(
+              { length: 9 },
+              (_, i) =>
+                `<circle cx="${f(cx + Math.cos((i / 9) * Math.PI + Math.PI) * hr)}" cy="${f(headY - hr * 0.3 + Math.sin((i / 9) * Math.PI + Math.PI) * hr * 0.8)}" r="${f(hr * 0.42)}"/>`,
+            ).join("")
+          : "";
+  const splashes = Array.from({ length: 18 }, (_, i) => {
+    const x = r() * w;
+    const y = r() * h * 0.7;
+    return `<circle cx="${f(x)}" cy="${f(y)}" r="${f(20 + r() * 110)}" fill="${p.threads[i % 3]}" opacity="${f(0.25 + r() * 0.4)}" filter="url(#soft${id})"/>`;
+  }).join("");
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}">
+    ${defs(p, id)}
+    <rect width="${w}" height="${h}" fill="url(#sky${id})"/>
+    ${splashes}
+    <g filter="url(#glow${id})">${stringArt(cx, headY - h * 0.04, w * 0.42, 7, 20, p.threads, 0.7, 2, r())}</g>
+    <ellipse cx="${cx}" cy="${headY + hr}" rx="${w * 0.4}" ry="${h * 0.28}" fill="${p.glow}" opacity="0.4" filter="url(#blur${id})"/>
+    <g fill="#05030c">
+      <circle cx="${cx}" cy="${headY}" r="${hr}"/>
+      ${hairShape}
+      <path d="${body}"/>
+    </g>
+    <path d="${body}" fill="none" stroke="${p.glow}" stroke-width="3" opacity="0.8" filter="url(#glow${id})"/>
+    <circle cx="${cx}" cy="${headY}" r="${hr}" fill="none" stroke="${p.glow}" stroke-width="3" opacity="0.7" filter="url(#glow${id})"/>
+  </svg>`;
+  return render(svg, w, h);
+}

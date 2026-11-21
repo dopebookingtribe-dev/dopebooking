@@ -1,5 +1,6 @@
 import { Fragment, type ReactNode } from "react";
 import { Container } from "@/components/ui/container";
+import { ArtSection } from "@/modules/art/components/art-sections";
 import { collectImageIds, getImagesByIds, getSiteSettings } from "../queries";
 import { BUILTIN_BLOCKS, type BuiltinBlock, type PageContent } from "../schema";
 import {
@@ -109,6 +110,8 @@ export async function PageSections({
             return (
               <ContactSection key={section.id} section={section} {...props} />
             );
+          case "art":
+            return <ArtSection key={section.id} section={section} {...props} />;
           case "builtin": {
             const block = builtins[section.content.block];
             if (block) {

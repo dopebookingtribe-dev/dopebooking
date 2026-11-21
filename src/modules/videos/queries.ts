@@ -27,7 +27,12 @@ export type VideoDetail = VideoCard & {
   artist: { slug: string; stageName: string } | null;
 };
 
-type VideoFilter = { eventId?: string; artistId?: string };
+type VideoFilter = {
+  eventId?: string;
+  artistId?: string;
+  artArtistId?: string;
+  artExhibitionId?: string;
+};
 
 const CARD_COLUMNS =
   "id, slug, title, provider, provider_ref, featured, is_demo, published_at, poster_asset_id";
@@ -85,9 +90,19 @@ export async function getPublishedVideos(
     .eq("status", "published");
   if (filter.eventId) query = query.eq("event_id", filter.eventId);
   if (filter.artistId) query = query.eq("artist_id", filter.artistId);
+  if (filter.artArtistId) {
+    query = query.eq("art_artist_id", filter.artArtistId);
+  }
+  if (filter.artExhibitionId) {
+    query = query.eq("art_exhibition_id", filter.artExhibitionId);
+  }
   const { data, error } = await query
     .order("featured", { ascending: false })
     .order("published_at", { ascending: false });
+  // Art Gallery columns arrive with migration 20261121000100; until then
+  // art pages simply have no videos.
+  const artFilter = filter.artArtistId || filter.artExhibitionId;
+  if (error && artFilter) return [];
   if (error) throw new Error(`Failed to load videos: ${error.message}`);
 
   const posters = await fetchImagesById(
