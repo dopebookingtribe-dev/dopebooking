@@ -5,8 +5,12 @@ import { Suspense, type ReactNode } from "react";
 import { Container } from "@/components/ui/container";
 import { COUNTRIES } from "@/lib/countries";
 import {
+  addAvailability,
   deleteArtist,
   deleteArtistImage,
+  deleteAvailability,
+  setArtistPressKit,
+  toggleAvailabilityPublic,
   registerArtistImage,
   saveArtistLinks,
   setArtistCover,
@@ -14,7 +18,13 @@ import {
   updateArtistDetails,
   updateArtistPrivate,
 } from "@/modules/artists/actions";
-import { getArtistForAdmin } from "@/modules/artists/admin-queries";
+import {
+  getArtistExtras,
+  getArtistForAdmin,
+} from "@/modules/artists/admin-queries";
+import { AvailabilityEditor } from "@/modules/artists/components/admin/availability-editor";
+import { PressKitPicker } from "@/modules/artists/components/admin/press-kit-picker";
+import { MIGRATION_NOTICE } from "@/lib/supabase/schema-errors";
 import { ArtistDetailsForm } from "@/modules/artists/components/admin/artist-details-form";
 import { ArtistLinksForm } from "@/modules/artists/components/admin/artist-links-form";
 import { ArtistPrivateForm } from "@/modules/artists/components/admin/artist-private-form";
@@ -51,9 +61,19 @@ async function Editor({
   params: PageProps<"/admin/artists/[id]">["params"];
 }) {
   const { id } = await params;
-  const data = await getArtistForAdmin(id);
+  const [data, extras] = await Promise.all([
+    getArtistForAdmin(id),
+    getArtistExtras(id),
+  ]);
   if (!data) notFound();
   const { artist, privateInfo, links, images } = data;
+  const appearances = [
+    ["Events and lineups", extras.appearsIn.events, "/admin/events"],
+    ["Videos", extras.appearsIn.videos, "/admin/videos"],
+    ["Music releases", extras.appearsIn.releases, "/admin/music/new"],
+    ["News posts", extras.appearsIn.posts, "/admin/posts"],
+    ["Art Gallery profile", extras.appearsIn.art, "/admin/art/artists"],
+  ] as const;
 
   return (
     <>
@@ -130,6 +150,77 @@ async function Editor({
             links={links}
             action={saveArtistLinks.bind(null, artist.id)}
           />
+        </Section>
+
+        <Section
+          title="Dates and availability"
+          description="Tour windows, booked dates and open periods. Only windows marked Public show on the artist page, next to the booking button."
+        >
+          {extras.enabled ? (
+            <AvailabilityEditor
+              rows={extras.availability}
+              addAction={addAvailability.bind(null, artist.id)}
+              remove={deleteAvailability.bind(null, artist.id)}
+              togglePublic={toggleAvailabilityPublic.bind(null, artist.id)}
+            />
+          ) : (
+            <p className="text-sm text-muted">{MIGRATION_NOTICE}</p>
+          )}
+        </Section>
+
+        <Section
+          title="Press kit"
+          description="A public PDF (EPK, rider summary, bio) promoters can download from the artist page. Stored in the media library."
+        >
+          {extras.enabled ? (
+            <PressKitPicker
+              current={extras.pressKitId}
+              documents={extras.documents}
+              action={setArtistPressKit.bind(null, artist.id)}
+            />
+          ) : (
+            <p className="text-sm text-muted">{MIGRATION_NOTICE}</p>
+          )}
+        </Section>
+
+        <Section
+          title="Appears in"
+          description="Everywhere this artist is linked. Add them to an event lineup on the event, to a video or post on its page."
+        >
+          <div className="grid gap-6 sm:grid-cols-2">
+            {appearances.map(([label, items, addHref]) => (
+              <div key={label}>
+                <p className="font-label text-xs text-accent">{label}</p>
+                {items.length ? (
+                  <ul className="mt-2 flex flex-col gap-1 text-sm">
+                    {items.map((item) => (
+                      <li key={item.href}>
+                        <Link
+                          href={item.href}
+                          className="underline-offset-4 hover:text-accent hover:underline"
+                        >
+                          {item.label}
+                        </Link>{" "}
+                        <span className="font-label text-xs text-muted">
+                          {item.status}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p className="mt-2 text-sm text-muted">
+                    None yet.{" "}
+                    <Link
+                      href={addHref}
+                      className="underline underline-offset-4"
+                    >
+                      Go there
+                    </Link>
+                  </p>
+                )}
+              </div>
+            ))}
+          </div>
         </Section>
 
         <Section

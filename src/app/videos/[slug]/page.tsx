@@ -61,7 +61,12 @@ async function Video({ params }: { params: Props["params"] }) {
     <>
       <div className="mt-8">
         <VideoPlayer
-          source={{ provider: video.provider, ref: video.ref }}
+          source={{
+            provider: video.provider,
+            ref: video.ref,
+            fileUrl: video.fileUrl,
+            mimeType: video.mimeType,
+          }}
           title={video.title}
           poster={video.poster}
           priority

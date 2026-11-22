@@ -143,6 +143,8 @@ export async function listLibraryImages(): Promise<LibraryImage[]> {
       "id, storage_bucket, storage_path, alt_text, credit, width, height, focal_x, focal_y, is_demo, created_at",
     )
     .eq("library", "site")
+    // Page sections take photos only; videos and files have their own pickers.
+    .eq("type", "image")
     .order("created_at", { ascending: false });
   return (data ?? []).map((row) => ({
     id: row.id,

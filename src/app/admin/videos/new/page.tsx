@@ -2,9 +2,10 @@ import type { Metadata } from "next";
 import { Suspense } from "react";
 import { AdminHeader } from "@/components/admin/admin-ui";
 import { Container } from "@/components/ui/container";
-import { SimpleCreateForm } from "@/components/ui/simple-create-form";
-import { requireRole, STAFF_ROLES } from "@/lib/auth/dal";
+import { requirePermission } from "@/lib/auth/permissions";
 import { createVideo } from "@/modules/videos/actions";
+import { getVideoFileOptions } from "@/modules/videos/admin-queries";
+import { CreateVideoForm } from "@/modules/videos/components/admin/create-video-form";
 
 export const metadata: Metadata = { title: "Add video" };
 
@@ -16,6 +17,11 @@ export default function NewVideoPage() {
         backHref="/admin/videos"
         backLabel="All videos"
       />
+      <p className="mt-4 max-w-2xl text-muted">
+        Paste a link, or upload the file itself (MP4, WebM or MOV up to 50 MB).
+        Uploaded videos are stored in the media library and play in the
+        site&apos;s own player.
+      </p>
       <div className="mt-10">
         <Suspense fallback={<p className="text-muted">Checking access…</p>}>
           <Gate />
@@ -26,23 +32,13 @@ export default function NewVideoPage() {
 }
 
 async function Gate() {
-  await requireRole(STAFF_ROLES, "/admin/videos/new");
+  await requirePermission("content.manage", "/admin/videos/new");
+  const { files, filesEnabled } = await getVideoFileOptions();
   return (
-    <SimpleCreateForm
+    <CreateVideoForm
       action={createVideo}
-      fields={[
-        {
-          name: "title",
-          label: "Title",
-          hint: "e.g. “Boom 2026 — Official Aftermovie”",
-        },
-        {
-          name: "url",
-          label: "Video link",
-          type: "url",
-          hint: "Paste a Mux, Cloudflare Stream, YouTube or Vimeo link.",
-        },
-      ]}
+      files={files}
+      filesEnabled={filesEnabled}
     />
   );
 }

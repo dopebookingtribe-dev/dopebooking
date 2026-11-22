@@ -27,7 +27,10 @@ export default function MusicAdminPage({
 }: PageProps<"/admin/music">) {
   return (
     <Container className="py-16">
-      <AdminHeader title="Music" />
+      <AdminHeader
+        title="Music"
+        action={{ href: "/admin/music/new", label: "New release" }}
+      />
       <MusicAdminNav current="/admin/music" />
       <Suspense fallback={<p className="mt-10 text-muted">Loading…</p>}>
         <Releases searchParams={searchParams} />

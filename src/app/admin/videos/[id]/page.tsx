@@ -12,13 +12,18 @@ import { ImageGrid } from "@/modules/media/components/image-grid";
 import { ImageUploader } from "@/modules/media/components/image-uploader";
 import { GUIDELINES_PATH } from "@/modules/media/image-specs";
 import { mediaFolder } from "@/modules/media/server";
+import { DeleteRecordForm } from "@/components/admin/delete-record-form";
 import {
+  deleteVideo,
   deleteVideoImage,
   registerVideoPoster,
   setVideoPoster,
   updateVideoDetails,
 } from "@/modules/videos/actions";
-import { getVideoForAdmin } from "@/modules/videos/admin-queries";
+import {
+  getVideoFileOptions,
+  getVideoForAdmin,
+} from "@/modules/videos/admin-queries";
 import { VideoDetailsForm } from "@/modules/videos/components/admin/video-details-form";
 import { VideoPlayer } from "@/modules/videos/components/video-player";
 
@@ -42,9 +47,13 @@ async function Editor({
   params: PageProps<"/admin/videos/[id]">["params"];
 }) {
   const { id } = await params;
-  const data = await getVideoForAdmin(id);
+  const [data, fileOptions] = await Promise.all([
+    getVideoForAdmin(id),
+    getVideoFileOptions(),
+  ]);
   if (!data) notFound();
   const { video, images, eventOptions, artistOptions } = data;
+  const file = fileOptions.files.find((f) => f.id === video.file_asset_id);
 
   return (
     <>
@@ -70,7 +79,12 @@ async function Editor({
           description="How the player looks on the site."
         >
           <VideoPlayer
-            source={{ provider: video.provider, ref: video.provider_ref }}
+            source={{
+              provider: video.provider,
+              ref: video.provider_ref,
+              fileUrl: file?.url ?? null,
+              mimeType: file?.mimeType ?? null,
+            }}
             title={video.title}
             poster={
               images.find((image) => image.id === video.poster_asset_id) ?? null
@@ -85,12 +99,14 @@ async function Editor({
             video={video}
             eventOptions={eventOptions}
             artistOptions={artistOptions}
+            files={fileOptions.files}
+            filesEnabled={fileOptions.filesEnabled}
             action={updateVideoDetails.bind(null, video.id)}
           />
         </EditSection>
         <EditSection
           title="Poster image"
-          description="Optional. Shown before the video plays. Vimeo videos need one; other sources use their own thumbnail."
+          description="Shown before the video plays. Uploaded files and Vimeo videos need one; other links use their own thumbnail. 1920 × 1080 (16:9)."
         >
           <div className="flex flex-col gap-8">
             <ImageGrid
@@ -113,6 +129,28 @@ async function Editor({
               ]}
             />
           </div>
+        </EditSection>
+        <EditSection
+          title="Delete"
+          description="Removes the video and its poster images for good. Archive it instead to keep it."
+        >
+          <DeleteRecordForm
+            label="Delete video"
+            confirm={`Delete “${video.title}”? This can't be undone.`}
+            action={deleteVideo.bind(null, video.id)}
+          >
+            {video.provider === "file" ? (
+              <label className="flex items-center gap-3 text-sm">
+                <input
+                  type="checkbox"
+                  name="delete_file"
+                  className="size-4 accent-(--accent)"
+                />
+                Also delete the uploaded video file from the media library (kept
+                if anything else uses it)
+              </label>
+            ) : null}
+          </DeleteRecordForm>
         </EditSection>
       </div>
     </>

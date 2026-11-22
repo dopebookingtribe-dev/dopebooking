@@ -2,7 +2,7 @@ import Link from "next/link";
 import { Suspense } from "react";
 import { buttonClasses } from "@/components/ui/button";
 import { CartLink } from "@/modules/marketplace/components/cart-link";
-import { getSiteSettings } from "@/modules/cms/queries";
+import { getImagesByIds, getSiteSettings } from "@/modules/cms/queries";
 import { AccountLink, SignInLink } from "./account-link";
 import { MobileMenu } from "./mobile-menu";
 
@@ -17,6 +17,9 @@ function Account() {
 export async function SiteHeader() {
   const settings = await getSiteSettings();
   const { nav, cta, brand } = settings;
+  const logo = brand.logo
+    ? (await getImagesByIds([brand.logo]))[brand.logo]
+    : undefined;
 
   return (
     <header className="sticky top-0 z-50 border-b border-line">
@@ -31,7 +34,19 @@ export async function SiteHeader() {
           href="/"
           className="group font-display text-2xl leading-none transition-colors hover:text-accent"
         >
-          <span className="tilt-on-hover inline-block">{brand.name}</span>
+          {logo ? (
+            // Shown whole at 36 px high; the name stays for screen readers.
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={logo.url}
+              alt={brand.name}
+              width={Math.round((logo.width / logo.height) * 36)}
+              height={36}
+              className="h-9 w-auto max-w-48 object-contain"
+            />
+          ) : (
+            <span className="tilt-on-hover inline-block">{brand.name}</span>
+          )}
         </Link>
 
         <nav aria-label="Main" className="hidden xl:block">

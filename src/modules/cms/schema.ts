@@ -60,6 +60,7 @@ export const BUILTIN_BLOCKS = {
     "Art Gallery: exhibitions (now on view, upcoming, archive)",
   "art-artist-index": "Art Gallery: artist directory with discipline filter",
   "art-inquiry-form": "Art Gallery: collaboration inquiry form",
+  "post-index": "News: posts with category filter",
 } as const;
 export type BuiltinBlock = keyof typeof BUILTIN_BLOCKS;
 
@@ -106,6 +107,13 @@ const sectionContent = {
     link: linkSchema,
     limit: limit(6),
     layout: z.enum(["feature", "grid"]),
+  }),
+  posts: z.object({
+    heading: text(120),
+    body: text(400),
+    link: linkSchema,
+    category: text(40),
+    limit: limit(6),
   }),
   products: z.object({
     heading: text(120),
@@ -316,11 +324,39 @@ const navLink = z.object({
   href: hrefSchema.refine((v) => v !== "", "Enter where the link goes."),
 });
 
+export const ANNOUNCEMENT_TONES = {
+  accent: "Saffron (stands out)",
+  uv: "Violet",
+  quiet: "Quiet (dark)",
+} as const;
+
 export const settingsSchema = z.object({
   brand: z.object({
     name: requiredText("brand name", 60),
     tagline: text(160),
+    /** Optional logo image; the name stays as accessible text. */
+    logo: mediaId.default(""),
   }),
+  /** Site-wide banner above the header. Older saved settings lack it. */
+  announcement: z
+    .object({
+      enabled: z.boolean(),
+      text: text(160),
+      link: linkSchema,
+      tone: z.enum(
+        Object.keys(ANNOUNCEMENT_TONES) as [keyof typeof ANNOUNCEMENT_TONES],
+      ),
+    })
+    .refine((value) => !value.enabled || value.text !== "", {
+      message: "Write the announcement text, or switch the banner off.",
+      path: ["text"],
+    })
+    .default({
+      enabled: false,
+      text: "",
+      link: { label: "", href: "" },
+      tone: "accent",
+    }),
   nav: z
     .array(
       navLink.extend({

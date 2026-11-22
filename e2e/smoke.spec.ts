@@ -231,11 +231,26 @@ test("content management and previews are guarded", async ({ page }) => {
     "/admin/demo",
     "/admin/categories",
     "/admin/products",
+    "/admin/products/new",
+    "/admin/posts",
+    "/admin/posts/new",
+    "/admin/legal",
+    "/admin/legal/imprint",
+    "/admin/media/00000000-0000-0000-0000-000000000000",
+    "/admin/music/new",
+    "/admin/videos/new",
     "/preview/home",
   ]) {
     await page.goto(path);
     await expect(page, path).toHaveURL(/\/login\?next=/);
   }
+});
+
+test("news page renders", async ({ page }) => {
+  await page.goto("/news");
+  await expect(
+    page.getByRole("heading", { level: 1, name: "News" }),
+  ).toBeVisible();
 });
 
 test("about page and editable pages render", async ({ page }) => {

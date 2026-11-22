@@ -11,10 +11,27 @@ import {
 import { Container } from "@/components/ui/container";
 import { requirePermission } from "@/lib/auth/permissions";
 import { formatCents } from "@/modules/marketplace/schemas";
+import { ImageUploader } from "@/modules/media/components/image-uploader";
+import { mediaFolder } from "@/modules/media/server";
 import {
+  registerReleaseCover,
+  updateRelease,
+  updateTrack,
+} from "@/modules/music/actions";
+import {
+  publishReleaseAsStaff,
   reviewRelease,
   saveReleaseCuration,
 } from "@/modules/music/admin-actions";
+import {
+  BundlePicker,
+  ReleaseDetailsForm,
+  ReleaseStatusActions,
+  TrackRows,
+  TrackUploader,
+} from "@/modules/music/components/release-forms";
+import { StaffPublishForm } from "@/modules/music/components/staff-publish-form";
+import { getMusicGenres, getReleaseForEdit } from "@/modules/music/queries";
 import { getReleaseForReview } from "@/modules/music/admin-queries";
 import {
   CurationForm,
@@ -49,8 +66,35 @@ async function Review({
 }) {
   const { id } = await params;
   await requirePermission("music.manage", `/admin/music/${id}`);
-  const data = await getReleaseForReview(id);
-  if (!data) notFound();
+  const [data, edit, genres] = await Promise.all([
+    getReleaseForReview(id),
+    getReleaseForEdit(id),
+    getMusicGenres(),
+  ]);
+  if (!data || !edit) notFound();
+  const editable = ["draft", "rejected", "archived"].includes(
+    data.release.status,
+  );
+  const live = data.release.status === "published";
+  const isBundle = data.release.release_type === "bundle";
+  const checklist = [
+    { label: "Cover artwork", done: Boolean(edit.release.cover_asset_id) },
+    { label: "Price", done: edit.release.price_amount !== null },
+    { label: "Genre", done: Boolean(edit.release.genre_id) },
+    isBundle
+      ? {
+          label: "At least two releases in the bundle",
+          done: edit.bundleItems.length >= 2,
+        }
+      : {
+          label: "Tracks with a master and a preview",
+          done:
+            edit.tracks.length > 0 &&
+            edit.tracks.every(
+              (track) => track.files.length && track.preview_path,
+            ),
+        },
+  ];
   const { release, artist, cover, tracks, bundleReleases, sales } = data;
   const money = (cents: number) => formatCents(cents, MUSIC_CURRENCY);
 
@@ -104,8 +148,93 @@ async function Review({
         ) : null}
       </AdminHeader>
 
+      <div className="mt-6">
+        <ReleaseStatusActions
+          releaseId={release.id}
+          status={release.status}
+          from="admin"
+        />
+      </div>
       <div className="mt-12 flex flex-col gap-16">
-        <EditSection title="Release" description="What the artist submitted.">
+        {editable || live ? (
+          <EditSection
+            title="Edit details"
+            description={
+              live
+                ? "Live releases change price, availability and texts only. Unpublish to change more."
+                : "Title, genre, tempo, key, label, release date, price and whether it's for sale."
+            }
+          >
+            <ReleaseDetailsForm
+              release={edit.release}
+              genres={genres}
+              live={live}
+              action={updateRelease.bind(null, release.id)}
+            />
+          </EditSection>
+        ) : null}
+        {editable ? (
+          <EditSection
+            title="Artwork"
+            description="Square, at least 3000 × 3000 px (1:1), JPG/PNG/WebP/AVIF up to 8 MB. Never cropped. A new upload replaces the old cover."
+          >
+            <ImageUploader
+              folder={mediaFolder("music", release.id)}
+              register={registerReleaseCover.bind(null, release.id)}
+              defaultAlt={`${release.title} artwork`}
+              roles={[{ spec: "music-cover" }]}
+            />
+          </EditSection>
+        ) : null}
+        {editable && !isBundle ? (
+          <EditSection
+            title="Upload tracks"
+            description="Masters in WAV, FLAC, AIFF or MP3 (up to 50 MB each), in order. A 60-second preview is made in your browser and is the only part visitors can hear."
+          >
+            <div className="flex flex-col gap-6">
+              <TrackRows
+                releaseId={release.id}
+                tracks={edit.tracks}
+                editable
+                updateActions={Object.fromEntries(
+                  edit.tracks.map((track) => [
+                    track.id,
+                    updateTrack.bind(null, track.id),
+                  ]),
+                )}
+              />
+              <TrackUploader releaseId={release.id} />
+            </div>
+          </EditSection>
+        ) : null}
+        {editable && isBundle ? (
+          <EditSection
+            title="Bundle contents"
+            description="Pick at least two releases by the same artist."
+          >
+            <BundlePicker
+              releaseId={release.id}
+              candidates={edit.candidates}
+              selected={edit.bundleItems}
+              editable
+            />
+          </EditSection>
+        ) : null}
+        {editable ? (
+          <EditSection
+            title="Publish"
+            description="Publishes straight to the music store without the artist review step. The artist's team is notified and earns from every sale."
+          >
+            <StaffPublishForm
+              checklist={checklist}
+              action={publishReleaseAsStaff.bind(null, release.id)}
+            />
+          </EditSection>
+        ) : null}
+        <EditSection
+          title="Release"
+          description="Summary of the release as it stands."
+        >
           <div className="grid gap-8 md:grid-cols-[12rem_1fr]">
             <div className="relative aspect-square w-48 overflow-hidden rounded-(--radius) bg-surface-2">
               {cover ? (

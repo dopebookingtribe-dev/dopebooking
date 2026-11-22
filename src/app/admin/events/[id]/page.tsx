@@ -7,10 +7,12 @@ import {
   EditSection,
   StatusBadge,
 } from "@/components/admin/admin-ui";
+import { DeleteRecordForm } from "@/components/admin/delete-record-form";
 import { Container } from "@/components/ui/container";
 import { COUNTRIES } from "@/lib/countries";
 import { allTimeZones } from "@/lib/datetime";
 import {
+  deleteEvent,
   deleteEventImage,
   registerEventImage,
   saveLineup,
@@ -150,6 +152,16 @@ async function Editor({
               ]}
             />
           </div>
+        </EditSection>
+        <EditSection
+          title="Delete"
+          description="Removes the event and its photos for good. Archive it instead to keep it."
+        >
+          <DeleteRecordForm
+            label="Delete event"
+            confirm={`Delete “${event.title}” and all its photos? This can't be undone.`}
+            action={deleteEvent.bind(null, event.id)}
+          />
         </EditSection>
       </div>
     </>

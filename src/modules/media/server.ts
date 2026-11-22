@@ -256,3 +256,35 @@ export async function deleteOwnedImage(
 
 export const MEDIA_COLUMNS =
   "id, storage_bucket, storage_path, alt_text, credit, width, height, sort_order, focal_x, focal_y";
+
+/** Stored files of every photo one record owns, collected before deleting it. */
+export async function ownedMediaFiles(
+  supabase: Client,
+  kind: MediaOwnerKind,
+  ownerId: string,
+) {
+  const { data } = await supabase
+    .from("media_assets")
+    .select("storage_bucket, storage_path")
+    .eq(OWNER_COLUMN[kind], ownerId);
+  return data ?? [];
+}
+
+/** Removes stored files (after their rows are gone), grouped by bucket. */
+export async function removeStoredFiles(
+  supabase: Client,
+  files: { storage_bucket: string; storage_path: string }[],
+) {
+  const byBucket = new Map<string, string[]>();
+  for (const file of files) {
+    byBucket.set(file.storage_bucket, [
+      ...(byBucket.get(file.storage_bucket) ?? []),
+      file.storage_path,
+    ]);
+  }
+  for (const [bucket, paths] of byBucket) {
+    for (let i = 0; i < paths.length; i += 100) {
+      await supabase.storage.from(bucket).remove(paths.slice(i, i + 100));
+    }
+  }
+}

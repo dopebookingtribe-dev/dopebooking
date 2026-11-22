@@ -1,4 +1,8 @@
 import type { Metadata } from "next";
+import {
+  AVAILABILITY_STATUSES,
+  formatDateRange,
+} from "@/modules/artists/availability";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
@@ -300,6 +304,40 @@ async function Profile({ params }: { params: Props["params"] }) {
             <ButtonLink href={`/book/${artist.slug}`} className="mt-8 w-full">
               Request booking
             </ButtonLink>
+            {artist.availability.length ? (
+              <div className="mt-8 border-t border-line pt-6">
+                <h3 className="font-label text-sm text-accent">
+                  Dates and availability
+                </h3>
+                <ul className="mt-3 flex flex-col gap-3 text-sm">
+                  {artist.availability.map((window) => (
+                    <li
+                      key={`${window.startsOn}-${window.endsOn}-${window.status}`}
+                    >
+                      <span className="block font-medium">
+                        {formatDateRange(window.startsOn, window.endsOn)}
+                        {window.location ? ` · ${window.location}` : ""}
+                      </span>
+                      <span className="block text-muted">
+                        {AVAILABILITY_STATUSES[window.status]}
+                        {window.note ? `. ${window.note}` : ""}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ) : null}
+            {artist.pressKit ? (
+              <a
+                href={artist.pressKit.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mt-6 inline-flex min-h-11 items-center gap-2 text-sm underline underline-offset-4 hover:text-accent"
+              >
+                Download press kit (PDF)
+                <span className="sr-only">(opens in a new tab)</span>
+              </a>
+            ) : null}
           </div>
         </aside>
       </Container>

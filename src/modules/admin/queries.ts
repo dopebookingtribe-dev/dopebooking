@@ -54,15 +54,29 @@ export async function listRolePermissions() {
   return data ?? [];
 }
 
+export type AuditFilter = {
+  table?: string;
+  action?: "INSERT" | "UPDATE" | "DELETE";
+  actor?: string;
+  /** 1-based page of `limit` rows. */
+  page?: number;
+};
+
 export async function listAuditLog(
   limit = 200,
+  filter: AuditFilter = {},
 ): Promise<(AuditLogRow & { actorName: string | null })[]> {
   const supabase = await createClient();
-  const { data } = await supabase
+  const page = Math.max(1, filter.page ?? 1);
+  let query = supabase
     .from("audit_log")
     .select("*")
     .order("created_at", { ascending: false })
-    .limit(limit);
+    .range((page - 1) * limit, page * limit - 1);
+  if (filter.table) query = query.eq("table_name", filter.table);
+  if (filter.action) query = query.eq("action", filter.action);
+  if (filter.actor) query = query.eq("actor_id", filter.actor);
+  const { data } = await query;
   const rows = data ?? [];
   const actorIds = [
     ...new Set(

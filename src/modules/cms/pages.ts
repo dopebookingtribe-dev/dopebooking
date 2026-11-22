@@ -25,6 +25,7 @@ export const PAGES = {
   events: { title: "Events", path: "/events", builtins: ["event-list"] },
   gallery: { title: "Photos", path: "/gallery", builtins: ["gallery-index"] },
   videos: { title: "Videos", path: "/videos", builtins: ["video-index"] },
+  news: { title: "News", path: "/news", builtins: ["post-index"] },
   services: { title: "Festival services", path: "/services", builtins: [] },
   promotion: {
     title: "Event promotion",
@@ -144,6 +145,14 @@ export function emptySectionContent(type: SectionType): Section["content"] {
         link: link("All videos", "/videos"),
         limit: 3,
         layout: "feature",
+      };
+    case "posts":
+      return {
+        heading: "Latest news",
+        body: "",
+        link: link("All news", "/news"),
+        category: "",
+        limit: 3,
       };
     case "products":
       return {
@@ -459,6 +468,23 @@ export const DEFAULT_PAGES: Record<PageKey, PageContent> = {
     ],
     "Videos",
     "Aftermovies and live sets.",
+  ),
+
+  news: page(
+    [
+      section("hero", "hero", {
+        layout: "compact",
+        heading: "News",
+        body: "Announcements, festival reports, interviews and new releases from the DopeBooking family.",
+        primary: link(),
+        secondary: link(),
+        image: "",
+        overlay: 55,
+      }),
+      builtin("index", "post-index"),
+    ],
+    "News",
+    "Announcements, festival reports, interviews and releases from DopeBooking.",
   ),
 
   services: page(
@@ -973,6 +999,13 @@ export const DEFAULT_SETTINGS: SiteSettings = {
   brand: {
     name: "DopeBooking",
     tagline: "International psytrance agency, based in Germany",
+    logo: "",
+  },
+  announcement: {
+    enabled: false,
+    text: "",
+    link: { label: "", href: "" },
+    tone: "accent",
   },
   nav: [
     { label: "Artists", href: "/artists", children: [] },
@@ -1057,6 +1090,7 @@ export const DEFAULT_SETTINGS: SiteSettings = {
           { label: "Art Gallery", href: "/art-gallery" },
           { label: "Photos", href: "/gallery" },
           { label: "Videos", href: "/videos" },
+          { label: "News", href: "/news" },
         ],
       },
       {

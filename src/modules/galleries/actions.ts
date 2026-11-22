@@ -2,6 +2,7 @@
 
 import { updateTag } from "next/cache";
 import { redirect } from "next/navigation";
+import { requirePermission } from "@/lib/auth/permissions";
 import { staffClient } from "@/lib/auth/staff";
 import {
   failedForm,
@@ -14,7 +15,9 @@ import {
 import {
   deleteOwnedImage,
   makeLeadImage,
+  ownedMediaFiles,
   registerOwnedImage,
+  removeStoredFiles,
   type ImageResult,
   type RegisterImageInput,
 } from "@/modules/media/server";
@@ -96,4 +99,27 @@ export async function deleteGalleryImage(galleryId: string, assetId: string) {
   if (await deleteOwnedImage(supabase, "gallery", galleryId, assetId)) {
     updateTag(GALLERIES_TAG);
   }
+}
+
+/**
+ * Deletes the gallery and its photos (rows and stored files).
+ * The event it belonged to is not affected.
+ */
+export async function deleteGallery(id: string): Promise<FormState> {
+  await requirePermission("content.manage", path(id));
+  const { supabase } = await staffClient(path(id));
+  const files = await ownedMediaFiles(supabase, "gallery", id);
+  const { error, count } = await supabase
+    .from("galleries")
+    .delete({ count: "exact" })
+    .eq("id", id);
+  if (error || !count) {
+    return {
+      status: "error",
+      message: "Could not delete it. Set the status to Archived instead.",
+    };
+  }
+  await removeStoredFiles(supabase, files);
+  updateTag(GALLERIES_TAG);
+  redirect("/admin/galleries");
 }

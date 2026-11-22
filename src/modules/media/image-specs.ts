@@ -57,6 +57,8 @@ export const CONTAINERS = {
   artArch: "aspect-[3/4]",
   artExhibitionFeature: "aspect-[4/5] sm:aspect-[16/9]",
   artExhibitionCard: "aspect-[4/5]",
+  newsLead: "aspect-[16/9]",
+  newsCard: "aspect-[3/2]",
 } as const;
 
 export type ContainerKey = keyof typeof CONTAINERS;
@@ -230,6 +232,10 @@ export const GROUPS = {
     title: "Art Gallery",
     body: "Visual artists, exhibitions, artworks and partner logos on /art-gallery. Artworks are never cropped; photography around them is.",
   },
+  news: {
+    title: "News",
+    body: "Post covers on /news, the article page and Latest news sections. Chosen from the media library in Admin, News.",
+  },
   sharing: {
     title: "Search and social sharing",
     body: "The preview image when a page is shared in chats and social apps.",
@@ -268,6 +274,8 @@ const ids = [
   "art-exhibition-photo",
   "art-artwork",
   "art-partner-logo",
+  "news-cover",
+  "brand-logo",
   "share-image",
 ] as const;
 
@@ -1587,6 +1595,93 @@ const specs: Omit<ImageSpec, "id">[] = [
       "Trim empty space around the logo before uploading.",
     ],
     code: ["src/app/art-gallery/exhibitions/[slug]/page.tsx"],
+  },
+
+  // ----- News -----------------------------------------------------------------
+  {
+    group: "news",
+    title: "News cover",
+    where:
+      "Top of a news article, the lead story on /news and news cards (also in Latest news sections on any page).",
+    upload: {
+      label: "Admin → News → post → Cover photo",
+      href: "/admin/posts",
+    },
+    size: [1920, 1080],
+    min: [1280, 720],
+    fit: "crop",
+    frames: [
+      {
+        label: "Article and lead story",
+        device: "desktop",
+        ratio: "newsLead",
+        shown: [1184, 666],
+      },
+      {
+        label: "News card",
+        device: "desktop",
+        ratio: "newsCard",
+        shown: [379, 253],
+      },
+      {
+        label: "Article and lead story",
+        device: "tablet",
+        ratio: "newsLead",
+        shown: [707, 398],
+      },
+      {
+        label: "News card",
+        device: "tablet",
+        ratio: "newsCard",
+        shown: [341, 227],
+      },
+      {
+        label: "Article",
+        device: "mobile",
+        ratio: "newsLead",
+        shown: [358, 201],
+      },
+      {
+        label: "News card",
+        device: "mobile",
+        ratio: "newsCard",
+        shown: [358, 239],
+      },
+    ],
+    crop: "16:9 on the article and lead story; cards trim the sides to 3:2. Keep the subject in the middle two thirds.",
+    tips: [
+      "Set the focus point in the media library so cards keep the subject in view.",
+    ],
+    code: [
+      "src/modules/posts/components/post-card.tsx",
+      "src/app/news/[slug]/page.tsx",
+    ],
+  },
+
+  // ----- Brand ----------------------------------------------------------------
+  {
+    group: "headers",
+    title: "Brand logo",
+    where:
+      "Top left of the header on every page, instead of the site name. Shown at 36 px high on a dark background.",
+    upload: {
+      label: "Admin → Site settings → Brand → Logo",
+      href: "/admin/settings",
+    },
+    size: [960, 288],
+    min: [480, 144],
+    fit: "full",
+    anyRatio: true,
+    frames: [
+      { label: "Header", device: "desktop", ratio: "natural", shown: 160 },
+      { label: "Header", device: "mobile", ratio: "natural", shown: 140 },
+    ],
+    crop: "Shown whole at its own shape, scaled to 36 px high. Never cropped.",
+    tips: [
+      "Use a PNG or WebP with a transparent background and light artwork: the header is dark.",
+      "SVG isn't accepted (it can carry scripts); export a PNG at least 480 px wide.",
+    ],
+    code: ["src/components/site/site-header.tsx"],
   },
 
   // ----- Sharing --------------------------------------------------------------

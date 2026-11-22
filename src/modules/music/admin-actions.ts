@@ -1,11 +1,13 @@
 "use server";
 
 import { updateTag } from "next/cache";
+import { redirect } from "next/navigation";
 import { z } from "zod";
 import { requirePermission } from "@/lib/auth/permissions";
 import { hasServiceRole } from "@/lib/env.server";
 import {
   failedForm,
+  formValues,
   invalidForm,
   savedForm,
   slugTakenForm,
@@ -15,7 +17,12 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import { parsePriceToCents } from "@/modules/marketplace/schemas";
 import { MUSIC_TAG } from "./queries";
-import { genreSchema, musicSettingsSchema } from "./schemas";
+import {
+  createReleaseSchema,
+  genreSchema,
+  MUSIC_CURRENCY,
+  musicSettingsSchema,
+} from "./schemas";
 
 const UUID = /^[0-9a-f-]{36}$/i;
 
@@ -318,4 +325,132 @@ export async function decideWithdrawal(
   });
   if (error) return errorForm(error, formData);
   return { status: "success", message: "Withdrawal updated." };
+}
+
+// ---------------------------------------------------------------------------
+// Staff uploads: releases created and published by DopeBooking for an artist
+// ---------------------------------------------------------------------------
+
+const staffCreateSchema = z.object({ artist_id: z.uuid("Choose an artist.") });
+
+/** Creates a draft release for any roster artist (RLS: "staff manage"). */
+export async function createReleaseAsStaff(
+  _prev: FormState,
+  formData: FormData,
+): Promise<FormState> {
+  const { user } = await requirePermission("music.manage", "/admin/music/new");
+  const artist = staffCreateSchema.safeParse(Object.fromEntries(formData));
+  const parsed = createReleaseSchema.safeParse(Object.fromEntries(formData));
+  if (!artist.success) return invalidForm(artist.error, formData);
+  if (!parsed.success) return invalidForm(parsed.error, formData);
+  const supabase = await createClient();
+  let releaseId: string | null = null;
+  for (let attempt = 0; attempt < 6 && !releaseId; attempt++) {
+    const slug =
+      attempt === 0
+        ? parsed.data.slug
+        : `${parsed.data.slug.slice(0, 80)}-${attempt < 3 ? attempt + 1 : Math.random().toString(36).slice(2, 6)}`;
+    const { data, error } = await supabase
+      .from("music_releases")
+      .insert({
+        artist_id: artist.data.artist_id,
+        slug,
+        title: parsed.data.title,
+        release_type: parsed.data.release_type,
+        currency: MUSIC_CURRENCY,
+        created_by: user.id,
+      })
+      .select("id")
+      .single();
+    if (data) releaseId = data.id;
+    else if (error?.code !== "23505") return failedForm(formData);
+  }
+  if (!releaseId) return failedForm(formData);
+  redirect(`/admin/music/${releaseId}`);
+}
+
+const publishSchema = z.object({
+  rights: z.literal("on", {
+    message: "Confirm the rights to sell this music.",
+  }),
+});
+
+/**
+ * Publishes straight to the store, skipping the artist's review step, after
+ * the same checks the artist's submission runs (artwork, price, genre, every
+ * track with a master and a preview).
+ */
+export async function publishReleaseAsStaff(
+  releaseId: string,
+  _prev: FormState,
+  formData: FormData,
+): Promise<FormState> {
+  const { user } = await requirePermission(
+    "music.manage",
+    `/admin/music/${releaseId}`,
+  );
+  if (!UUID.test(releaseId)) return failedForm(formData);
+  const parsed = publishSchema.safeParse(Object.fromEntries(formData));
+  if (!parsed.success) return invalidForm(parsed.error, formData);
+  const supabase = await createClient();
+  const { data: release } = await supabase
+    .from("music_releases")
+    .select("id, release_type, cover_asset_id, price_amount, genre_id, status")
+    .eq("id", releaseId)
+    .maybeSingle();
+  if (!release) return failedForm(formData);
+  const missing: string[] = [];
+  if (!release.cover_asset_id) missing.push("cover artwork");
+  if (release.price_amount === null) missing.push("a price");
+  if (!release.genre_id) missing.push("a genre");
+  if (release.release_type === "bundle") {
+    const { count } = await supabase
+      .from("music_bundle_items")
+      .select("release_id", { count: "exact", head: true })
+      .eq("bundle_id", releaseId);
+    if ((count ?? 0) < 2) missing.push("at least two releases in the bundle");
+  } else {
+    const { data: tracks } = await supabase
+      .from("music_tracks")
+      .select("id, preview_path")
+      .eq("release_id", releaseId);
+    const { data: files } = tracks?.length
+      ? await supabase
+          .from("music_track_files")
+          .select("track_id")
+          .in(
+            "track_id",
+            tracks.map((track) => track.id),
+          )
+      : { data: [] };
+    const withMaster = new Set((files ?? []).map((file) => file.track_id));
+    if (!tracks?.length) missing.push("at least one track");
+    else if (
+      tracks.some((track) => !track.preview_path || !withMaster.has(track.id))
+    ) {
+      missing.push("a master file and a preview for every track");
+    }
+  }
+  if (missing.length) {
+    return {
+      status: "error",
+      message: `Before publishing, add ${missing.join(", ")}.`,
+      values: formValues(formData),
+    };
+  }
+  await supabase
+    .from("music_releases")
+    .update({
+      rights_confirmed_at: new Date().toISOString(),
+      rights_confirmed_by: user.id,
+    })
+    .eq("id", releaseId);
+  const { error } = await supabase.rpc("review_music_release", {
+    p_release: releaseId,
+    p_status: "published",
+    p_note: null,
+  });
+  if (error) return errorForm(error, formData);
+  updateTag(MUSIC_TAG);
+  return { status: "success", message: "Published to the music store." };
 }

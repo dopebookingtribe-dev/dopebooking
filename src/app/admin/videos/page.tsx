@@ -30,7 +30,7 @@ async function VideoTable() {
   const videos = await listVideosForAdmin();
   return (
     <AdminTable
-      columns={["Video", "Status", "Source", "Updated"]}
+      columns={["Video", "Status", "Source", "Order", "Updated"]}
       empty="No videos yet."
       rows={videos.map((video) => ({
         key: video.id,
@@ -44,6 +44,7 @@ async function VideoTable() {
           </>,
           <StatusBadge key="status" status={video.status} />,
           VIDEO_PROVIDERS[video.provider],
+          String(video.sort_order ?? 0),
           shortDate(video.updated_at),
         ],
       }))}

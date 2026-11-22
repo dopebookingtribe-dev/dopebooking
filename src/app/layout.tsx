@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Instrument_Serif, Onest, Tilt_Warp } from "next/font/google";
+import { AnnouncementBar } from "@/components/site/announcement-bar";
 import { SiteFooter } from "@/components/site/site-footer";
 import { SiteHeader } from "@/components/site/site-header";
 import { getImagesByIds, getSiteSettings } from "@/modules/cms/queries";
@@ -70,6 +71,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
           Skip to content
         </a>
         <PlayerProvider>
+          <AnnouncementBar />
           <SiteHeader />
           <main id="main" className="flex flex-1 flex-col">
             {children}

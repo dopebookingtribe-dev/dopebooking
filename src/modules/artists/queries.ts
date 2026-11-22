@@ -1,8 +1,13 @@
 import "server-only";
 import { cacheLife, cacheTag } from "next/cache";
 import { toImage, type Image } from "@/lib/media";
-import type { LinkPlatform } from "@/lib/supabase/database.types";
+import { publicObjectUrl } from "@/lib/media";
+import type {
+  AvailabilityStatus,
+  LinkPlatform,
+} from "@/lib/supabase/database.types";
 import { createPublicClient } from "@/lib/supabase/public";
+import { isMissingSchema } from "@/lib/supabase/schema-errors";
 
 export const ARTISTS_TAG = "artists";
 
@@ -28,6 +33,16 @@ export type ArtistProfile = ArtistCard & {
   seoDescription: string | null;
   links: { platform: LinkPlatform; url: string }[];
   images: Image[];
+  /** PDF from the media library (Admin → Artists → Press kit). */
+  pressKit: { url: string; title: string } | null;
+  /** Public availability windows from today on. */
+  availability: {
+    startsOn: string;
+    endsOn: string;
+    status: AvailabilityStatus;
+    location: string | null;
+    note: string | null;
+  }[];
 };
 
 const MEDIA_COLUMNS =
@@ -101,7 +116,8 @@ export async function getPublishedArtist(
   if (error) throw new Error(`Failed to load artist: ${error.message}`);
   if (!artist) return null;
 
-  const [links, media] = await Promise.all([
+  const today = new Date().toISOString().slice(0, 10);
+  const [links, media, kitRow, availability] = await Promise.all([
     supabase
       .from("artist_links")
       .select("platform, url")
@@ -113,7 +129,30 @@ export async function getPublishedArtist(
       .eq("artist_id", artist.id)
       .order("sort_order")
       .order("created_at"),
+    // Press kit and availability arrive with migration 20261122000100.
+    supabase
+      .from("artists")
+      .select("press_kit_asset_id")
+      .eq("id", artist.id)
+      .maybeSingle(),
+    supabase
+      .from("artist_availability")
+      .select("starts_on, ends_on, status, location, note")
+      .eq("artist_id", artist.id)
+      .gte("ends_on", today)
+      .order("starts_on")
+      .limit(12),
   ]);
+  const kitId = isMissingSchema(kitRow.error)
+    ? null
+    : kitRow.data?.press_kit_asset_id;
+  const { data: kit } = kitId
+    ? await supabase
+        .from("media_assets")
+        .select("storage_bucket, storage_path, alt_text")
+        .eq("id", kitId)
+        .maybeSingle()
+    : { data: null };
   if (links.error)
     throw new Error(`Failed to load links: ${links.error.message}`);
   if (media.error)
@@ -138,6 +177,21 @@ export async function getPublishedArtist(
       images.find((image) => image.id === artist.portrait_asset_id) ?? null,
     cover: images.find((image) => image.id === artist.cover_asset_id) ?? null,
     links: links.data,
+    pressKit: kit
+      ? {
+          url: publicObjectUrl(kit.storage_bucket, kit.storage_path),
+          title: kit.alt_text,
+        }
+      : null,
+    availability: isMissingSchema(availability.error)
+      ? []
+      : (availability.data ?? []).map((row) => ({
+          startsOn: row.starts_on,
+          endsOn: row.ends_on,
+          status: row.status,
+          location: row.location,
+          note: row.note,
+        })),
     images,
     updatedAt: artist.updated_at,
   };

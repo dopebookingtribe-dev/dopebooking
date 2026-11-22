@@ -30,8 +30,9 @@ export type LedgerEntryType =
 export type WithdrawalStatus =
   "requested" | "approved" | "paid" | "rejected" | "cancelled";
 export type ArtistMemberRole = "owner" | "manager";
-export type MediaType = "image";
-export type VideoProvider = "cloudflare_stream" | "mux" | "youtube" | "vimeo";
+export type MediaType = "image" | "video" | "audio" | "document";
+export type VideoProvider =
+  "cloudflare_stream" | "mux" | "youtube" | "vimeo" | "file";
 export type BookingStatus =
   | "submitted"
   | "under_review"
@@ -106,6 +107,8 @@ export type ArtistRow = {
   portrait_asset_id: string | null;
   cover_asset_id: string | null;
   booking_info: string | null;
+  /** PDF from the media library (migration 20261122000100). */
+  press_kit_asset_id: string | null;
   is_demo: boolean;
   seo_title: string | null;
   seo_description: string | null;
@@ -161,6 +164,12 @@ export type MediaAssetRow = {
   width: number | null;
   height: number | null;
   sort_order: number;
+  /** File details (migration 20261122000100). */
+  mime_type: string | null;
+  size_bytes: number | null;
+  original_name: string | null;
+  duration_seconds: number | null;
+  updated_at: string;
   created_by: string | null;
   created_at: string;
 };
@@ -233,6 +242,9 @@ export type VideoRow = {
   status: ContentStatus;
   featured: boolean;
   poster_asset_id: string | null;
+  /** Library video played when provider = 'file'. */
+  file_asset_id: string | null;
+  sort_order: number;
   is_demo: boolean;
   published_at: string | null;
   created_by: string | null;
@@ -898,6 +910,47 @@ type MessageRow<Fk extends string> = {
   created_at: string;
 } & Record<Fk, string>;
 
+export type PostRow = {
+  id: string;
+  slug: string;
+  title: string;
+  excerpt: string | null;
+  body: string;
+  category: string | null;
+  tags: string[];
+  author_name: string | null;
+  cover_asset_id: string | null;
+  artist_id: string | null;
+  event_id: string | null;
+  status: ContentStatus;
+  featured: boolean;
+  sort_order: number;
+  published_at: string | null;
+  seo_title: string | null;
+  seo_description: string | null;
+  is_demo: boolean;
+  created_by: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type AvailabilityStatus =
+  "available" | "touring" | "booked" | "unavailable";
+
+export type ArtistAvailabilityRow = {
+  id: string;
+  artist_id: string;
+  starts_on: string;
+  ends_on: string;
+  status: AvailabilityStatus;
+  location: string | null;
+  note: string | null;
+  is_public: boolean;
+  created_by: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
 type ContentInsert<Row, Required extends keyof Row> = Pick<Row, Required> &
   Partial<Omit<Row, "id" | "created_at" | "updated_at">>;
 
@@ -1279,6 +1332,14 @@ export type Database = {
         ArtExhibitionPartnerRow,
         Pick<ArtExhibitionPartnerRow, "exhibition_id" | "name"> &
           Partial<Omit<ArtExhibitionPartnerRow, "id" | "exhibition_id">>
+      >;
+      posts: Table<PostRow, ContentInsert<PostRow, "slug" | "title">>;
+      artist_availability: Table<
+        ArtistAvailabilityRow,
+        Pick<ArtistAvailabilityRow, "artist_id" | "starts_on" | "ends_on"> &
+          Partial<
+            Omit<ArtistAvailabilityRow, "id" | "created_at" | "updated_at">
+          >
       >;
     };
     Views: Record<string, never>;

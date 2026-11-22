@@ -193,7 +193,10 @@ export async function updateRelease(
 }
 
 /** Deletes a draft with its files. Releases that ever sold are kept. */
-export async function deleteRelease(releaseId: string): Promise<Result> {
+export async function deleteRelease(
+  releaseId: string,
+  from: "dashboard" | "admin" = "dashboard",
+): Promise<Result> {
   const found = await loadRelease(releaseId);
   if (!found) return { ok: false, message: "Release not found." };
   const { supabase, release } = found;
@@ -244,7 +247,9 @@ export async function deleteRelease(releaseId: string): Promise<Result> {
   for (const cover of covers ?? []) {
     await deleteOwnedImage(supabase, "music", releaseId, cover.id);
   }
-  redirect("/dashboard/music?deleted=1");
+  redirect(
+    from === "admin" ? "/admin/music?deleted=1" : "/dashboard/music?deleted=1",
+  );
 }
 
 /** A release has one cover: a new upload replaces the old one. */

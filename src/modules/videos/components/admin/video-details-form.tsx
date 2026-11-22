@@ -9,16 +9,21 @@ import { initialFormState, type FormState } from "@/lib/forms";
 import type { VideoRow } from "@/lib/supabase/database.types";
 import { STATUSES } from "@/lib/validation";
 import { sourceUrl } from "@/lib/video";
+import { VideoSourceField, type VideoFileOption } from "./video-source-field";
 
 export function VideoDetailsForm({
   video,
   eventOptions,
   artistOptions,
+  files,
+  filesEnabled,
   action,
 }: {
   video: VideoRow;
   eventOptions: { id: string; title: string; starts_at: string }[];
   artistOptions: { id: string; stage_name: string }[];
+  files: VideoFileOption[];
+  filesEnabled: boolean;
   action: (prev: FormState, formData: FormData) => Promise<FormState>;
 }) {
   const [state, formAction, pending] = useActionState(action, initialFormState);
@@ -47,18 +52,28 @@ export function VideoDetailsForm({
           error={error("slug")}
         />
       </div>
-      <Field
-        name="url"
-        label="Video link"
-        type="url"
-        hint="Mux, Cloudflare Stream, YouTube or Vimeo."
-        required
-        defaultValue={fieldValue(
+      <VideoSourceField
+        key={state.status === "error" ? "retry" : "saved"}
+        defaultSource={
+          (state.values?.source as "link" | "file" | undefined) ??
+          (video.provider === "file" ? "file" : "link")
+        }
+        defaultUrl={fieldValue(
           state,
           "url",
-          sourceUrl({ provider: video.provider, ref: video.provider_ref }),
+          video.provider === "file"
+            ? ""
+            : sourceUrl({ provider: video.provider, ref: video.provider_ref }),
         )}
-        error={error("url")}
+        defaultFileId={fieldValue(
+          state,
+          "file_asset_id",
+          video.file_asset_id ?? "",
+        )}
+        files={files}
+        filesEnabled={filesEnabled}
+        urlError={error("url")}
+        fileError={error("file_asset_id")}
       />
       <TextareaField
         name="description"
@@ -118,6 +133,24 @@ export function VideoDetailsForm({
           Featured
         </label>
       </div>
+      {filesEnabled ? (
+        <Field
+          name="sort_order"
+          label="Display order"
+          type="number"
+          min={0}
+          max={9999}
+          inputMode="numeric"
+          hint="Lower numbers show first (featured videos always lead)."
+          defaultValue={fieldValue(
+            state,
+            "sort_order",
+            String(video.sort_order ?? 0),
+          )}
+          error={error("sort_order")}
+          className="max-w-48"
+        />
+      ) : null}
       <div className="flex items-center gap-4">
         <Button type="submit" disabled={pending}>
           {pending ? "Saving…" : "Save details"}

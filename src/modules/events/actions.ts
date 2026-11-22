@@ -2,6 +2,7 @@
 
 import { updateTag } from "next/cache";
 import { redirect } from "next/navigation";
+import { requirePermission } from "@/lib/auth/permissions";
 import { staffClient } from "@/lib/auth/staff";
 import { zonedInputToUtc } from "@/lib/datetime";
 import {
@@ -15,7 +16,9 @@ import {
 import {
   deleteOwnedImage,
   makeLeadImage,
+  ownedMediaFiles,
   registerOwnedImage,
+  removeStoredFiles,
   type ImageResult,
   type RegisterImageInput,
 } from "@/modules/media/server";
@@ -182,4 +185,28 @@ export async function deleteEventImage(eventId: string, assetId: string) {
   if (await deleteOwnedImage(supabase, "event", eventId, assetId)) {
     updateTag(EVENTS_TAG);
   }
+}
+
+/**
+ * Deletes the event and its photos (rows and stored files).
+ * Its lineup goes with it; galleries, videos, news posts and exhibitions that
+ * pointed at it stay and simply lose the link.
+ */
+export async function deleteEvent(id: string): Promise<FormState> {
+  await requirePermission("content.manage", path(id));
+  const { supabase } = await staffClient(path(id));
+  const files = await ownedMediaFiles(supabase, "event", id);
+  const { error, count } = await supabase
+    .from("events")
+    .delete({ count: "exact" })
+    .eq("id", id);
+  if (error || !count) {
+    return {
+      status: "error",
+      message: "Could not delete it. Set the status to Archived instead.",
+    };
+  }
+  await removeStoredFiles(supabase, files);
+  updateTag(EVENTS_TAG);
+  redirect("/admin/events");
 }

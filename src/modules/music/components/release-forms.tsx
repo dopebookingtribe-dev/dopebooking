@@ -946,9 +946,12 @@ export function SubmitForm({
 export function ReleaseStatusActions({
   releaseId,
   status,
+  from = "dashboard",
 }: {
   releaseId: string;
   status: MusicReleaseStatus;
+  /** Where to land after deleting. */
+  from?: "dashboard" | "admin";
 }) {
   const { pending, error, run } = useResultAction();
   const link =
@@ -1002,7 +1005,7 @@ export function ReleaseStatusActions({
           className={`${link} text-danger`}
           onClick={() =>
             run(
-              () => deleteRelease(releaseId),
+              () => deleteRelease(releaseId, from),
               "Delete this release and all its files? This can't be undone.",
             )
           }

@@ -2,10 +2,14 @@
 
 import { updateTag } from "next/cache";
 import { redirect } from "next/navigation";
-import type { z } from "zod";
+import { z } from "zod";
 import { requireRole, STAFF_ROLES } from "@/lib/auth/dal";
 import { requirePermission } from "@/lib/auth/permissions";
 import { fieldErrorsOf, formValues, type FormState } from "@/lib/forms";
+import {
+  isMissingSchema,
+  MIGRATION_NOTICE,
+} from "@/lib/supabase/schema-errors";
 import { createClient } from "@/lib/supabase/server";
 import {
   deleteOwnedImage,
@@ -245,4 +249,138 @@ export async function deleteArtistImage(artistId: string, assetId: string) {
   if (await deleteOwnedImage(supabase, "artist", artistId, assetId)) {
     updateTag(ARTISTS_TAG);
   }
+}
+
+// ---------------------------------------------------------------------------
+// Availability and press kit (migration 20261122000100)
+// ---------------------------------------------------------------------------
+
+const availabilitySchema = z
+  .object({
+    starts_on: z.iso.date("Choose the first day."),
+    ends_on: z.iso.date("Choose the last day."),
+    status: z.enum(["available", "touring", "booked", "unavailable"]),
+    location: z
+      .string()
+      .trim()
+      .max(120)
+      .transform((v) => v || null),
+    note: z
+      .string()
+      .trim()
+      .max(300)
+      .transform((v) => v || null),
+    is_public: z
+      .literal("on")
+      .optional()
+      .transform((v) => v === "on"),
+  })
+  .refine((v) => v.ends_on >= v.starts_on, {
+    path: ["ends_on"],
+    message: "The last day can't be before the first.",
+  })
+  .refine(
+    (v) => (Date.parse(v.ends_on) - Date.parse(v.starts_on)) / 86400000 <= 366,
+    { path: ["ends_on"], message: "Keep one window under a year." },
+  );
+
+export async function addAvailability(
+  artistId: string,
+  _prev: FormState,
+  formData: FormData,
+): Promise<FormState> {
+  const { user } = await requirePermission(
+    "content.manage",
+    `/admin/artists/${artistId}`,
+  );
+  const parsed = availabilitySchema.safeParse(Object.fromEntries(formData));
+  if (!parsed.success) {
+    return {
+      status: "error",
+      fieldErrors: fieldErrorsOf(parsed.error),
+      values: formValues(formData),
+    };
+  }
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from("artist_availability")
+    .insert({ artist_id: artistId, ...parsed.data, created_by: user.id });
+  if (error) {
+    return {
+      status: "error",
+      message: isMissingSchema(error)
+        ? MIGRATION_NOTICE
+        : "Saving failed. Please try again.",
+    };
+  }
+  updateTag(ARTISTS_TAG);
+  return { status: "success", message: "Added." };
+}
+
+export async function deleteAvailability(artistId: string, id: string) {
+  await requirePermission("content.manage", `/admin/artists/${artistId}`);
+  const supabase = await createClient();
+  await supabase
+    .from("artist_availability")
+    .delete()
+    .eq("id", id)
+    .eq("artist_id", artistId);
+  updateTag(ARTISTS_TAG);
+}
+
+export async function toggleAvailabilityPublic(
+  artistId: string,
+  id: string,
+  isPublic: boolean,
+) {
+  await requirePermission("content.manage", `/admin/artists/${artistId}`);
+  const supabase = await createClient();
+  await supabase
+    .from("artist_availability")
+    .update({ is_public: isPublic })
+    .eq("id", id)
+    .eq("artist_id", artistId);
+  updateTag(ARTISTS_TAG);
+}
+
+/** Links a PDF from the media library as the artist's press kit (or none). */
+export async function setArtistPressKit(
+  artistId: string,
+  _prev: FormState,
+  formData: FormData,
+): Promise<FormState> {
+  await requirePermission("content.manage", `/admin/artists/${artistId}`);
+  const value = String(formData.get("press_kit_asset_id") ?? "");
+  const supabase = await createClient();
+  if (value) {
+    const { data: doc } = await supabase
+      .from("media_assets")
+      .select("id")
+      .eq("id", value)
+      .eq("type", "document")
+      .not("library", "is", null)
+      .maybeSingle();
+    if (!doc)
+      return {
+        status: "error",
+        message: "Choose a PDF from the media library.",
+      };
+  }
+  const { error } = await supabase
+    .from("artists")
+    .update({ press_kit_asset_id: value || null })
+    .eq("id", artistId);
+  if (error) {
+    return {
+      status: "error",
+      message: isMissingSchema(error)
+        ? MIGRATION_NOTICE
+        : "Saving failed. Please try again.",
+    };
+  }
+  updateTag(ARTISTS_TAG);
+  return {
+    status: "success",
+    message: value ? "Press kit saved." : "Press kit removed.",
+  };
 }

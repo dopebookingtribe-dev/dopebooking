@@ -7,8 +7,10 @@ import {
   EditSection,
   StatusBadge,
 } from "@/components/admin/admin-ui";
+import { DeleteRecordForm } from "@/components/admin/delete-record-form";
 import { Container } from "@/components/ui/container";
 import {
+  deleteGallery,
   deleteGalleryImage,
   registerGalleryImage,
   setGalleryCover,
@@ -95,6 +97,16 @@ async function Editor({
               remove={deleteGalleryImage.bind(null, gallery.id)}
             />
           </div>
+        </EditSection>
+        <EditSection
+          title="Delete"
+          description="Removes the gallery and its photos for good. Archive it instead to keep it."
+        >
+          <DeleteRecordForm
+            label="Delete gallery"
+            confirm={`Delete “${gallery.title}” and all its photos? This can't be undone.`}
+            action={deleteGallery.bind(null, gallery.id)}
+          />
         </EditSection>
       </div>
     </>

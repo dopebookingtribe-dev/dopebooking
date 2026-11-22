@@ -50,18 +50,23 @@ Values for `.env.local` come from the Supabase dashboard → **Project Settings 
 
 ## Managing content
 
-Everything visitors see is edited in **Admin** (`/admin`):
+Everything visitors see is edited in **Admin** (`/admin`). The control room shows what is waiting (bookings, requests, releases to review, payouts), live counts, quick actions and recent activity; the sidebar groups every area.
 
-- **Pages**: every public page is a list of sections (hero, artists, events, gallery, services, packages, steps, FAQ, call to action…). Edit text and photos, reorder, hide, add or delete sections, preview the draft, then publish.
-- **Media library**: upload photos once and use them in any section; click a photo to set what stays in view when cropped.
-- **Media & Image Guidelines**: the size to design for every image on the site (desktop, tablet and mobile), with safe areas and crops. Every upload field shows the same guide and checks a photo before it uploads. The sizes live in `src/modules/media/image-specs.ts`, which the front end also reads its image frames from.
-- **Site settings**: menu and dropdowns, header button, footer columns, contact, social links, search defaults, demo labels.
-- **Artists, events, galleries, videos, products, categories**: the catalogue, featuring and order.
-- **Art Gallery** (`/admin/art`): visual artists and collectives, exhibitions (festival, dates, line-up with roles, collection, curated photo sets, partners, videos), artworks with shared credits, festivals, featured order and collaboration inquiries. The four Art Gallery pages (landing, exhibitions, artists, collaborate) are edited in Pages like every other page.
-- **Music**: review artists' releases, feature them, manage genres and link artist accounts. **Music finance**: commission, earnings, adjustments and payouts. Artists upload and sell from **Dashboard → My music**.
-- **Users and roles**, **Audit log**, **Demo content**: super admin only.
+- **Pages**: every public page is a list of sections (hero, artists, events, gallery, videos, latest news, services, packages, steps, FAQ, call to action…). Edit text and photos, reorder, hide, add or delete sections, preview the draft, then publish.
+- **Site settings**: brand name and optional logo, announcement banner, menu and dropdowns, header button, footer columns, contact, social links, search defaults, demo labels.
+- **Legal pages** (`/admin/legal`): edit the imprint, privacy policy and terms with a live preview; each keeps its original text until an edited version is published. Shows how many `[PLACEHOLDERS]` are left.
+- **Media library** (`/admin/media`): drag-and-drop images, videos (MP4/WebM/MOV), audio and PDFs with upload progress; search, filter by type, owner and use; replace a file everywhere it is used; files in use can't be deleted. Images keep their focal point.
+- **Media & Image Guidelines**: the size to design for every image on the site (desktop, tablet and mobile), with safe areas and crops. Every upload field shows the same guide. The sizes live in `src/modules/media/image-specs.ts`, which the front end also reads its image frames from.
+- **Artists**: roster, profiles, photos, links, featuring and order, dates and availability (public or private windows), press kit PDF, and where each artist appears.
+- **Events, galleries**: details, lineups, photos, featuring; delete with their photos.
+- **Videos**: paste a link or upload the file itself (plays in the site's own player), poster, display order, featuring, delete (optionally with the file).
+- **News** (`/admin/posts`): posts with cover, light-markup text, photos/video/audio/PDFs from the library, category, tags, related artist/event; draft, preview, schedule or publish. Public at `/news`; add a Latest news section to any page.
+- **Products and categories**: create and edit any listing for an approved shop (details, options, prices, stock, photos, download files), feature and order it; delete when never ordered, archive otherwise.
+- **Art Gallery** (`/admin/art`): visual artists and collectives, exhibitions (festival, dates, line-up with roles, collection, curated photo sets, partners, videos), artworks with shared credits, festivals, featured order and collaboration inquiries.
+- **Music**: upload and publish releases for any roster artist (artwork, masters, previews, price, genre), review artists' releases, feature them, manage genres and link artist accounts. **Music finance**: commission, earnings, adjustments and payouts. Artists also upload and sell from **Dashboard → My music**.
+- **Users & permissions**, **Audit log** (filterable), **Demo content**: super admin only. The permission matrix sets what Staff may do; super admins always keep every permission.
 
-Access is checked on the server and in the database. Permissions per role live in the `role_permissions` table, so more limited roles can be opened up later without code changes.
+Access is checked on the server and in the database. Permissions per role live in the `role_permissions` table; the database refuses to remove `users.manage` from the admin role, so the owner can't be locked out.
 
 ## Scripts
 

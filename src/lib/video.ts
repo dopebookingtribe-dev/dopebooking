@@ -1,12 +1,19 @@
 import type { VideoProvider } from "@/lib/supabase/database.types";
 
-export type VideoSource = { provider: VideoProvider; ref: string };
+export type VideoSource = {
+  provider: VideoProvider;
+  ref: string;
+  /** Public file URL when provider = "file" (a media-library upload). */
+  fileUrl?: string | null;
+  mimeType?: string | null;
+};
 
 export const VIDEO_PROVIDERS: Record<VideoProvider, string> = {
   cloudflare_stream: "Cloudflare Stream",
   mux: "Mux",
   youtube: "YouTube",
   vimeo: "Vimeo",
+  file: "Uploaded file",
 };
 
 const ID = /^[A-Za-z0-9_-]+$/;
@@ -73,8 +80,10 @@ function splitCloudflare(ref: string) {
 }
 
 /** Privacy-friendly player URL (no tracking cookies where supported). */
-export function embedUrl({ provider, ref }: VideoSource): string {
+export function embedUrl({ provider, ref, fileUrl }: VideoSource): string {
   switch (provider) {
+    case "file":
+      return fileUrl ?? "";
     case "youtube":
       return `https://www.youtube-nocookie.com/embed/${ref}?autoplay=1&rel=0`;
     case "vimeo":
@@ -100,13 +109,16 @@ export function providerThumbnail({ provider, ref }: VideoSource) {
       return `https://${customer}.cloudflarestream.com/${id}/thumbnails/thumbnail.jpg?height=720`;
     }
     case "vimeo":
+    case "file":
       return null;
   }
 }
 
 /** Link back to the provider's own page, for admins. */
-export function sourceUrl({ provider, ref }: VideoSource): string {
+export function sourceUrl({ provider, ref, fileUrl }: VideoSource): string {
   switch (provider) {
+    case "file":
+      return fileUrl ?? "";
     case "youtube":
       return `https://www.youtube.com/watch?v=${ref}`;
     case "vimeo":

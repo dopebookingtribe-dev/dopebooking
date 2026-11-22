@@ -18,6 +18,8 @@ import { getPublishedEvents } from "@/modules/events/queries";
 import { PhotoGrid } from "@/modules/galleries/components/photo-grid";
 import { ProductCard } from "@/modules/marketplace/components/product-card";
 import { getShopProducts } from "@/modules/marketplace/queries";
+import { PostCard } from "@/modules/posts/components/post-card";
+import { getPublishedPosts } from "@/modules/posts/queries";
 import { VideoCard } from "@/modules/videos/components/video-card";
 import { getPublishedVideos } from "@/modules/videos/queries";
 import type { CmsImage } from "../queries";
@@ -39,6 +41,7 @@ export function sectionLabel(type: SectionType) {
     events: "Events",
     gallery: "Photo gallery",
     videos: "Videos",
+    posts: "Latest news",
     products: "Products",
     services: "Services",
     editorial: "Text and image",
@@ -526,6 +529,38 @@ export function GallerySection({
     <Shell id={section.id} label={c.heading || "Photos"}>
       <Header heading={c.heading} body={c.body} link={c.link} />
       <PhotoGrid images={photos} layout={c.layout} />
+    </Shell>
+  );
+}
+
+export async function PostsSection({
+  section,
+  preview,
+  showDemo,
+}: SectionProps<"posts">) {
+  const c = section.content;
+  const posts = await getPublishedPosts({
+    category: c.category || undefined,
+    limit: c.limit,
+  });
+  if (!posts.length) {
+    return (
+      <EmptyNote
+        preview={preview}
+        text="Latest news section: hidden until a news post is published (Admin, News)."
+      />
+    );
+  }
+  return (
+    <Shell id={section.id} label={c.heading || "Latest news"}>
+      <Header heading={c.heading} body={c.body} link={c.link} />
+      <ul className="grid gap-x-6 gap-y-12 sm:grid-cols-2 lg:grid-cols-3">
+        {posts.map((post) => (
+          <li key={post.id}>
+            <PostCard post={post} showDemo={showDemo} />
+          </li>
+        ))}
+      </ul>
     </Shell>
   );
 }

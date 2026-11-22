@@ -10,17 +10,22 @@ export const LEGAL_DRAFT = true;
 export function LegalPage({
   title,
   updated,
+  draft = LEGAL_DRAFT,
   children,
 }: {
   title: string;
   updated: string;
+  /** Edited versions choose this in Admin → Legal pages. */
+  draft?: boolean;
   children: ReactNode;
 }) {
   return (
     <Container className="py-16 sm:py-24">
       <h1 className="font-display text-headline">{title}</h1>
-      <p className="mt-3 text-sm text-muted">Last updated: {updated}</p>
-      {LEGAL_DRAFT ? (
+      {updated ? (
+        <p className="mt-3 text-sm text-muted">Last updated: {updated}</p>
+      ) : null}
+      {draft ? (
         <p
           role="note"
           className="mt-8 max-w-prose rounded-(--radius) border border-uv/50 p-4 text-sm"

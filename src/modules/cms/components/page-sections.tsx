@@ -18,6 +18,7 @@ import {
   ServicesSection,
   StatsSection,
   StepsSection,
+  PostsSection,
   VideosSection,
 } from "./sections";
 
@@ -73,6 +74,10 @@ export async function PageSections({
           case "videos":
             return (
               <VideosSection key={section.id} section={section} {...props} />
+            );
+          case "posts":
+            return (
+              <PostsSection key={section.id} section={section} {...props} />
             );
           case "products":
             return (

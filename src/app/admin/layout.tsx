@@ -1,12 +1,10 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { Suspense } from "react";
+import { ADMIN_GROUPS, canSee } from "@/components/admin/admin-nav";
 import {
-  ADMIN_GROUPS,
-  canSee,
-  type AdminLink,
-} from "@/components/admin/admin-nav";
-import { Container } from "@/components/ui/container";
+  AdminSidebar,
+  type SidebarGroup,
+} from "@/components/admin/admin-sidebar";
 import { currentPermissions } from "@/lib/auth/permissions";
 
 export const metadata: Metadata = {
@@ -14,52 +12,32 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 };
 
-function NavList({ links }: { links: AdminLink[] }) {
-  return (
-    <ul className="flex [scrollbar-width:none] gap-1 overflow-x-auto py-1">
-      <li>
-        <Link
-          href="/admin"
-          className="inline-flex min-h-11 items-center rounded-full px-3 text-sm whitespace-nowrap text-muted hover:bg-surface-2 hover:text-text"
-        >
-          Overview
-        </Link>
-      </li>
-      {links.map((item) => (
-        <li key={item.href}>
-          <Link
-            href={item.href}
-            className="inline-flex min-h-11 items-center rounded-full px-3 text-sm whitespace-nowrap text-muted hover:bg-surface-2 hover:text-text"
-          >
-            {item.label}
-          </Link>
-        </li>
-      ))}
-    </ul>
-  );
-}
-
-async function PermittedNav() {
+async function PermittedSidebar() {
   const permissions = await currentPermissions();
-  const links = ADMIN_GROUPS.flatMap((group) => group.links).filter((link) =>
-    canSee(link, permissions),
-  );
-  return <NavList links={links} />;
+  const groups: SidebarGroup[] = ADMIN_GROUPS.map((group) => ({
+    title: group.title,
+    links: group.links
+      .filter((link) => canSee(link, permissions))
+      .map(({ href, label }) => ({ href, label })),
+  })).filter((group) => group.links.length);
+  return <AdminSidebar groups={groups} />;
 }
 
 export default function AdminLayout({ children }: LayoutProps<"/admin">) {
   return (
-    <>
-      <div className="border-b border-line bg-surface-1">
-        <Container>
-          <nav aria-label="Admin">
-            <Suspense fallback={<NavList links={[]} />}>
-              <PermittedNav />
-            </Suspense>
-          </nav>
-        </Container>
-      </div>
-      {children}
-    </>
+    <div className="lg:grid lg:grid-cols-[15rem_minmax(0,1fr)]">
+      <Suspense
+        fallback={
+          // No hooks here: the fallback is prerendered.
+          <aside
+            aria-hidden
+            className="hidden border-r border-line bg-surface-1/60 lg:block"
+          />
+        }
+      >
+        <PermittedSidebar />
+      </Suspense>
+      <div className="min-w-0">{children}</div>
+    </div>
   );
 }

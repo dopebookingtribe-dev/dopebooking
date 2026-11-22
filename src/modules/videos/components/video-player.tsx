@@ -32,7 +32,19 @@ export function VideoPlayer({
     <div
       className={`relative ${CONTAINERS.video} overflow-hidden rounded-(--radius) bg-surface-2`}
     >
-      {playing ? (
+      {playing && source.provider === "file" ? (
+        // Uploaded file: the browser's own player, no third party involved.
+        <video
+          src={source.fileUrl ?? undefined}
+          poster={posterUrl ?? undefined}
+          title={title}
+          controls
+          autoPlay
+          playsInline
+          preload="metadata"
+          className="absolute inset-0 size-full bg-black object-contain"
+        />
+      ) : playing ? (
         <iframe
           src={embedUrl(source)}
           title={title}
@@ -67,7 +79,9 @@ export function VideoPlayer({
             </svg>
           </span>
           <span className="sr-only">
-            Play “{title}” (loads the {VIDEO_PROVIDERS[source.provider]} player)
+            {source.provider === "file"
+              ? `Play “${title}”`
+              : `Play “${title}” (loads the ${VIDEO_PROVIDERS[source.provider]} player)`}
           </span>
         </button>
       )}

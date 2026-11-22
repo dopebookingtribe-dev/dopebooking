@@ -799,3 +799,29 @@ Verified on a clean copy against the real database:
 **Verified.** Migrations applied in order to an in-memory Postgres (PGlite) with Supabase stubs: 19 scenario checks (published-only reads, no `created_by` for visitors, plain users can't write, list and date checks, collective rules, single media owner, inquiries as service requests with label and staff notification, video links, cascades, audit, demo removal). `supabase/tests/database/art_gallery.test.sql` holds the pgTAP version. Unit tests cover the vocabulary mirroring the SQL, timing, formatting, form schemas and collaboration derivation. All public pages were checked in the browser on desktop (1440 px) and mobile (375 px) with demo data, including the viewer, filters and map; image-spec sizes were measured in the browser.
 
 **Not verified yet.** The migrations are not applied to the Supabase project (no database credentials here); until they are, public pages show empty states and the admin shows a notice. The signed-in admin screens and a real inquiry submission were not clicked through with an admin account (the forms were rendered and checked with sample rows).
+
+## Phase 13 status: Super Admin CMS upgrade (2026-11-22)
+
+**Audit.** Most content already had admin screens (pages, settings, image library, artists, events, galleries, videos by link, Art Gallery, music review/finance, bookings, requests, sellers, orders, users, audit log). Missing: news/blog; non-image media (video, audio, documents) and library search, filters, replace and usage-safe delete; uploaded videos, video order and delete; admin creation and editing of products and music releases; deleting events and galleries; editable legal pages (hard-coded with placeholders); announcement banner and logo; an editable permission matrix; artist availability and press kits; a grouped admin navigation and dashboard.
+
+**Database** (`20261122000000_cms_upgrade_enums.sql`, `20261122000100_cms_upgrade.sql`, additive only):
+
+- `media_type` gains `video`, `audio`, `document` (library only, enforced by a check); `media_assets` gains `mime_type`, `size_bytes`, `original_name`, `duration_seconds`, `updated_at`. New public bucket `site-files` (50 MB; MP4/WebM/MOV, MP3/M4A/AAC/WAV/OGG/FLAC, PDF; no SVG or HTML), writable under `library/` by `pages.edit` or `content.manage`.
+- `video_provider` gains `file`; `videos.file_asset_id` (restrict: a playing file can't be deleted) and `sort_order`.
+- Staff (`content.manage`) may create and delete products and manage variants, download files and the `digital-goods/products/` folder. Ordered products stay protected by `order_items` (restrict).
+- `posts`: news with draft/published/archived, scheduling (`published_at` in the future), category, tags, cover from the library, related artist/event, SEO. Visitors read published, past posts only; `created_by` stays hidden.
+- `artist_availability` (date windows with status, location, note, public flag) and `artists.press_kit_asset_id` (library PDF, restrict).
+- `guard_role_permissions`: the admin role can never lose `users.manage`.
+- Audit triggers on the new tables.
+
+The app works before the migration is applied: new columns and tables are detected (`src/lib/supabase/schema-errors.ts`), public pages fall back to the old shape, and admin screens explain what the update unlocks. Legal pages, settings, the permission matrix, music uploads by staff and event/gallery deletion need no migration.
+
+**Media library.** `src/modules/media/library-*.ts`: browser uploads go straight to Storage with progress (XHR, so storage policies apply), then a server action checks the path, type and size and records the file. Usage is derived from page drafts and live pages, settings, legal pages, news, videos and press kits; deletion is refused while anything uses a file, and only page editors (who can see page usage) may delete. Replacing keeps the id, so every reference shows the new file.
+
+**News.** `src/modules/posts`: bodies are plain text with light markup (`## heading`, lists, quotes, bold/italic/code, safe links, `[[photo|video|audio|file:<id>]]` embeds, a lone YouTube/Vimeo link becomes a player). Nothing is rendered as HTML; links are limited to site paths, anchors, https and mailto. `/news` is a CMS page with a built-in post list; a "Latest news" section can go on any page. New image spec `news-cover` (1920 × 1080, cards crop to 3:2).
+
+**Legal pages.** `src/modules/legal`: stored in `site_pages` as `legal-<doc>` with the same draft/publish functions; the original pages render until a version is published. Starting text was converted from the original pages.
+
+**Verified.** All migrations applied in order to PGlite with Supabase stubs: 35 scenario checks and `supabase/tests/database/cms_upgrade.test.sql` (20 pgTAP assertions through a stand-in); the existing database test files give the same results before and after the migration. 250 unit tests, type check, lint and production build pass; the build and a browser pass ran against the live project without the migration (fallbacks work). Public pages checked in the browser.
+
+**Not verified yet.** The migration is not applied to the Supabase project (no database credentials here), and the signed-in admin screens (uploads, news, products, music upload, legal and permission edits) have not been clicked through with an admin account.

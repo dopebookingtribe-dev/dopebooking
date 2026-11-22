@@ -1,5 +1,10 @@
 import type { ImageSpecId } from "@/modules/media/image-specs";
-import { BUILTIN_BLOCKS, SOCIAL_PLATFORMS, type SectionType } from "./schema";
+import {
+  ANNOUNCEMENT_TONES,
+  BUILTIN_BLOCKS,
+  SOCIAL_PLATFORMS,
+  type SectionType,
+} from "./schema";
 
 /*
  * What the admin editor shows for each section type. The schema in
@@ -103,6 +108,11 @@ export const SECTION_INFO: Record<
   videos: {
     label: "Videos",
     description: "Latest published videos.",
+    addable: true,
+  },
+  posts: {
+    label: "Latest news",
+    description: "The newest published news posts, optionally one category.",
     addable: true,
   },
   products: {
@@ -303,6 +313,19 @@ export const SECTION_FIELDS: Record<SectionType, FieldSpec[]> = {
       label: "Layout",
       options: { feature: "One large, others beside it", grid: "Even grid" },
     },
+  ],
+  posts: [
+    heading(),
+    intro,
+    sectionLink,
+    {
+      kind: "text",
+      name: "category",
+      label: "Only this category",
+      max: 40,
+      hint: "Empty shows every category. Must match the category on the posts exactly.",
+    },
+    { kind: "number", name: "limit", label: "How many", min: 1, max: 6 },
   ],
   products: [
     heading(),
@@ -636,6 +659,41 @@ export const SETTINGS_FIELDS: { title: string; fields: FieldSpec[] }[] = [
     fields: [
       { kind: "text", name: "brand.name", label: "Site name", max: 60 },
       { kind: "text", name: "brand.tagline", label: "Tagline", max: 160 },
+      {
+        kind: "image",
+        name: "brand.logo",
+        label: "Logo (optional)",
+        hint: "Replaces the site name in the header (the name is still read out to screen readers). Empty shows the name in the display font.",
+        guide: "brand-logo",
+      },
+    ],
+  },
+  {
+    title: "Announcement banner",
+    fields: [
+      {
+        kind: "toggle",
+        name: "announcement.enabled",
+        label: "Show a banner above the menu on every page",
+      },
+      {
+        kind: "text",
+        name: "announcement.text",
+        label: "Banner text",
+        max: 160,
+        hint: "One short line, e.g. “Line-up for Boom 2027 announced”.",
+      },
+      {
+        kind: "link",
+        name: "announcement.link",
+        label: "Banner link (optional)",
+      },
+      {
+        kind: "select",
+        name: "announcement.tone",
+        label: "Colour",
+        options: ANNOUNCEMENT_TONES,
+      },
     ],
   },
   {

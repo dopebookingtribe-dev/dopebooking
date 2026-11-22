@@ -20,10 +20,12 @@ const PAGES = [
   "/art-gallery/exhibitions",
   "/art-gallery/artists",
   "/art-gallery/collaborate",
+  "/news",
   "/cart",
   "/login",
   "/signup",
   "/legal/privacy",
+  "/legal/imprint",
   "/legal/music-license",
 ];
 

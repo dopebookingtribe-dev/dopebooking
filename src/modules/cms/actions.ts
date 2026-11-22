@@ -285,74 +285,8 @@ export async function registerLibraryImage(
   return { ok: true, id: asset.id };
 }
 
-const imageDetailsSchema = z.object({
-  alt_text: z
-    .string()
-    .trim()
-    .min(1, "Describe the photo for screen readers.")
-    .max(300),
-  credit: z
-    .string()
-    .trim()
-    .max(120)
-    .transform((value) => (value === "" ? null : value)),
-  focal_x: z.coerce.number().int().min(0).max(100),
-  focal_y: z.coerce.number().int().min(0).max(100),
-});
-
-export async function updateImageDetails(
-  id: string,
-  _prev: SaveResult | null,
-  formData: FormData,
-): Promise<SaveResult> {
-  await requirePermission("pages.edit", "/admin/media");
-  if (!z.uuid().safeParse(id).success) return failed("Unknown image.");
-  const parsed = imageDetailsSchema.safeParse(Object.fromEntries(formData));
-  if (!parsed.success) {
-    return {
-      ok: false,
-      message: parsed.error.issues[0]?.message ?? "Check the fields.",
-      issues: issuesOf(parsed.error),
-    };
-  }
-  const supabase = await createClient();
-  const { error } = await supabase
-    .from("media_assets")
-    .update(parsed.data)
-    .eq("id", id);
-  if (error) return failed("Saving failed. Please try again.");
-  for (const tag of [
-    MEDIA_TAG,
-    ARTISTS_TAG,
-    EVENTS_TAG,
-    GALLERIES_TAG,
-    VIDEOS_TAG,
-    SHOP_TAG,
-  ]) {
-    updateTag(tag);
-  }
-  return { ok: true, message: "Saved.", at: new Date().toISOString() };
-}
-
-export async function deleteLibraryImage(id: string): Promise<SaveResult> {
-  await requirePermission("pages.edit", "/admin/media");
-  if (!z.uuid().safeParse(id).success) return failed("Unknown image.");
-  const supabase = await createClient();
-  const { data: asset } = await supabase
-    .from("media_assets")
-    .select("id, storage_bucket, storage_path")
-    .eq("id", id)
-    .eq("library", "site")
-    .maybeSingle();
-  if (!asset) return failed("Image not found.");
-  const { error } = await supabase.from("media_assets").delete().eq("id", id);
-  if (error) return failed("Could not delete the image.");
-  await supabase.storage
-    .from(asset.storage_bucket)
-    .remove([asset.storage_path]);
-  updateTag(MEDIA_TAG);
-  return { ok: true, message: "Deleted.", at: new Date().toISOString() };
-}
+// Library details, replace and delete live in src/modules/media/library-actions.ts
+// (with usage checks), shared by every media library screen.
 
 // ---------------------------------------------------------------------------
 // Demo content
